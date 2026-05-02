@@ -1,0 +1,1215 @@
+{
+  "memories": [
+    {
+      "id": "c40a5898",
+      "timestamp": "2026-05-02T22:55:57.033182+00:00",
+      "mode": "dictation",
+      "original_text": "See, specifically, I wanted you to go through the whole codebase and I would send you the features like what are there in the app right now and what I want for it to be there, like what features I want to be there in the app. And I basically wanted you to flag certain files, certain lines of files where other features which I would have implemented previously, which I wanted to be removed and made clean. Like I wanted you to make a kind of this thing, like a cleanup of it. So yeah that is why I wanted you.",
+      "final_text": "See, specifically, I wanted you to go through the whole codebase and I would send you the features like what are there in the app right now and what I want for it to be there, like what features I want to be there in the app. And I basically wanted you to flag certain files, certain lines of files where other features which I would have implemented previously, which I wanted to be removed and made clean. Like I wanted you to make a kind of this thing, like a cleanup of it. so yeah that is why I wanted you."
+    },
+    {
+      "id": "059ebc19",
+      "timestamp": "2026-05-02T22:48:08.101146+00:00",
+      "mode": "dictation",
+      "original_text": "Can you even go through the whole project even? Like with this? Or even if I make it public now, can you go through the whole project like all files there? I don't know 200 files might be, Python all those things. Is it possible for you to go through all of it?",
+      "final_text": "Can you even go through the whole project even? Like with this? Or even if I make it public now, can you go through the whole project like all files there? I don't know 200 files might be, Python all those things. Is it possible for you to go through all of it?"
+    },
+    {
+      "id": "2cf1cd37",
+      "timestamp": "2026-05-02T22:45:39.459772+00:00",
+      "mode": "dictation",
+      "original_text": "Like, see, the project itself is like more than 2 GB. So, it's too huge for you to access to. So, is there any way that you can access it and read from there itself and do that? Or if I make it public even?",
+      "final_text": "Like, see, the project itself is like more than 2 GB. so, it's too huge for you to access to. so, is there any way that you can access it and read from there itself and do that? Or if I make it public even?"
+    },
+    {
+      "id": "bf72fc01",
+      "timestamp": "2026-05-02T22:43:26.148609+00:00",
+      "mode": "dictation",
+      "original_text": "Hey can you like what is that can you like access a Git repository if I give you an SSH key or something and analyze it for me in a way that I ask you for doing it can you do that or is there any way for you to access that private repo somehow.",
+      "final_text": "Hey can you like what is that can you like access a Git repository if I give you an SSH key or something and analyze it for me in a way that I ask you for doing it can you do that or is there any way for you to access that private repo somehow."
+    },
+    {
+      "id": "a81d2eb8",
+      "timestamp": "2026-05-02T22:30:07.277588+00:00",
+      "mode": "dictation",
+      "original_text": "Fuck you, nothing is needed, leave it.",
+      "final_text": "Fuck you, nothing is needed, leave it."
+    },
+    {
+      "id": "422349b1",
+      "timestamp": "2026-05-02T22:26:43.571913+00:00",
+      "mode": "dictation",
+      "original_text": "Plan properly. Come back to me with what files, what it does and why it's going to be deleted.",
+      "final_text": "Plan properly. Come back to me with what files, what it does and why it's going to be deleted."
+    },
+    {
+      "id": "5e9e66d7",
+      "timestamp": "2026-05-02T22:26:25.350647+00:00",
+      "mode": "dictation",
+      "original_text": "Okay see you're listing everything for no reason see chat meaning the conversation mode the conversation mode whatever it has like back-end code or it might be the overlay like it might have some settings for the chat tab like which is the tune hub tab right now but yeah like for only that feature like conversing with an ai that is the feature right for that feature whatever is there I want you to take that out not the whole conversation thing like chat panel should not be taken off what the typing and sending files or or what is that, switching on the dictate thing should not be taken out, Guru. Or even the minimize tab is listed, settings is listed. What the fuck are you on? Fucking bead? Just fucking properly think and take out only the conversation feature. What the conversation feature does? It makes me talk to the AI through chatting. So that should be removed simple Conversation feature should be removed. That's it nothing else.",
+      "final_text": "Okay see you're listing everything for no reason see chat meaning the conversation mode the conversation mode whatever it has like back-end code or it might be the overlay like it might have some settings for the chat tab like which is the tune hub tab right now but yeah like for only that feature like conversing with an ai that is the feature right for that feature whatever is there I want you to take that out not the whole conversation thing like chat panel should not be taken off what the typing and sending files or or what is that, switching on the dictate thing should not be taken out, Guru. Or even the minimize tab is listed, settings is listed. What the fuck are you on? Fucking bead? Just fucking properly think and take out only the conversation feature. What the conversation feature does? It makes me talk to the AI through chatting. so that should be removed simple Conversation feature should be removed. That's it nothing else."
+    },
+    {
+      "id": "d07b45bf",
+      "timestamp": "2026-05-02T22:20:45.144834+00:00",
+      "mode": "dictation",
+      "original_text": "Or even better just list what each and every file does in the overlay let's focus on the overlay right now what each and every file does how does it work where is it implemented what does it do in each feature and what all tabs are what all settings are there, everything. I want you to list each and everything as an md file. Make an md file inside the project itself and give it to me. Something that's readable and understandable. I'll go ahead and tell you what should be deleted and according to that you delete the lines.",
+      "final_text": "Or even better just list what each and every file does in the overlay let's focus on the overlay right now what each and every file does how does it work where is it implemented what does it do in each feature and what all tabs are what all settings are there, everything. I want you to list each and everything as an md file. Make an md file inside the project itself and give it to me. Something that's readable and understandable. I'll go ahead and tell you what should be deleted and according to that you delete the lines."
+    },
+    {
+      "id": "eb8624bf",
+      "timestamp": "2026-05-02T22:14:13.501623+00:00",
+      "mode": "dictation",
+      "original_text": "See list all of the things again each file that you're deleting what this does okay everything should be listed and what is not being deleted and what is being kept each of them should be listed okay before you delete them.",
+      "final_text": "See list all of the things again each file that you're deleting what this does okay everything should be listed and what is not being deleted and what is being kept each of them should be listed okay before you delete them."
+    },
+    {
+      "id": "de221070",
+      "timestamp": "2026-05-02T22:11:51.384534+00:00",
+      "mode": "dictation",
+      "original_text": "Okay go ahead and do this for me.",
+      "final_text": "Okay go ahead and do this for me."
+    },
+    {
+      "id": "55a2aed1",
+      "timestamp": "2026-05-02T22:06:14.879909+00:00",
+      "mode": "dictation",
+      "original_text": "Yes, go ahead with it, but don't mess up, please. Don't mess up with any of the other features or the chat thing for the overlay. I'm just telling the conversation feature, so yeah, go ahead with what you told. It's correct.",
+      "final_text": "Yes, go ahead with it, but don't mess up, please. Don't mess up with any of the other features or the chat thing for the overlay. I'm just telling the conversation feature, so yeah, go ahead with what you told. It's correct."
+    },
+    {
+      "id": "2c48e28c",
+      "timestamp": "2026-05-02T22:04:49.746469+00:00",
+      "mode": "dictation",
+      "original_text": "No, no, don't go ahead with anything now. Don't go ahead with anything. You're doing the wrong thing. I told only the chat feature, not the chat tab, like the chat thing it's entirely. I just told the chat feature, which would be the conversation feature with the AI. That should be deleted, not the whole chat thing itself for the whole overlay.",
+      "final_text": "No, no, don't go ahead with anything now. Don't go ahead with anything. You're doing the wrong thing. I told only the chat feature, not the chat tab, like the chat thing it's entirely. I just told the chat feature, which would be the conversation feature with the AI. That should be deleted, not the whole chat thing itself for the whole overlay."
+    },
+    {
+      "id": "9a021837",
+      "timestamp": "2026-05-02T22:00:03.901800+00:00",
+      "mode": "dictation",
+      "original_text": "It is inside the Whis directory, not the Wishtrend website. It's inside the Whis directory.",
+      "final_text": "It is inside the Whis directory, not the Wishtrend website. It's inside the Whis directory."
+    },
+    {
+      "id": "b148e7f1",
+      "timestamp": "2026-05-02T21:57:38.243176+00:00",
+      "mode": "dictation",
+      "original_text": "Before deleting just come up to me and tell what are you deleting and should I proceed with it.",
+      "final_text": "Before deleting just come up to me and tell what are you deleting and should I proceed with it."
+    },
+    {
+      "id": "f97a3684",
+      "timestamp": "2026-05-02T21:56:58.011671+00:00",
+      "mode": "dictation",
+      "original_text": "See there is a chat feature in the app inside Wiztant. So I just want you to delete the whole chat feature itself and the chat tab which is there for it.",
+      "final_text": "See there is a chat feature in the app inside Wiztant. so I just want you to delete the whole chat feature itself and the chat tab which is there for it."
+    },
+    {
+      "id": "7a3b2255",
+      "timestamp": "2026-05-02T21:55:59.047735+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to delete the whole chat tab and chat settings if it's there and the chat architecture how it works all that I want you to remove every 1 of them and list what you removed and what it was for and yeah remove everything about the chat overlay.",
+      "final_text": "I want you to delete the whole chat tab and chat settings if it's there and the chat architecture how it works all that I want you to remove every 1 of them and list what you removed and what it was for and yeah remove everything about the chat overlay."
+    },
+    {
+      "id": "494759a3",
+      "timestamp": "2026-05-02T21:54:42.634282+00:00",
+      "mode": "dictation",
+      "original_text": "Hey also for the overlay pill, it is not draggable whenever I click twice on it. It should be draggable when I click twice on it or even left click twice on it. Right now it is draggable only when I left click twice on it and then drag. It should be even possible when I just click on top of it even without left click or right click just tap twice on it and drag should also work.",
+      "final_text": "Hey also for the overlay pill, it is not draggable whenever I click twice on it. It should be draggable when I click twice on it or even left click twice on it. Right now it is draggable only when I left click twice on it and then drag. It should be even possible when I just click on top of it even without left click or right click just tap twice on it and drag should also work."
+    },
+    {
+      "id": "b7c24667",
+      "timestamp": "2026-05-02T21:52:46.196420+00:00",
+      "mode": "dictation",
+      "original_text": "Will add a thing where like what is that.",
+      "final_text": "Will add a thing where like what is that."
+    },
+    {
+      "id": "37f46a24",
+      "timestamp": "2026-05-02T21:51:51.051813+00:00",
+      "mode": "dictation",
+      "original_text": "Here also for the overlay pin.",
+      "final_text": "Here also for the overlay pin."
+    },
+    {
+      "id": "d507e756",
+      "timestamp": "2026-05-02T21:48:23.082236+00:00",
+      "mode": "agent",
+      "original_text": "Open Chrome and search for Python docs",
+      "final_text": "Opened Chrome, navigated to google.com, searched for Python docs, and opened the official documentation page."
+    },
+    {
+      "id": "22e62b3f",
+      "timestamp": "2026-05-02T21:47:06.639465+00:00",
+      "mode": "dictation",
+      "original_text": "And add just the models that are optimal to do this, would be optimal to do this. Like Sonnet 4. 6 would be optimal, GLM 5. 1 would be optimal, Kimi K2. 6 would be optimal, all those.",
+      "final_text": "And add just the models that are optimal to do this, would be optimal to do this. Like Sonnet 4. 6 would be optimal, GLM 5. 1 would be optimal, Kimi K2. 6 would be optimal, all those."
+    },
+    {
+      "id": "fc1c2494",
+      "timestamp": "2026-05-02T21:46:34.240279+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, I want the Tune tab itself to be the Tune Hub tab, not the new chat tab. And add some settings for the Tune Hub too, whatever would be optimal for adding as a setting. Add those models what they want to use for doing the tuning and stuff.",
+      "final_text": "Hey, I want the Tune tab itself to be the Tune Hub tab, not the new chat tab. And add some settings for the Tune Hub too, whatever would be optimal for adding as a setting. Add those models what they want to use for doing the tuning and stuff."
+    },
+    {
+      "id": "31ab779d",
+      "timestamp": "2026-05-02T21:45:02.678618+00:00",
+      "mode": "dictation",
+      "original_text": "In the Memories tab, the agent chats context isn't being updated as a memory. Make it so that it updates with the summary of what the agent did as a summary in the memory. So do that for me.",
+      "final_text": "In the Memories tab, the agent chats context isn't being updated as a memory. Make it so that it updates with the summary of what the agent did as a summary in the memory. so do that for me."
+    },
+    {
+      "id": "6be9f92b",
+      "timestamp": "2026-05-02T21:42:48.824709+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, the. .. Like the. .. This thing, the dictation is. .. Isn't actually like properly interpreting words in between like when I don't say anything it is putting dev, dev, dev over there instead of writing something properly 1 more thing would be that like imagine I say what's the deal and it doesn't put a? To that question and yeah I want you to fix these for the dictation feature the dictation this thing so yeah come up with a plan on how you can implement this and how can it help the dictation to become more precise and more to the point and 1 more thing if I tell like. Md or. Txt or whatever if I tell. It is interpreting it as a. And it is leaving a space and then putting what I told so it should be uh it should be knowing all the. Like things what are there like XML, xlsx and whatever is there should be like what is that there in the database so that it identifies that as that and then puts that so if I tell. It would be a. And 1 more thing would be the punctuation marks aren't proper at times and yeah what I want you to do is go ahead and make a plan on how you can implement this don't mess up any of the things what are already implemented just add things and delete things if not needed but add things which would actually make it better in this certain way is what I'm asking you to do. So make a plan on how you can implement this further.",
+      "final_text": "Hey, the. .. Like the. .. This thing, the dictation is. .. Isn't actually like properly interpreting words in between like when I don't say anything it is putting dev, dev, dev over there instead of writing something properly 1 more thing would be that like imagine I say what's the deal and it doesn't put a? To that question and yeah I want you to fix these for the dictation feature the dictation this thing so yeah come up with a plan on how you can implement this and how can it help the dictation to become more precise and more to the point and 1 more thing if I tell like. md or. txt or whatever if I tell. It is interpreting it as a. And it is leaving a space and then putting what I told so it should be uh it should be knowing all the. Like things what are there like XML, xlsx and whatever is there should be like what is that there in the database so that it identifies that as that and then puts that so if I tell. It would be a. And 1 more thing would be the punctuation marks aren't proper at times and yeah what I want you to do is go ahead and make a plan on how you can implement this don't mess up any of the things what are already implemented just add things and delete things if not needed but add things which would actually make it better in this certain way is what I'm asking you to do. so make a plan on how you can implement this further."
+    },
+    {
+      "id": "b284f221",
+      "timestamp": "2026-05-02T21:38:23.356286+00:00",
+      "mode": "dictation",
+      "original_text": "Hey 1 problem the tune tab is getting all the data like the conversation history of the agent and 1 more thing is the tune hub isn't implemented still on the overlay for some reason just look through it what is wrong and implement it properly.",
+      "final_text": "Hey 1 problem the tune tab is getting all the data like the conversation history of the agent and 1 more thing is the tune hub isn't implemented still on the overlay for some reason just look through it what is wrong and implement it properly."
+    },
+    {
+      "id": "cff4ac85",
+      "timestamp": "2026-05-02T21:28:39.676687+00:00",
+      "mode": "dictation",
+      "original_text": "Railobugs. Md",
+      "final_text": "Railobugs. md"
+    },
+    {
+      "id": "22d9af88",
+      "timestamp": "2026-05-02T21:22:54.874904+00:00",
+      "mode": "dictation",
+      "original_text": "Prompt analytics is not functional yet nothing is connected to it the analytics is showing nothing please connect everything also the cost analysis should be added.",
+      "final_text": "Prompt analytics is not functional yet nothing is connected to it the analytics is showing nothing please connect everything also the cost analysis should be added."
+    },
+    {
+      "id": "fbb116c4",
+      "timestamp": "2026-05-02T21:18:52.701361+00:00",
+      "mode": "dictation",
+      "original_text": "Automation. It should ask the interval also when in what interval you want. And the channels of delivery based on the channel which is added. Added if it is not added just in small tell to add the channels in the automation.",
+      "final_text": "Automation. It should ask the interval also when in what interval you want. And the channels of delivery based on the channel which is added. Added if it is not added just in small tell to add the channels in the automation."
+    },
+    {
+      "id": "bdb2f3e2",
+      "timestamp": "2026-05-02T21:18:08.262562+00:00",
+      "mode": "dictation",
+      "original_text": "When during the bot is getting created by the architect, when it is creating a channel.",
+      "final_text": "When during the bot is getting created by the architect, when it is creating a channel."
+    },
+    {
+      "id": "e3ccbe53",
+      "timestamp": "2026-05-02T21:15:53.750512+00:00",
+      "mode": "dictation",
+      "original_text": "When a dataset is created, there should be an option wherein an agent analyzes the dataset and gives a solution to edit what is missing and what is to be done. Or you can give an option within the architect wherein the user can select a data set and tell the architect to change it meaning within the architect bot edit is there right there within that they can add a data set until that data set to be changed meaning not the data set to be changed using the data as said do the changes needed.",
+      "final_text": "When a dataset is created, there should be an option wherein an agent analyzes the dataset and gives a solution to edit what is missing and what is to be done. Or you can give an option within the architect wherein the user can select a data set and tell the architect to change it meaning within the architect bot edit is there right there within that they can add a data set until that data set to be changed meaning not the data set to be changed using the data as said do the changes needed."
+    },
+    {
+      "id": "dfb0790c",
+      "timestamp": "2026-05-02T21:11:30.546756+00:00",
+      "mode": "dictation",
+      "original_text": "In the traces page within the comments, wherein there is an option to give the comment for a trace, when I am giving a comment and tagging a user with his user I'd that time, when I have tagged and posted that comment, in the notifications the comment is not shown that the user is tagged notification itself is not appearing.",
+      "final_text": "In the traces page within the comments, wherein there is an option to give the comment for a trace, when I am giving a comment and tagging a user with his user I'd that time, when I have tagged and posted that comment, in the notifications the comment is not shown that the user is tagged notification itself is not appearing."
+    },
+    {
+      "id": "ebebb98d",
+      "timestamp": "2026-05-02T21:09:20.398143+00:00",
+      "mode": "dictation",
+      "original_text": "The settings button should not be there inside the filters page.",
+      "final_text": "The settings button should not be there inside the filters page."
+    },
+    {
+      "id": "29f72b4c",
+      "timestamp": "2026-05-02T21:08:07.387031+00:00",
+      "mode": "dictation",
+      "original_text": "The cost of the model LLM call or whatever it has. The cost is not shown in the traces.",
+      "final_text": "The cost of the model LLM call or whatever it has. The cost is not shown in the traces."
+    },
+    {
+      "id": "a4069d11",
+      "timestamp": "2026-05-02T21:06:45.336327+00:00",
+      "mode": "dictation",
+      "original_text": "Human in the loop feature is missing particularly in such cases like Swigis for a matter wherein an user wants to speak with an agent right that time it is voluntarily that user is asking for and the agent should be able to connect to the human so in that time the user should be able chat right that part is not there yet please add it.",
+      "final_text": "Human in the loop feature is missing particularly in such cases like Swigis for a matter wherein an user wants to speak with an agent right that time it is voluntarily that user is asking for and the agent should be able to connect to the human so in that time the user should be able chat right that part is not there yet please add it."
+    },
+    {
+      "id": "bbb511c9",
+      "timestamp": "2026-05-02T20:58:32.898184+00:00",
+      "mode": "dictation",
+      "original_text": "After disabling the bot which was enabled as an MCP, the installed MCPs inside the MCP hub is still showing the Baiju's bot which was the bot which I created. I have still an MCP so that should not be there. If it's disabled it should be removed from the MCP hub. If it is enabled it should stay in the MCP hub.",
+      "final_text": "After disabling the bot which was enabled as an MCP, the installed MCPs inside the MCP hub is still showing the Baiju's bot which was the bot which I created. I have still an MCP so that should not be there. If it's disabled it should be removed from the MCP hub. If it is enabled it should stay in the MCP hub."
+    },
+    {
+      "id": "bb037889",
+      "timestamp": "2026-05-02T20:53:08.487508+00:00",
+      "mode": "dictation",
+      "original_text": "There is no configuration option too.",
+      "final_text": "There is no configuration option too."
+    },
+    {
+      "id": "cebaaca2",
+      "timestamp": "2026-05-02T20:53:00.228114+00:00",
+      "mode": "dictation",
+      "original_text": "If the MCP is installed, there should be an edit button to further edit the MCPs.",
+      "final_text": "If the MCP is installed, there should be an edit button to further edit the MCPs."
+    },
+    {
+      "id": "a520e5f4",
+      "timestamp": "2026-05-02T20:48:07.859105+00:00",
+      "mode": "dictation",
+      "original_text": "The logged in devices for that account should be shown inside the settings.",
+      "final_text": "The logged in devices for that account should be shown inside the settings."
+    },
+    {
+      "id": "9e95cb86",
+      "timestamp": "2026-05-02T20:44:52.289648+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to first connect all 3 bots which would be the orchestrator and the prospect specialist and the outreach specialist.",
+      "final_text": "I want you to first connect all 3 bots which would be the orchestrator and the prospect specialist and the outreach specialist."
+    },
+    {
+      "id": "1594ff7b",
+      "timestamp": "2026-05-02T20:44:07.088293+00:00",
+      "mode": "dictation",
+      "original_text": "For the",
+      "final_text": "For the"
+    },
+    {
+      "id": "2c01b302",
+      "timestamp": "2026-05-02T20:43:31.431435+00:00",
+      "mode": "dictation",
+      "original_text": "In the edit board imagine I make an orchestrator it should ask which box and what's should I connect to the orchestrator as a drop down menu where it shows the existing bots and you select which should be connected.",
+      "final_text": "In the edit board imagine I make an orchestrator it should ask which box and what's should I connect to the orchestrator as a drop down menu where it shows the existing bots and you select which should be connected."
+    },
+    {
+      "id": "1704c24e",
+      "timestamp": "2026-05-02T20:42:35.574517+00:00",
+      "mode": "dictation",
+      "original_text": "The. .. All 3 bots haven't been connected yet so that is what I want you to do first.",
+      "final_text": "The. .. All 3 bots haven't been connected yet so that is what I want you to do first."
+    },
+    {
+      "id": "2bb21d22",
+      "timestamp": "2026-05-02T20:41:25.276795+00:00",
+      "mode": "dictation",
+      "original_text": "The orchestrator is still not connected to all 3 of them. This is what it is showing. The bot to bot connection isn't made so it should be made.",
+      "final_text": "The orchestrator is still not connected to all 3 of them. This is what it is showing. The bot to bot connection isn't made so it should be made."
+    },
+    {
+      "id": "9fc8250b",
+      "timestamp": "2026-05-02T20:40:16.283329+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to create this.",
+      "final_text": "I want you to create this."
+    },
+    {
+      "id": "bd8e2d9d",
+      "timestamp": "2026-05-02T20:39:35.221915+00:00",
+      "mode": "dictation",
+      "original_text": "For the multi-agent system that we created, there is no bot to bot connections configured. So, do that.",
+      "final_text": "For the multi-agent system that we created, there is no bot to bot connections configured. so, do that."
+    },
+    {
+      "id": "d40e777b",
+      "timestamp": "2026-05-02T20:34:31.205739+00:00",
+      "mode": "dictation",
+      "original_text": "Inside the bot edit there should be a group bot edit within the architecture.",
+      "final_text": "Inside the bot edit there should be a group bot edit within the architecture."
+    },
+    {
+      "id": "afb873ea",
+      "timestamp": "2026-05-02T20:30:30.557590+00:00",
+      "mode": "dictation",
+      "original_text": "Go ahead and create the guardrails for me. Sorry, for the lead system team.",
+      "final_text": "go ahead and create the guardrails for me. Sorry, for the lead system team."
+    },
+    {
+      "id": "4c99a093",
+      "timestamp": "2026-05-02T20:13:29.373436+00:00",
+      "mode": "dictation",
+      "original_text": "Is there any guardrails connected to it for how it should go on with getting the clients and then even ensuring that it is the correct contact details. And even for the outreach specialist who like takes the leads and sends emails to the leads or even makes a this thing message for me like a proposed message for the number what it's what it specifies for that business. Is there any guardrails made for it to not get out of it? And even edge cases? I guess it is not created still, so just help me with that.",
+      "final_text": "Is there any guardrails connected to it for how it should go on with getting the clients and then even ensuring that it is the correct contact details. And even for the outreach specialist who like takes the leads and sends emails to the leads or even makes a this thing message for me like a proposed message for the number what it's what it specifies for that business. Is there any guardrails made for it to not get out of it? And even edge cases? I guess it is not created still, so just help me with that."
+    },
+    {
+      "id": "dae1274d",
+      "timestamp": "2026-05-02T20:11:18.692100+00:00",
+      "mode": "dictation",
+      "original_text": "Hi, what can you do for me?",
+      "final_text": "Hi, what can you do for me?"
+    },
+    {
+      "id": "3ba11029",
+      "timestamp": "2026-05-02T20:09:57.104755+00:00",
+      "mode": "dictation",
+      "original_text": "The prompt for the bot to follow what it should follow.",
+      "final_text": "The prompt for the bot to follow what it should follow."
+    },
+    {
+      "id": "324fb879",
+      "timestamp": "2026-05-02T20:08:25.682170+00:00",
+      "mode": "dictation",
+      "original_text": "You had actually told that the Baijuice will be made as the orchestrator but it was not made as an orchestrator. So just go ahead and create an orchestrator for the multi-agent system that you have created.",
+      "final_text": "You had actually told that the Baijuice will be made as the orchestrator but it was not made as an orchestrator. so just go ahead and create an orchestrator for the multi-agent system that you have created."
+    },
+    {
+      "id": "84d54cab",
+      "timestamp": "2026-05-02T20:07:35.258581+00:00",
+      "mode": "dictation",
+      "original_text": "Or better give an option or just tell the user that sudden shift in multi-agentic system flow that is being created will leave the first bot aside because to change the first bot to an orchestrating multi-agentic system the whole thing should be changed around it. So better to live the first bot and Continue. dev. Dev with the multi-agentic system which is being created further. It's better to just give them a warning.",
+      "final_text": "Or better give an option or just tell the user that sudden shift in multi-agentic system flow that is being created will leave the first bot aside because to change the first bot to an orchestrating multi-agentic system the whole thing should be changed around it. so better to live the first bot and Continue.dev. dev. dev with the multi-agentic system which is being created further. It's better to just give them a warning."
+    },
+    {
+      "id": "cf4507ad",
+      "timestamp": "2026-05-02T20:06:48.921586+00:00",
+      "mode": "dictation",
+      "original_text": "Make sure to even change the initial first bot which is created by changing it's prompt or just leaving the first bot which is created as it is and that will be better just leave the first bot as it is and create an orchestrator bot separately.",
+      "final_text": "Make sure to even change the initial first bot which is created by changing it's prompt or just leaving the first bot which is created as it is and that will be better just leave the first bot as it is and create an orchestrator bot separately."
+    },
+    {
+      "id": "e3b33e49",
+      "timestamp": "2026-05-02T20:06:09.491657+00:00",
+      "mode": "dictation",
+      "original_text": "The architect is not knowing to create an orchestrator bot when creating a multi-agentic system. It is just creating the system. For example, the current flow was that a single bot was proposed and properly it created the other bot. Then I asked can we create a multi-agentic system after the first single bot was created. Once that was created, I changed my mind and I told it to make it into a multi-agent system. So the first bot which was created is a separate bot of it's own. But it proposed that we will create a multi-agent system to do this work. When it did it, it did not know to create an orchestrator agent because the orchestrator will be the 1 which will connect 2 different bots and stuff right so that is important.",
+      "final_text": "The architect is not knowing to create an orchestrator bot when creating a multi-agentic system. It is just creating the system. For example, the current flow was that a single bot was proposed and properly it created the other bot. Then I asked can we create a multi-agentic system after the first single bot was created. Once that was created, I changed my mind and I told it to make it into a multi-agent system. so the first bot which was created is a separate bot of it's own. But it proposed that we will create a multi-agent system to do this work. When it did it, it did not know to create an orchestrator agent because the orchestrator will be the 1 which will connect 2 different bots and stuff right so that is important."
+    },
+    {
+      "id": "7366ef98",
+      "timestamp": "2026-05-02T19:56:43.476700+00:00",
+      "mode": "dictation",
+      "original_text": "I would like even another like to make the orchestrator even talk with both of the agents and come up with what they are doing right now what should be done for the next guy and the same way around. So it should orchestrate it.",
+      "final_text": "I would like even another like to make the orchestrator even talk with both of the agents and come up with what they are doing right now what should be done for the next guy and the same way around. so it should orchestrate it."
+    },
+    {
+      "id": "f4f42c03",
+      "timestamp": "2026-05-02T19:55:07.927563+00:00",
+      "mode": "dictation",
+      "original_text": "Do we need a multi-agentic system for this? Can I even make it better by making it so that byjuice finds the prospects and should I set up another bot where it goes to my gmail, I will add a gmail connector and it will access my gmail and send the mail to them if the mail is found. And if not it will send their number and what is the proposed message for them.",
+      "final_text": "Do we need a multi-agentic system for this? Can I even make it better by making it so that byjuice finds the prospects and should I set up another bot where it goes to my gmail, I will add a gmail connector and it will access my gmail and send the mail to them if the mail is found. And if not it will send their number and what is the proposed message for them."
+    },
+    {
+      "id": "15afd914",
+      "timestamp": "2026-05-02T19:48:38.899598+00:00",
+      "mode": "dictation",
+      "original_text": "I wanted to provide the perfect, the real contact details. If the email is not existing, it should find the number. If the number is not existing, it should go ahead and tell that this is the business. You can approach it or either find it by yourself. And if either of them is existing, it should send that to me. And it should not make up it's own number or own email.",
+      "final_text": "I wanted to provide the perfect, the real contact details. If the email is not existing, it should find the number. If the number is not existing, it should go ahead and tell that this is the business. You can approach it or either find it by yourself. And if either of them is existing, it should send that to me. And it should not make up it's own number or own email."
+    },
+    {
+      "id": "437d43e6",
+      "timestamp": "2026-05-02T19:43:39.480262+00:00",
+      "mode": "dictation",
+      "original_text": "MCP server building is failing. The install MCP server is failing.",
+      "final_text": "MCP server building is failing. The install MCP server is failing."
+    },
+    {
+      "id": "c966bb33",
+      "timestamp": "2026-05-02T19:25:51.298592+00:00",
+      "mode": "dictation",
+      "original_text": "Make it so that the progress bar is shown even if the progress of the bot setup is the drop down thing is closed. Even if it is closed the progress bar should be seen but then just in a thin line.",
+      "final_text": "Make it so that the progress bar is shown even if the progress of the bot setup is the drop down thing is closed. Even if it is closed the progress bar should be seen but then just in a thin line."
+    },
+    {
+      "id": "b6e73141",
+      "timestamp": "2026-05-02T19:20:54.345255+00:00",
+      "mode": "dictation",
+      "original_text": "Only show the models which are good for agentic building.",
+      "final_text": "Only show the models which are good for agentic building."
+    },
+    {
+      "id": "b3a97313",
+      "timestamp": "2026-05-02T19:20:01.371563+00:00",
+      "mode": "dictation",
+      "original_text": "It should show the recommended models based on what the task is.",
+      "final_text": "It should show the recommended models based on what the task is."
+    },
+    {
+      "id": "106e3719",
+      "timestamp": "2026-05-02T19:17:01.394780+00:00",
+      "mode": "dictation",
+      "original_text": "The copy and restore icon should be always shown on the text message.",
+      "final_text": "The copy and restore icon should be always shown on the text message."
+    },
+    {
+      "id": "65ed398a",
+      "timestamp": "2026-05-02T19:16:14.661950+00:00",
+      "mode": "dictation",
+      "original_text": "If the model doesn't work, if there is an error, it should ask if it should Continue. dev. Dev with a different model and then it should ask for a selector.",
+      "final_text": "If the model doesn't work, if there is an error, it should ask if it should Continue.dev. dev. dev with a different model and then it should ask for a selector."
+    },
+    {
+      "id": "667c767c",
+      "timestamp": "2026-05-02T19:15:54.066792+00:00",
+      "mode": "dictation",
+      "original_text": "When text is copied, if the copy button is pressed, it should show that it's copied like a kind of tick mark.",
+      "final_text": "When text is copied, if the copy button is pressed, it should show that it's copied like a kind of tick mark."
+    },
+    {
+      "id": "023a4dcd",
+      "timestamp": "2026-05-02T19:14:29.759662+00:00",
+      "mode": "dictation",
+      "original_text": "The model is changed again and again the same thing should be done.",
+      "final_text": "The model is changed again and again the same thing should be done."
+    },
+    {
+      "id": "675ff1fc",
+      "timestamp": "2026-05-02T19:14:13.543523+00:00",
+      "mode": "dictation",
+      "original_text": "The models which I select previously should be always selected even if I refresh the page or end the like what is it close the app or open it again it should be having the same model which I had selected previously. So there should be state management.",
+      "final_text": "The models which I select previously should be always selected even if I refresh the page or end the like what is it close the app or open it again it should be having the same model which I had selected previously. so there should be state management."
+    },
+    {
+      "id": "4b83cb75",
+      "timestamp": "2026-05-02T19:13:16.523710+00:00",
+      "mode": "dictation",
+      "original_text": "Only the top models which are actually really good at agent building should be listed. Example would be GLM 5. 1, Sonnet 4. 6 and where do you look on this? Google Gemini. Google Gemini 3. 1 and all those.",
+      "final_text": "Only the top models which are actually really good at agent building should be listed. example would be GLM 5. 1, Sonnet 4. 6 and where do you look on this? Google Gemini. Google Gemini 3. 1 and all those."
+    },
+    {
+      "id": "cdf9823f",
+      "timestamp": "2026-05-02T19:08:16.754150+00:00",
+      "mode": "dictation",
+      "original_text": "I have to change the model. Do you need to change the model? I don't know. I don't know. Oh, I don't know. I don't know. What? I need to change the model. What is it? It's Grok 4. 3. I don't know how to change the Grok. Grok is 4. 2 Oh no, I'm not mistaken. I'm not going to change the note. Why? I'm going to check the top model search. If you choose to choose 1. Hey Grok is powerful. No, no, no. I don't have to bullshit. I don't want to call the architect nonsense. I don't want to call the quality of the Sonnet. The recent Sonnet model. I don't have a scroll, I don't know how to use it. I don't know how to use it. I don't know how to use it. I don't know how to use it. Only the top models will be available. Only the 3 top models. Google's top model not Opus in Sonata pro no Google antenna correct version working version good for agentic agentic GLM 5. 1 highest rated in agentic tasks agentic building like GLM 5. 1 sorry GLM 5. 1.",
+      "final_text": "I have to change the model. Do you need to change the model? I don't know. I don't know. Oh, I don't know. I don't know. What? I need to change the model. What is it? It's Grok 4. 3. I don't know how to change the Grok. Grok is 4. 2 Oh no, I'm not mistaken. I'm not going to change the note. Why? I'm going to check the top model search. If you choose to choose 1. Hey Grok is powerful. No, no, no. I don't have to bullshit. I don't want to call the architect nonsense. I don't want to call the quality of the Sonnet. The recent Sonnet model. I don't have a scroll, I don't know how to use it. I don't know how to use it. I don't know how to use it. I don't know how to use it. Only the top models will be available. Only the 3 top models. Google's top model not Opus in Sonata pro no Google antenna correct version working version good for agentic agentic GLM 5. 1 highest rated in agentic tasks agentic building like GLM 5. 1 sorry GLM 5. 1."
+    },
+    {
+      "id": "c79064e8",
+      "timestamp": "2026-05-02T19:06:28.342030+00:00",
+      "mode": "dictation",
+      "original_text": "It should be able to even fetch details about the businesses which it's filtering as clients. It should be able to get the details about the clients like the businesses in such a way that I could benefit off of that. I can even quote things, what is going on in their business, what would help them if I did the website and what thing if I implement inside the website would actually help their business.",
+      "final_text": "It should be able to even fetch details about the businesses which it's filtering as clients. It should be able to get the details about the clients like the businesses in such a way that I could benefit off of that. I can even quote things, what is going on in their business, what would help them if I did the website and what thing if I implement inside the website would actually help their business."
+    },
+    {
+      "id": "6781be72",
+      "timestamp": "2026-05-02T19:05:36.112234+00:00",
+      "mode": "dictation",
+      "original_text": "I want the bot to be straight and to the topic. Like it should not go out of the topic. It should properly explain about how the businesses which it lists for me. How should I approach them? How might I talk to them? How can I acquire them as a client? And all that.",
+      "final_text": "I want the bot to be straight and to the topic. Like it should not go out of the topic. It should properly explain about how the businesses which it lists for me. How should I approach them? How might I talk to them? How can I acquire them as a client? And all that."
+    },
+    {
+      "id": "9bd1c693",
+      "timestamp": "2026-05-02T19:04:26.485138+00:00",
+      "mode": "dictation",
+      "original_text": "I will measure success based on how many perfect clients it fetches me. Things like clients who actually want a website and are prompting to get the website done for them. Those kind of people would be a success to me.",
+      "final_text": "I will measure success based on how many perfect clients it fetches me. Things like clients who actually want a website and are prompting to get the website done for them. Those kind of people would be a success to me."
+    },
+    {
+      "id": "5f1f64c4",
+      "timestamp": "2026-05-02T19:01:52.318501+00:00",
+      "mode": "dictation",
+      "original_text": "I want the bot to fetch me clients who don't have a website currently, who aren't like are new into the business or are looking for a website or are on LinkedIn but they don't have a website and would be a great addition for them. And examples would be cafes, restaurants, other small businesses which would need a website, people who are selling products, all those, etc.",
+      "final_text": "I want the bot to fetch me clients who don't have a website currently, who aren't like are new into the business or are looking for a website or are on LinkedIn but they don't have a website and would be a great addition for them. And examples would be cafes, restaurants, other small businesses which would need a website, people who are selling products, all those, etc."
+    },
+    {
+      "id": "80132ed8",
+      "timestamp": "2026-05-02T18:56:16.660900+00:00",
+      "mode": "dictation",
+      "original_text": "Want you to implement all of it into the overlay app, the main app.",
+      "final_text": "Want you to implement all of it into the overlay app, the main app."
+    },
+    {
+      "id": "4516fa04",
+      "timestamp": "2026-05-02T16:15:33.466977+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and read through the Kimi agent tune hub feature overview folder each part of it I want you to read perfectly and implement 1 by 1 by 1 in phases all of them part 1 part 2 part 3 part 4 part 5 part 6 plan tune hub architecture tune hub master implementation tune hub phase implementation tune hub product strategy tune tuner implementation plans all those I want you to read each and every md file properly, thoroughly throughout the whole md file. How many ever words it might be, how many ever lines it might be, I want you to read each and everything of it and follow the plan through phases.",
+      "final_text": "I want you to go ahead and read through the Kimi agent tune hub feature overview folder each part of it I want you to read perfectly and implement 1 by 1 by 1 in phases all of them part 1 part 2 part 3 part 4 part 5 part 6 plan tune hub architecture tune hub master implementation tune hub phase implementation tune hub product strategy tune tuner implementation plans all those I want you to read each and every md file properly, thoroughly throughout the whole md file. How many ever words it might be, how many ever lines it might be, I want you to read each and everything of it and follow the plan through phases."
+    },
+    {
+      "id": "e6b861f0",
+      "timestamp": "2026-05-02T15:24:51.307592+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to make a whole implementation strategy with all the codes and everything that how it should work how should it React to everything and all that make a whole mistake.",
+      "final_text": "I want you to make a whole implementation strategy with all the codes and everything that how it should work how should it React to everything and all that make a whole mistake."
+    },
+    {
+      "id": "cbf9d0cc",
+      "timestamp": "2026-05-02T15:02:20.529608+00:00",
+      "mode": "dictation",
+      "original_text": "Now just go through the implementation plan and implement the whole thing.",
+      "final_text": "Now just go through the implementation plan and implement the whole thing."
+    },
+    {
+      "id": "02033712",
+      "timestamp": "2026-05-02T14:57:33.084057+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go through everything, all the md files, all the Markdown files inside this folder, all 3 of them and follow the plans implementation. So the plans implementation just read it at the end but then I want you to go through whatever is specified in this and learn it. And updated in the agents. Md.",
+      "final_text": "I want you to go through everything, all the md files, all the Markdown files inside this folder, all 3 of them and follow the plans implementation. so the plans implementation just read it at the end but then I want you to go through whatever is specified in this and learn it. And updated in the agents. md."
+    },
+    {
+      "id": "b4fea92f",
+      "timestamp": "2026-05-02T14:37:39.673496+00:00",
+      "mode": "dictation",
+      "original_text": "The orientation isn't still switching up. Fixing.",
+      "final_text": "The orientation isn't still switching up. Fixing."
+    },
+    {
+      "id": "4ae4ebd8",
+      "timestamp": "2026-05-02T14:17:53.440303+00:00",
+      "mode": "dictation",
+      "original_text": "When launching it is in the correct orientation, but when again dragging it and putting it down and then putting it in the left side or right side, it is not having the correct orientation. And 1 more thing, the kind of pill state, the. Which is in the center of the pill, that is not sized properly according to how it is when it's in the top or bottom, in the horizontal orientation. I want the same thing, but different orientation, that's it.",
+      "final_text": "When launching it is in the correct orientation, but when again dragging it and putting it down and then putting it in the left side or right side, it is not having the correct orientation. And 1 more thing, the kind of pill state, the. Which is in the center of the pill, that is not sized properly according to how it is when it's in the top or bottom, in the horizontal orientation. I want the same thing, but different orientation, that's it."
+    },
+    {
+      "id": "b931da1b",
+      "timestamp": "2026-05-02T13:30:32.927978+00:00",
+      "mode": "dictation",
+      "original_text": "You made the vertical pill bounds more larger but then it is vertically oriented throughout like what is that? Top and bottom, left and right both. Sorry all 4. So I want you to make it so that it's only for the left and right and for the top and bottom it should be horizontally oriented and it should be the same size as it was before this.",
+      "final_text": "You made the vertical pill bounds more larger but then it is vertically oriented throughout like what is that? top and bottom, left and right both. Sorry all 4. so I want you to make it so that it's only for the left and right and for the top and bottom it should be horizontally oriented and it should be the same size as it was before this."
+    },
+    {
+      "id": "d44436d1",
+      "timestamp": "2026-05-02T13:21:22.809153+00:00",
+      "mode": "dictation",
+      "original_text": "Also make it so that the pill becomes vertical like it's horizontal right now. Make it so that the pill becomes vertical whenever it's in the left side or the right.",
+      "final_text": "Also make it so that the pill becomes vertical like it's horizontal right now. Make it so that the pill becomes vertical whenever it's in the left side or the right."
+    },
+    {
+      "id": "3a65efda",
+      "timestamp": "2026-05-02T13:20:42.003295+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and open Chrome, navigate to YouTube, play the most recent video of MrBeast. Education part of that was saying we're going to build a product that gave you aйh happy guy fullyisation there I'm saying that my agent is NT Pharaoh active man yeah Also make it so that the orientation of the bill like what is that turns upwards like what is that it's horizontal right now make it so that it like.",
+      "final_text": "I want you to go ahead and open Chrome, navigate to YouTube, play the most recent video of MrBeast. Education part of that was saying we're going to build a product that gave you aйh happy guy fullyisation there I'm saying that my agent is NT Pharaoh active man yeah Also make it so that the orientation of the bill like what is that turns upwards like what is that it's horizontal right now make it so that it like."
+    },
+    {
+      "id": "8f62bdfa",
+      "timestamp": "2026-05-02T13:19:13.503336+00:00",
+      "mode": "dictation",
+      "original_text": "Okay the draggable thing is working but then make it so that even if it is double touch and dragged on it should work double click double left click is working but then make it so that like double touch also drags it helps sorry makes it draggable.",
+      "final_text": "Okay the draggable thing is working but then make it so that even if it is double touch and dragged on it should work double click double left click is working but then make it so that like double touch also drags it helps sorry makes it draggable."
+    },
+    {
+      "id": "22a74543",
+      "timestamp": "2026-05-02T13:10:45.886563+00:00",
+      "mode": "dictation",
+      "original_text": "See only the pill should be draggable the pill isn't draggable still the overlay app should be according to where the pill is and it should open at the state of that pill right next to it in the correct place as I told you in the architecture so make the overlay pill movable it's not working.",
+      "final_text": "See only the pill should be draggable the pill isn't draggable still the overlay app should be according to where the pill is and it should open at the state of that pill right next to it in the correct place as I told you in the architecture so make the overlay pill movable it's not working."
+    },
+    {
+      "id": "f7854044",
+      "timestamp": "2026-05-02T13:04:45.169582+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and implement like plan and implement on how this can be implemented on the tune hub for each of it for whatever I have listed in this as a tune hub. How can it be implemented in phases? Just go ahead and make a plan on this.",
+      "final_text": "I want you to go ahead and implement like plan and implement on how this can be implemented on the tune hub for each of it for whatever I have listed in this as a tune hub. How can it be implemented in phases? Just go ahead and make a plan on this."
+    },
+    {
+      "id": "8ea5fd84",
+      "timestamp": "2026-05-02T13:00:00.821790+00:00",
+      "mode": "dictation",
+      "original_text": "Remove the draggable bar on top and the whole double click and drag isn't working go through superpowers writing plans and again implemented.",
+      "final_text": "Remove the draggable bar on top and the whole double click and drag isn't working go through superpowers writing plans and again implemented."
+    },
+    {
+      "id": "17bf85ac",
+      "timestamp": "2026-05-02T12:53:29.993929+00:00",
+      "mode": "dictation",
+      "original_text": "The pill is still not draggable. Add a draggable content on top where there is a line where they can pull from.",
+      "final_text": "The pill is still not draggable. Add a draggable content on top where there is a line where they can pull from."
+    },
+    {
+      "id": "d88202ce",
+      "timestamp": "2026-05-02T12:42:25.207969+00:00",
+      "mode": "dictation",
+      "original_text": "It's still not draggable. Go through why isn't it draggable and make it draggable. Use. Winsurf/rules debugging skill and go ahead and debug it and fix it.",
+      "final_text": "It's still not draggable. go through why isn't it draggable and make it draggable. Use. Winsurf/rules debugging skill and go ahead and debug it and fix it."
+    },
+    {
+      "id": "d260a9d0",
+      "timestamp": "2026-05-02T12:32:53.432973+00:00",
+      "mode": "dictation",
+      "original_text": "The pill movable thing isn't working when I double click and drag it it should work.",
+      "final_text": "The pill movable thing isn't working when I double click and drag it it should work."
+    },
+    {
+      "id": "0bb9f268",
+      "timestamp": "2026-05-02T11:17:09.635662+00:00",
+      "mode": "dictation",
+      "original_text": "The pill should be draggable when double clicked on and dragged along. It should be dragged when I double click and like what is it? Drag it somewhere. It is not working right now.",
+      "final_text": "The pill should be draggable when double clicked on and dragged along. It should be dragged when I double click and like what is it? Drag it somewhere. It is not working right now."
+    },
+    {
+      "id": "81497792",
+      "timestamp": "2026-05-02T10:33:10.166221+00:00",
+      "mode": "dictation",
+      "original_text": "It should ask the user as a kind of a question with options below showing all the profiles which are there on whatever thing it is. And then the question should be what profile should I access it from or run what you asked me to run from. Yeah some kind of a question which it asks with all the profiles listed down below and if they press that option it should send it as a text to the agent and then the agent should be like okay this is the thing and then it proceeds with what it should do.",
+      "final_text": "It should ask the user as a kind of a question with options below showing all the profiles which are there on whatever thing it is. And then the question should be what profile should I access it from or run what you asked me to run from. Yeah some kind of a question which it asks with all the profiles listed down below and if they press that option it should send it as a text to the agent and then the agent should be like okay this is the thing and then it proceeds with what it should do."
+    },
+    {
+      "id": "7b08625c",
+      "timestamp": "2026-05-02T10:31:09.492502+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to first learn the skill from. Witsurfs. Rules which would be writing dash plans and then proceed with planning for what should be implemented, how it should be implemented.",
+      "final_text": "I want you to first learn the skill from. Witsurfs. Rules which would be writing dash plans and then proceed with planning for what should be implemented, how it should be implemented."
+    },
+    {
+      "id": "75ce62c8",
+      "timestamp": "2026-05-02T10:09:21.483993+00:00",
+      "mode": "dictation",
+      "original_text": "Ahead and make a plan on how you can implement movable overlay pill so the overlay pill should be movable to anywhere and the overlay app should be like what is that stuck to the overlay pill but then according to wherever it is so imagine they bring the overlay pill it should be on the corners only the the ore lepil can be moved only in the corners and it should have a kind of threshold of how much it should be far from the edge. So according to where it is, right, left, top or bottom, it should be oriented that way. For the top and bottom it should be the same. For the right and left it should be oriented upwards. So yeah just go ahead and do that and the overlay app should always open next to the overlay bill itself. So it should be position. ..",
+      "final_text": "Ahead and make a plan on how you can implement movable overlay pill so the overlay pill should be movable to anywhere and the overlay app should be like what is that stuck to the overlay pill but then according to wherever it is so imagine they bring the overlay pill it should be on the corners only the the ore lepil can be moved only in the corners and it should have a kind of threshold of how much it should be far from the edge. so according to where it is, right, left, top or bottom, it should be oriented that way. For the top and bottom it should be the same. For the right and left it should be oriented upwards. so yeah just go ahead and do that and the overlay app should always open next to the overlay bill itself. so it should be position. .."
+    },
+    {
+      "id": "3ef9abe6",
+      "timestamp": "2026-05-02T09:50:04.505675+00:00",
+      "mode": "dictation",
+      "original_text": "Yeah yes Magno features we are profiting for it a summary even and then it is how we can be used and what are the unique ways that we are providing and helping and what all are the features that can be added later and current limitations and what all are the things which is currently in the focus right now and the people can use and how can the test be used from the API endpoint which we have provided.",
+      "final_text": "Yeah yes Magno features we are profiting for it a summary even and then it is how we can be used and what are the unique ways that we are providing and helping and what all are the features that can be added later and current limitations and what all are the things which is currently in the focus right now and the people can use and how can the test be used from the API endpoint which we have provided."
+    },
+    {
+      "id": "dfdcd33c",
+      "timestamp": "2026-05-02T09:49:54.711729+00:00",
+      "mode": "dictation",
+      "original_text": "Now what are features we are providing What all features we are providing currently and what all are certain features connected to and how it works in technical terms and give a summary even and then test how it can be used and what are the unique ways that we are providing and helping. And what all are the features that can be added later and current limitations and what all are the things which is currently in the focus right now and the people can use and how can the test be used from the API endpoint which we have provided.",
+      "final_text": "Now what are features we are providing What all features we are providing currently and what all are certain features connected to and how it works in technical terms and give a summary even and then test how it can be used and what are the unique ways that we are providing and helping. And what all are the features that can be added later and current limitations and what all are the things which is currently in the focus right now and the people can use and how can the test be used from the API endpoint which we have provided."
+    },
+    {
+      "id": "8d2261b1",
+      "timestamp": "2026-05-02T09:48:22.574759+00:00",
+      "mode": "dictation",
+      "original_text": "Welcome to public LN awesome audiobook translation provides more information! 7. 17 eth tão lindý You don't got to cry, yeah I drop everything I got, put it on to save my time Can't jump, slide Slide, I don't want to see nobody else but you know my love.",
+      "final_text": "Welcome to public LN awesome audiobook translation provides more information! 7. 17 eth tão lindý You don't got to cry, yeah I drop everything I got, put it on to save my time Can't jump, slide Slide, I don't want to see nobody else but you know my love."
+    },
+    {
+      "id": "bd6be872",
+      "timestamp": "2026-05-02T09:47:31.705537+00:00",
+      "mode": "dictation",
+      "original_text": "The agent is opening up the Chrome but then it is not it is not able to take images you can see in the image which I sent you what is the error but yeah and 1 more thing it should be able to choose this thing also like if there are 2 profiles on a Chrome website or like how many of the profiles there are it It should be able to choose any 1 of them or even ask the user on the agent panel itself asking which profile do you want to open up with and then it should proceed with whatever it was doing, what it should do.",
+      "final_text": "The agent is opening up the Chrome but then it is not it is not able to take images you can see in the image which I sent you what is the error but yeah and 1 more thing it should be able to choose this thing also like if there are 2 profiles on a Chrome website or like how many of the profiles there are it It should be able to choose any 1 of them or even ask the user on the agent panel itself asking which profile do you want to open up with and then it should proceed with whatever it was doing, what it should do."
+    },
+    {
+      "id": "d09de93f",
+      "timestamp": "2026-05-02T01:14:28.880362+00:00",
+      "mode": "dictation",
+      "original_text": "Again, the whole history isn't showing up for some reason, which is that memories isn't showing up for some reason. Fix it hard-coded so that even if you change any code on the this thing on the Python or the overlay or React code or anything it might be just make it so that it doesn't get messed up.",
+      "final_text": "Again, the whole history isn't showing up for some reason, which is that memories isn't showing up for some reason. Fix it hard-coded so that even if you change any code on the this thing on the Python or the overlay or React code or anything it might be just make it so that it doesn't get messed up."
+    },
+    {
+      "id": "0f0e9fa9",
+      "timestamp": "2026-05-02T00:52:35.013200+00:00",
+      "mode": "dictation",
+      "original_text": "To delete the diction junk phases and like I'll see you next time is not a junk phase bye bye also is not junk phase remove those and also there's too many processes running in the background which is visited itself so I need you to remove that and yeah the memories is again disconnected make it so that it always stays connected even when you do any change to the code and 1 more thing would be the super is env key and also the publishable URL both are already put inside. Env but it's not accessing properly it's seeing that it's wrong but it is already put and it's correct so just check through that and if you don't find anything just tell me why would it be such.",
+      "final_text": "To delete the diction junk phases and like I'll see you next time is not a junk phase bye bye also is not junk phase remove those and also there's too many processes running in the background which is visited itself so I need you to remove that and yeah the memories is again disconnected make it so that it always stays connected even when you do any change to the code and 1 more thing would be the super is env key and also the publishable URL both are already put inside. env but it's not accessing properly it's seeing that it's wrong but it is already put and it's correct so just check through that and if you don't find anything just tell me why would it be such."
+    },
+    {
+      "id": "4d1274fa",
+      "timestamp": "2026-05-02T00:37:40.899904+00:00",
+      "mode": "dictation",
+      "original_text": "Thank you. So,",
+      "final_text": "Thank you. so,"
+    },
+    {
+      "id": "72e97cfc",
+      "timestamp": "2026-05-02T00:36:48.461002+00:00",
+      "mode": "dictation",
+      "original_text": "Fix the interface and 1 more thing the agent isn't working just go to the whole architecture of how the agent should work and plan on how you can implement it a better way for Linux because Linux it's not working on Windows it was working properly but it was not that grid so what I want you to do is make work on Linux and also improve the way the agent works example making the like speed faster and all that.",
+      "final_text": "Fix the interface and 1 more thing the agent isn't working just go to the whole architecture of how the agent should work and plan on how you can implement it a better way for Linux because Linux it's not working on Windows it was working properly but it was not that grid so what I want you to do is make work on Linux and also improve the way the agent works example making the like speed faster and all that."
+    },
+    {
+      "id": "812133f0",
+      "timestamp": "2026-05-02T00:20:48.618624+00:00",
+      "mode": "dictation",
+      "original_text": "The memories and tusks aren't connected to the overlay just fix that and 1 more thing would be there is 3 of these processes running in the background kill all of them don't start up any 1.",
+      "final_text": "The memories and tusks aren't connected to the overlay just fix that and 1 more thing would be there is 3 of these processes running in the background kill all of them don't start up any 1."
+    },
+    {
+      "id": "80f45a3d",
+      "timestamp": "2026-05-01T23:25:29.564753+00:00",
+      "mode": "dictation",
+      "original_text": "I wanted to go ahead and add 1 feature where like the tasks whenever a task is done or they want to update a task status, they can just go ahead and say what is the task and what should it be updated to and by analyzing whatever customer or whoever asks the AI what to do, it should update the tasks in such a way so if they tell it's done it should mark as done and what is that he scratched it in the task panel and also 1 more thing never I entered a task there's no animations showing up on the overlay pill so what I asked you to was make the animations see the animations what I I asked you to do the edit button, the decline button, the approve button all of them are coming inside the task panel. I don't want it to be in task panel. It should be there only if the user opens it, opens the overlay app. If not opened, the overlay pill, the pill where the animations are there, like the voice, dictation animation, the stop recording button, that place. Want the animation to come as I told you should expand sideways not so much so that it covers the whole left to right but somewhat big in a way that they can understand what ask they told and even edit it from there so that should also be put go ahead and do that the over level animations aren't being shown so do that to me.",
+      "final_text": "I wanted to go ahead and add 1 feature where like the tasks whenever a task is done or they want to update a task status, they can just go ahead and say what is the task and what should it be updated to and by analyzing whatever customer or whoever asks the AI what to do, it should update the tasks in such a way so if they tell it's done it should mark as done and what is that he scratched it in the task panel and also 1 more thing never I entered a task there's no animations showing up on the overlay pill so what I asked you to was make the animations see the animations what I I asked you to do the edit button, the decline button, the approve button all of them are coming inside the task panel. I don't want it to be in task panel. It should be there only if the user opens it, opens the overlay app. If not opened, the overlay pill, the pill where the animations are there, like the voice, dictation animation, the stop recording button, that place. Want the animation to come as I told you should expand sideways not so much so that it covers the whole left to right but somewhat big in a way that they can understand what ask they told and even edit it from there so that should also be put go ahead and do that the over level animations aren't being shown so do that to me."
+    },
+    {
+      "id": "9c1b2ef8",
+      "timestamp": "2026-05-01T23:23:11.747898+00:00",
+      "mode": "dictation",
+      "original_text": "Whenever I shift tabs inside of the Nori's Fij while going to the agent or the tasks or the dictation or all filters whenever I change the filter and come back to the other tabs the other tabs UI isn't being updated so I just want you to go ahead and check what is the problem with it is there in bug and fix it.",
+      "final_text": "Whenever I shift tabs inside of the Nori's Fij while going to the agent or the tasks or the dictation or all filters whenever I change the filter and come back to the other tabs the other tabs UI isn't being updated so I just want you to go ahead and check what is the problem with it is there in bug and fix it."
+    },
+    {
+      "id": "5f6d8d61",
+      "timestamp": "2026-05-01T23:20:42.199399+00:00",
+      "mode": "dictation",
+      "original_text": "For the agent mode, I wanted to go ahead and add a thing where I can text the agent to do something on the app itself. So the agent tab should be updated with the chat interface where I can talk with the agent for what it should do. And it should even reply back in the chat interface with whatever it is doing as an update. And when it's done, there should be a green outlined text which says your task was done.",
+      "final_text": "For the agent mode, I wanted to go ahead and add a thing where I can text the agent to do something on the app itself. so the agent tab should be updated with the chat interface where I can talk with the agent for what it should do. And it should even reply back in the chat interface with whatever it is doing as an update. And when it's done, there should be a green outlined text which says your task was done."
+    },
+    {
+      "id": "8bbdd41d",
+      "timestamp": "2026-05-01T23:05:43.016904+00:00",
+      "mode": "dictation",
+      "original_text": "I want to add 1 thing. I want to add 1 thing.",
+      "final_text": "I want to add 1 thing. I want to add 1 thing."
+    },
+    {
+      "id": "762d1dd1",
+      "timestamp": "2026-05-01T22:44:56.713662+00:00",
+      "mode": "dictation",
+      "original_text": "The problem is the declified DNA is still propagated from wrong time. Is there any work around it?",
+      "final_text": "The problem is the declified DNA is still propagated from wrong time. Is there any work around it?"
+    },
+    {
+      "id": "48e60096",
+      "timestamp": "2026-05-01T22:29:21.297909+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, fix this problem because there is a problem whenever I push it goes to the Netlify domain but then it doesn't go to the main domain. Both domains have already been set but it's not updating for some reason. So just fix that. The DNS is already verified and all that process is done. So just check to what is the problem and make proper.",
+      "final_text": "Hey, fix this problem because there is a problem whenever I push it goes to the Netlify domain but then it doesn't go to the main domain. Both domains have already been set but it's not updating for some reason. so just fix that. The DNS is already verified and all that process is done. so just check to what is the problem and make proper."
+    },
+    {
+      "id": "7394e2b2",
+      "timestamp": "2026-05-01T21:41:35.605874+00:00",
+      "mode": "dictation",
+      "original_text": "The website has been updated. The admin account is.",
+      "final_text": "The website has been updated. The admin account is."
+    },
+    {
+      "id": "6a606249",
+      "timestamp": "2026-05-01T21:27:11.333349+00:00",
+      "mode": "dictation",
+      "original_text": "Can you just check if it's already posted in the GitHub.",
+      "final_text": "Can you just check if it's already posted in the GitHub."
+    },
+    {
+      "id": "a3a82faa",
+      "timestamp": "2026-05-01T20:43:10.574118+00:00",
+      "mode": "dictation",
+      "original_text": "Hey for all the admin features, what are Supabase SQL that should be pasted in the SQL editor to warm the tables and all those things. For date management, give me all the code that I should paste onto the SQL editor for Supabase integration with what is there in the admin.",
+      "final_text": "Hey for all the admin features, what are Supabase SQL that should be pasted in the SQL editor to warm the tables and all those things. For date management, give me all the code that I should paste onto the SQL editor for Supabase integration with what is there in the admin."
+    },
+    {
+      "id": "b35d4141",
+      "timestamp": "2026-05-01T19:47:32.907073+00:00",
+      "mode": "dictation",
+      "original_text": "Being shown up every memory that I have talked with it isn't shown up so just make it come back now.",
+      "final_text": "Being shown up every memory that I have talked with it isn't shown up so just make it come back now."
+    },
+    {
+      "id": "ce0dfa1d",
+      "timestamp": "2026-05-01T19:41:13.793579+00:00",
+      "mode": "dictation",
+      "original_text": "Hey the whole thing has been fucked man. I want you to revert it back to Wayland. Come on. What the fuck? The whole overlay is fucked now.",
+      "final_text": "Hey the whole thing has been fucked man. I want you to revert it back to Wayland. Come on. What the fuck? The whole overlay is fucked now."
+    },
+    {
+      "id": "fb2f92c2",
+      "timestamp": "2026-05-01T19:39:52.289670+00:00",
+      "mode": "dictation",
+      "original_text": "You are done for the whole overlay, I want you to revert everything back about the overlay to however it was before I started telling about you making the implements for the words and all those things. Good answer.",
+      "final_text": "You are done for the whole overlay, I want you to revert everything back about the overlay to however it was before I started telling about you making the implements for the words and all those things. Good answer."
+    },
+    {
+      "id": "0e7d88dc",
+      "timestamp": "2026-05-01T19:17:26.826425+00:00",
+      "mode": "dictation",
+      "original_text": "This thing isn't, the overlay itself isn't starting up now. I guess there is some problem. Just fix it.",
+      "final_text": "This thing isn't, the overlay itself isn't starting up now. I guess there is some problem. just fix it."
+    },
+    {
+      "id": "8a44ad0d",
+      "timestamp": "2026-05-01T19:12:48.312942+00:00",
+      "mode": "dictation",
+      "original_text": "Make it that like what is that all the images can be switchable inside admin page okay.",
+      "final_text": "Make it that like what is that all the images can be switchable inside admin page okay."
+    },
+    {
+      "id": "9a47cfb2",
+      "timestamp": "2026-05-01T19:04:18.134399+00:00",
+      "mode": "dictation",
+      "original_text": "See, .Windsurf, like it should not be only for the Windsurf man. I want you to focus on everything. Everything that is new right now and is going on right now. It should all be identified seamlessly. Everything that is going on right now, everything that is there right now, like all tools, all AI things, everything should be identified. So, make it as a list and make it so that it identifies it easily, you know?",
+      "final_text": "See, .Windsurf, like it should not be only for the Windsurf man. I want you to focus on everything. Everything that is new right now and is going on right now. It should all be identified seamlessly. Everything that is going on right now, everything that is there right now, like all tools, all AI things, everything should be identified. So, make it as a list and make it so that it identifies it easily, you know?"
+    },
+    {
+      "id": "b817014b",
+      "timestamp": "2026-05-01T18:58:03.963231+00:00",
+      "mode": "dictation",
+      "original_text": "In the dictation mode, if I tell writing dash plans or. Windsurf/rules, it should identify what I am trying to say. Windsurf is Windsurf, open code is open code, OpenAI is OpenAI, ChatGPT is ChatGPT. So I just want you to go ahead and check what is the problem with the const what I have fed to that. Want it all to be used properly it's not going through the workflow properly so fix that please or like if it is already done and if you are suggesting me to like just refresh it just little.",
+      "final_text": "In the dictation mode, if I tell writing dash plans or. Windsurf/rules, it should identify what I am trying to say. Windsurf is Windsurf, open code is open code, OpenAI is OpenAI, ChatGPT is ChatGPT. So I just want you to go ahead and check what is the problem with the const what I have fed to that. Want it all to be used properly it's not going through the workflow properly so fix that please or like if it is already done and if you are suggesting me to like just refresh it just little."
+    },
+    {
+      "id": "0595e60c",
+      "timestamp": "2026-05-01T18:56:39.904719+00:00",
+      "mode": "dictation",
+      "original_text": "Use. 1 sir/rules superpowers writing dash plans and make the plan.",
+      "final_text": "Use. 1 sir/rules superpowers writing dash plans and make the plan."
+    },
+    {
+      "id": "cf8a6e07",
+      "timestamp": "2026-05-01T11:07:09.366136+00:00",
+      "mode": "dictation",
+      "original_text": "Focus on this 1 now the the conversation TTS isn't itself needed remove the whole TTS and all the workflows that was integrated with agent should be integrated back again so please go ahead and do this not that I told you to delete that delete everything that is there for the TTS and go ahead and do this okay Thank you. I don't know. Yeah, yeah, yeah. Evil could never pull up, so this heel leave niggas and freeze them, and pay us a bill. Fuck on a deal, but I'm back in the field. Put them on my feet, .",
+      "final_text": "Focus on this 1 now the the conversation TTS isn't itself needed remove the whole TTS and all the workflows that was integrated with agent should be integrated back again so please go ahead and do this not that I told you to delete that delete everything that is there for the TTS and go ahead and do this okay Thank you. I don't know. Yeah, yeah, yeah. Evil could never pull up, so this heel leave niggas and freeze them, and pay us a bill. Fuck on a deal, but I'm back in the field. Put them on my feet, ."
+    },
+    {
+      "id": "df53ab3f",
+      "timestamp": "2026-05-01T11:02:11.915442+00:00",
+      "mode": "dictation",
+      "original_text": "And 1 more thing for this thing, sorry, speech to text. I had actually made a thing where it identifies all types of AIs that are there right now and all types of like. md, .org, .OpenAI or ChatGPT or all those things. It will identify it. I want you to bring that back and implement it back into the workflow of it identifying what word should be there and what word should not be there.",
+      "final_text": "And 1 more thing for this thing, sorry, speech to text. I had actually made a thing where it identifies all types of AIs that are there right now and all types of like. md, .org, .OpenAI or ChatGPT or all those things. It will identify it. I want you to bring that back and implement it back into the workflow of it identifying what word should be there and what word should not be there."
+    },
+    {
+      "id": "a4039b89",
+      "timestamp": "2026-05-01T11:00:43.520140+00:00",
+      "mode": "dictation",
+      "original_text": "Fetch the real model name from GPT. Open it.",
+      "final_text": "Fetch the real model name from GPT. Open it."
+    },
+    {
+      "id": "a0a24e36",
+      "timestamp": "2026-05-01T10:58:54.806518+00:00",
+      "mode": "dictation",
+      "original_text": "Make it so that the chat menu is an evolution chat. Not evolution chat, some good name, just find a good name for it and replace it with that. But yeah, make it so that it's an evolution thing. Now imagine, I text the chat place saying a corrections place, not an evolution place, a corrections place. Like tell that these are the words that I need to be noticed properly before like whenever I dictate or tell in tasks tell the agent to do something or anything like that it should be able to like what is it updated in the files so the chat menu should be a place where people can update their agents like make upgrade their agents in their own way. Make it so that it uses the cheapest model available like GPT 5. 5 Nano, give access to it. GPT the OpenAI API key is already put inside the. env. So change the name of the chat menu into something else even in the settings and everywhere there is yeah make it as such what I asked you for.",
+      "final_text": "Make it so that the chat menu is an evolution chat. Not evolution chat, some good name, just find a good name for it and replace it with that. But yeah, make it so that it's an evolution thing. Now imagine, I text the chat place saying a corrections place, not an evolution place, a corrections place. Like tell that these are the words that I need to be noticed properly before like whenever I dictate or tell in tasks tell the agent to do something or anything like that it should be able to like what is it updated in the files so the chat menu should be a place where people can update their agents like make upgrade their agents in their own way. Make it so that it uses the cheapest model available like GPT 5. 5 Nano, give access to it. GPT the OpenAI API key is already put inside the. env. So change the name of the chat menu into something else even in the settings and everywhere there is yeah make it as such what I asked you for."
+    },
+    {
+      "id": "ce04fe6f",
+      "timestamp": "2026-05-01T10:55:19.833344+00:00",
+      "mode": "dictation",
+      "original_text": "I had a thing that shows up like imagine I'm a customer I'm not logged in I come into the website and like after like 15 seconds of them being on the website there should be a pop-up saying login Login for buying the products and going Getting like 10% off or anything like that The 10% offer is not needed right now, no offer should be there. But yeah, just the login page, just make it come.",
+      "final_text": "I had a thing that shows up like imagine I'm a customer I'm not logged in I come into the website and like after like 15 seconds of them being on the website there should be a pop-up saying login Login for buying the products and going Getting like 10% off or anything like that The 10% offer is not needed right now, no offer should be there. But yeah, just the login page, just make it come."
+    },
+    {
+      "id": "00eb32ba",
+      "timestamp": "2026-05-01T10:53:17.728136+00:00",
+      "mode": "dictation",
+      "original_text": "And also this learning agent should also go ahead and update it to the voice which is that STT2. So speech to text dictation also should learn from the learning agent. And 1 more thing would be yeah this should not be only for the tasks thing it should be for everything whatever is edited any text is edited in this thing like what is it inside the app it should identify that and it should learn by itself.",
+      "final_text": "And also this learning agent should also go ahead and update it to the voice which is that STT2. So speech to text dictation also should learn from the learning agent. And 1 more thing would be yeah this should not be only for the tasks thing it should be for everything whatever is edited any text is edited in this thing like what is it inside the app it should identify that and it should learn by itself."
+    },
+    {
+      "id": "eabb0b67",
+      "timestamp": "2026-05-01T10:47:51.214401+00:00",
+      "mode": "dictation",
+      "original_text": "Just go ahead and delete all those not needed conversation mode things. Whatever files that are related to conversation mode, delete all of them. I don't want them because it's not used anywhere, it's not going to be used to. So just go ahead and delete all of those.",
+      "final_text": "Just go ahead and delete all those not needed conversation mode things. Whatever files that are related to conversation mode, delete all of them. I don't want them because it's not used anywhere, it's not going to be used to. So just go ahead and delete all of those."
+    },
+    {
+      "id": "b1f61e3a",
+      "timestamp": "2026-05-01T10:46:43.760786+00:00",
+      "mode": "dictation",
+      "original_text": "See, I want you to do 1 thing. This place, right, the main hero place, where there is that blank color which is behind that text should be a place where you can enter an image too. But it should not be, like the color should not overlay over it or anything. The color should be there if there is no image. And if the image is inserted, the color should be replaced with the image and the image should span from top to bottom and if it doesn't meet the requirements of that much ratio like 1920 by 1080 or 4k or all those kind of ratios if it doesn't meet those ratios it should not take in the image and yeah I want you to make it so that The admin also has an access to enter the image for the hero face. So the admin can enter the image by himself and the image should be that ratio. Like all ratios which are 16 is to 9. So yeah do that for me and come back to me when you're done.",
+      "final_text": "See, I want you to do 1 thing. This place, right, the main hero place, where there is that blank color which is behind that text should be a place where you can enter an image too. But it should not be, like the color should not overlay over it or anything. The color should be there if there is no image. And if the image is inserted, the color should be replaced with the image and the image should span from top to bottom and if it doesn't meet the requirements of that much ratio like 1920 by 1080 or 4k or all those kind of ratios if it doesn't meet those ratios it should not take in the image and yeah I want you to make it so that The admin also has an access to enter the image for the hero face. So the admin can enter the image by himself and the image should be that ratio. Like all ratios which are 16 is to 9. So yeah do that for me and come back to me when you're done."
+    },
+    {
+      "id": "77177470",
+      "timestamp": "2026-05-01T10:43:33.664257+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and fix this for me. Remove whatever is there down that thing which is there down. The scroll and edit the full task details. Remove that thing. I don't need that. REST all is fine. And 1 more thing would be, see imagine I say a word and I edit it. So there should be a kind of an agent that works always on the Overlay app or inside the app itself. Whenever I correct something, it should save it. It should save it saying, if he says Shibora once again, it should be this word. It should save it. So it should be more smarter is what I am saying. So go ahead and do that and 1 more thing, the time is being noted as a 24 hour time, make it AM PM, add an AM PM toggle to, okay? And make it 12 hour window.",
+      "final_text": "I want you to go ahead and fix this for me. Remove whatever is there down that thing which is there down. The scroll and edit the full task details. Remove that thing. I don't need that. REST all is fine. And 1 more thing would be, see imagine I say a word and I edit it. So there should be a kind of an agent that works always on the Overlay app or inside the app itself. Whenever I correct something, it should save it. It should save it saying, if he says Shibora once again, it should be this word. It should save it. So it should be more smarter is what I am saying. So go ahead and do that and 1 more thing, the time is being noted as a 24 hour time, make it AM PM, add an AM PM toggle to, okay? And make it 12 hour window."
+    },
+    {
+      "id": "6c5de0be",
+      "timestamp": "2026-05-01T10:41:09.858442+00:00",
+      "mode": "task",
+      "original_text": "Complete the Shivara website by 10 pm today.",
+      "final_text": "Complete the Shivara website by 10 pm today."
+    },
+    {
+      "id": "ac194e47",
+      "timestamp": "2026-05-01T10:38:06.440139+00:00",
+      "mode": "dictation",
+      "original_text": "The f9 twice itself isn't working right now I want you to go through. Win so/rules and take the superpowers which will be needed for you and go ahead and debug the whole thing please crack it down and make the agent more proper and even the animations for the pill aren't working so please go through everything make it proper and until it's proper and working don't come back to me until then.",
+      "final_text": "The f9 twice itself isn't working right now I want you to go through. Win so/rules and take the superpowers which will be needed for you and go ahead and debug the whole thing please crack it down and make the agent more proper and even the animations for the pill aren't working so please go through everything make it proper and until it's proper and working don't come back to me until then."
+    },
+    {
+      "id": "44a20fd1",
+      "timestamp": "2026-05-01T10:34:15.407901+00:00",
+      "mode": "dictation",
+      "original_text": "It's not being taken out from the admin page, remove that too.",
+      "final_text": "It's not being taken out from the admin page, remove that too."
+    },
+    {
+      "id": "14e84d75",
+      "timestamp": "2026-05-01T10:33:39.813024+00:00",
+      "mode": "dictation",
+      "original_text": "Also bro, see I want you to make it more smarter. See imagine I tell at the rate or shivora at gmail. com or anything like that. It should identify that as email what he is saying and at should be the at the rate symbol. And 1 more thing would be like imagine I say something like the password would be PR. PR scratch that it should scratch that and the password would be I proceed to say right so the previous the password would be PR should be scratched out and replaced with the next sentence whatever matches to it should be kept so I want you to make it smarter the inference when it goes through the AI to get refined, right? There I want you to implement this.",
+      "final_text": "Also bro, see I want you to make it more smarter. See imagine I tell at the rate or shivora at gmail. com or anything like that. It should identify that as email what he is saying and at should be the at the rate symbol. And 1 more thing would be like imagine I say something like the password would be PR. PR scratch that it should scratch that and the password would be I proceed to say right so the previous the password would be PR should be scratched out and replaced with the next sentence whatever matches to it should be kept so I want you to make it smarter the inference when it goes through the AI to get refined, right? There I want you to implement this."
+    },
+    {
+      "id": "71aab0d5",
+      "timestamp": "2026-05-01T10:32:13.012095+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to take out the whole high jewelry thing Remove the whole high jewelry thing And make the collections navar, the collections thing Into a drop down menu which opens when hovered on And inside the drop down menu it should show the types of products which would be necklaces, bracelets and rings.",
+      "final_text": "I want you to take out the whole high jewelry thing Remove the whole high jewelry thing And make the collections navar, the collections thing Into a drop down menu which opens when hovered on And inside the drop down menu it should show the types of products which would be necklaces, bracelets and rings."
+    },
+    {
+      "id": "52330a4d",
+      "timestamp": "2026-05-01T10:30:20.106201+00:00",
+      "mode": "dictation",
+      "original_text": "And this account should be okay even if it's logged in from Google or if it's logged in from normal login to Google.",
+      "final_text": "And this account should be okay even if it's logged in from Google or if it's logged in from normal login to Google."
+    },
+    {
+      "id": "b4e884ff",
+      "timestamp": "2026-05-01T10:29:06.464031+00:00",
+      "mode": "dictation",
+      "original_text": "And it should navigate them back to the normal page just like that.",
+      "final_text": "And it should navigate them back to the normal page just like that."
+    },
+    {
+      "id": "29f11894",
+      "timestamp": "2026-05-01T10:28:54.186072+00:00",
+      "mode": "dictation",
+      "original_text": "And if accessed by, like if opened by someone, it should show only accessible by the admin as an error.",
+      "final_text": "And if accessed by, like if opened by someone, it should show only accessible by the admin as an error."
+    },
+    {
+      "id": "d284416a",
+      "timestamp": "2026-05-01T10:27:27.507407+00:00",
+      "mode": "dictation",
+      "original_text": "Make it so that only 1 Gmail can access the admin page which would be shivoraadmin at gmail. com and the password would be capital P R sorry scratch that password would be capital s hivora minus 1 2 3 4 5 at the rate admin.",
+      "final_text": "Make it so that only 1 Gmail can access the admin page which would be shivoraadmin at gmail. com and the password would be capital P R sorry scratch that password would be capital s hivora minus 1 2 3 4 5 at the rate admin."
+    },
+    {
+      "id": "5e1fd665",
+      "timestamp": "2026-05-01T10:22:16.605395+00:00",
+      "mode": "dictation",
+      "original_text": "Switch up the color palette into something that they can understand.",
+      "final_text": "Switch up the color palette into something that they can understand."
+    },
+    {
+      "id": "e6bed8b6",
+      "timestamp": "2026-05-01T10:14:04.252596+00:00",
+      "mode": "dictation",
+      "original_text": "The coding, sorry the collections, high jewelry, the admin page, all of them have the same navbar which is the 1 which has sent you the picture of. I want you to change that navbar and put the 1 which is there in the home page. So do that.",
+      "final_text": "The coding, sorry the collections, high jewelry, the admin page, all of them have the same navbar which is the 1 which has sent you the picture of. I want you to change that navbar and put the 1 which is there in the home page. So do that."
+    },
+    {
+      "id": "7fae472a",
+      "timestamp": "2026-05-01T07:53:41.098017+00:00",
+      "mode": "dictation",
+      "original_text": "Outside of the overlay when the memory panel is open. Only the main app is getting closed, memory panel is staying open so yeah, thanks that.",
+      "final_text": "Outside of the overlay when the memory panel is open. Only the main app is getting closed, memory panel is staying open so yeah, thanks that."
+    },
+    {
+      "id": "f734e6d6",
+      "timestamp": "2026-05-01T06:49:18.894416+00:00",
+      "mode": "dictation",
+      "original_text": "Bro, it is still not copying or pasting or even processing properly. I don't know why it's not pasting. It was working before 2 builds. Go ahead and please do this for me. I want it to work on all terms. It should work. Please check what is wrong. Fix it.",
+      "final_text": "Bro, it is still not copying or pasting or even processing properly. I don't know why it's not pasting. It was working before 2 builds. Go ahead and please do this for me. I want it to work on all terms. It should work. Please check what is wrong. Fix it."
+    },
+    {
+      "id": "e2e38845",
+      "timestamp": "2026-05-01T06:48:33.876668+00:00",
+      "mode": "dictation",
+      "original_text": "The other navbar is still intact on all the other pages. So please check what you have done. Because nothing has been done still. Go ahead and do it for me please.",
+      "final_text": "The other navbar is still intact on all the other pages. So please check what you have done. Because nothing has been done still. Go ahead and do it for me please."
+    },
+    {
+      "id": "8544efd3",
+      "timestamp": "2026-05-01T06:44:03.558933+00:00",
+      "mode": "dictation",
+      "original_text": "I want this type of navbar to be there across all the pages even the admin page so yeah go ahead and make this change for me I want all the pages which has a different navbar to have this.",
+      "final_text": "I want this type of navbar to be there across all the pages even the admin page so yeah go ahead and make this change for me I want all the pages which has a different navbar to have this."
+    },
+    {
+      "id": "618b39d5",
+      "timestamp": "2026-05-01T06:35:44.683068+00:00",
+      "mode": "dictation",
+      "original_text": "So this feature would be a color handling feature. This should be only accessible by the admin. So the admin can choose a set of themes and it should be all like. All generic themes which actually suit the website however it is right now, they can choose whatever color they need or whatever color they want but it should be like a template that they change through. So each of them should be already saved and it should be able to just push from what it is to what they want. Like if they click from this template to that template, there should be even a preview of what it might look like with this theme. So yeah, do that for me.",
+      "final_text": "So this feature would be a color handling feature. This should be only accessible by the admin. So the admin can choose a set of themes and it should be all like. All generic themes which actually suit the website however it is right now, they can choose whatever color they need or whatever color they want but it should be like a template that they change through. So each of them should be already saved and it should be able to just push from what it is to what they want. Like if they click from this template to that template, there should be even a preview of what it might look like with this theme. So yeah, do that for me."
+    },
+    {
+      "id": "1f903e7c",
+      "timestamp": "2026-05-01T06:31:44.232900+00:00",
+      "mode": "dictation",
+      "original_text": "Here the iteration like the dictation whatever I'm doing right now that is not getting copied or even pasted. So yeah just look through that why isn't it happening. So yeah I just want you to fix that for now. Go ahead and fix that for me. And also on the Memories tab, if I click once on the, like any of the memories, whatever memories is there of the dictation, history like whenever I click on 1 of them 1 time it should copy to clipboard okay and also I want you to fix the the overlay which opens up when you want to edit the prompt edit the dictation whatever you have done so what I want you to do is like that page it is too much occupied by other things except the except the thing what should be shown which is the dictation whatever I have done so what I want you to do is make it so that if it a large text the overlay should extend until it meets the same length as the main app overlay above that it should not go and the thing should be scrollable. The text area should be scrollable and below that I want you to remove that 1 thing. There is a thing on top of that. Yeah, edit the memory text. There is a text over there showing edit the memory text. So remove that and yeah whenever I click save it should close that thing and also copy to the clipboard. So yeah do that for me. And if the memory overlay is open and I click somewhere else the main app isn't closing the main app is in closing from the memory stab itself okay it is closing from the memory stab but whenever I open up the memory panel for editing any memory it isn't closing the main app but closing only the memory panel so yeah that also.",
+      "final_text": "Here the iteration like the dictation whatever I'm doing right now that is not getting copied or even pasted. So yeah just look through that why isn't it happening. So yeah I just want you to fix that for now. Go ahead and fix that for me. And also on the Memories tab, if I click once on the, like any of the memories, whatever memories is there of the dictation, history like whenever I click on 1 of them 1 time it should copy to clipboard okay and also I want you to fix the the overlay which opens up when you want to edit the prompt edit the dictation whatever you have done so what I want you to do is like that page it is too much occupied by other things except the except the thing what should be shown which is the dictation whatever I have done so what I want you to do is make it so that if it a large text the overlay should extend until it meets the same length as the main app overlay above that it should not go and the thing should be scrollable. The text area should be scrollable and below that I want you to remove that 1 thing. There is a thing on top of that. Yeah, edit the memory text. There is a text over there showing edit the memory text. So remove that and yeah whenever I click save it should close that thing and also copy to the clipboard. So yeah do that for me. And if the memory overlay is open and I click somewhere else the main app isn't closing the main app is in closing from the memory stab itself okay it is closing from the memory stab but whenever I open up the memory panel for editing any memory it isn't closing the main app but closing only the memory panel so yeah that also."
+    },
+    {
+      "id": "42974bea",
+      "timestamp": "2026-05-01T06:27:30.466613+00:00",
+      "mode": "dictation",
+      "original_text": "Is I want you to go ahead and make this this thing navbar smaller and I want the logo to be the same size because the logo is this big it is actually making the navbar more bigger but I want the logo to be in the same size but the navbar should be a little bit smaller so make that happen and 1 more thing you can push the page until the this thing navbar is like like right above the page no and also you could you should also remove the other navbar on top there is another nav bar right behind this nav bar which should be removed so remove that.",
+      "final_text": "Is I want you to go ahead and make this this thing navbar smaller and I want the logo to be the same size because the logo is this big it is actually making the navbar more bigger but I want the logo to be in the same size but the navbar should be a little bit smaller so make that happen and 1 more thing you can push the page until the this thing navbar is like like right above the page no and also you could you should also remove the other navbar on top there is another nav bar right behind this nav bar which should be removed so remove that."
+    },
+    {
+      "id": "82807fdb",
+      "timestamp": "2026-04-30T22:29:21.359934+00:00",
+      "mode": "dictation",
+      "original_text": "So what I want you to do is I want you to go through the admin working. Each and every detail that is needed for the admin to edit and all that should be given in the admin place. So whatever is needed should be there like name changing, text adding, description adding color changing for the product like for the product like whatever it might be and the price changing the photo changing the photo adding all the things that an admin might actually need for managing the whole project products and all those even storage how much storage is there that can be edited and all that it should be in a minimal kind of UI where the admin can handle the whole website so this place should automatically push if they press with apply on the admin page it should automatically push to GitHub which results in updation of whatever they have updated so I want you to do that and 1 more thing would be for the admin login I just want you to add 1 login that would be just an example login and password and provide that to me as well so that I can use that for logging in as an admin yeah do this for me right now it should just be in minimal UI for the admin to handle the whole page okay with all types of animations showing if it has been updated there's an error or whatever it might be all those things it should be smooth and minimal and classy looking you know something that might impress the admin.",
+      "final_text": "So what I want you to do is I want you to go through the admin working. Each and every detail that is needed for the admin to edit and all that should be given in the admin place. So whatever is needed should be there like name changing, text adding, description adding color changing for the product like for the product like whatever it might be and the price changing the photo changing the photo adding all the things that an admin might actually need for managing the whole project products and all those even storage how much storage is there that can be edited and all that it should be in a minimal kind of UI where the admin can handle the whole website so this place should automatically push if they press with apply on the admin page it should automatically push to GitHub which results in updation of whatever they have updated so I want you to do that and 1 more thing would be for the admin login I just want you to add 1 login that would be just an example login and password and provide that to me as well so that I can use that for logging in as an admin yeah do this for me right now it should just be in minimal UI for the admin to handle the whole page okay with all types of animations showing if it has been updated there's an error or whatever it might be all those things it should be smooth and minimal and classy looking you know something that might impress the admin."
+    },
+    {
+      "id": "b0513c68",
+      "timestamp": "2026-04-30T22:25:59.690700+00:00",
+      "mode": "dictation",
+      "original_text": "What I want you to go ahead and do is I want you to refine the whole website all kind of flashes whatever it might be I want you to refine each and everything about them and find out if any bugs if if is there and even come up with a fix for that and fix that and make it as beautiful as possible but not cause any damage to anything visually so nothing should be changed visually but it should work as it is but like some things which can be better should be made better.",
+      "final_text": "What I want you to go ahead and do is I want you to refine the whole website all kind of flashes whatever it might be I want you to refine each and everything about them and find out if any bugs if if is there and even come up with a fix for that and fix that and make it as beautiful as possible but not cause any damage to anything visually so nothing should be changed visually but it should work as it is but like some things which can be better should be made better."
+    },
+    {
+      "id": "3ef4d507",
+      "timestamp": "2026-04-30T22:20:38.338487+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and pull the whole project from GitHub don't push anything that is done on the project file inside the directory which I'm on right now but pull everything and replace it with whatever contents is there inside the current folder so what I want you to do basically is copy the whole thing what is there in GitHub and paste it inside the directory which I am on right now and delete everything that is there inside the directory which I am there right now. Replace it with the GitHub folders, files, everything.",
+      "final_text": "I want you to go ahead and pull the whole project from GitHub don't push anything that is done on the project file inside the directory which I'm on right now but pull everything and replace it with whatever contents is there inside the current folder so what I want you to do basically is copy the whole thing what is there in GitHub and paste it inside the directory which I am on right now and delete everything that is there inside the directory which I am there right now. Replace it with the GitHub folders, files, everything."
+    },
+    {
+      "id": "0604f15f",
+      "timestamp": "2026-04-30T22:00:52.338363+00:00",
+      "mode": "dictation",
+      "original_text": "Yo, right after I switch on the live dictation preview, also change the name to dictation preview, so yeah, whenever I toggle on the live dictation preview inside the settings, it is disabling it by itself when I leave the settings. So fix that 1 thing.",
+      "final_text": "Yo, right after I switch on the live dictation preview, also change the name to dictation preview, so yeah, whenever I toggle on the live dictation preview inside the settings, it is disabling it by itself when I leave the settings. So fix that 1 thing."
+    },
+    {
+      "id": "75497f61",
+      "timestamp": "2026-04-30T21:58:16.327552+00:00",
+      "mode": "dictation",
+      "original_text": "Through the settings so 1 thing would be the settings isn't like what is it updating the number of words or whatever is there inside the dictation dictation menu inside the settings nothing is getting updated real-time and and it's still 0 for some reason and 1 more thing is I want you to make it only vertical scroll there should not be any horizontal scroll and none of the things should be cut so optimize the things in a way that it should be only vertical scroll and as I said whenever I press on top of the on top of the like the days tracking thing that should only open on the right side as whatever is done already so I wanted to fix the ui of it and also fix the back end and check why isn't it actually updating anything and the Supabase publishable url and also the Also the publishable key is both put inside. env but I don't know why it isn't updating. So yeah just go ahead and do this for me.",
+      "final_text": "Through the settings so 1 thing would be the settings isn't like what is it updating the number of words or whatever is there inside the dictation dictation menu inside the settings nothing is getting updated real-time and and it's still 0 for some reason and 1 more thing is I want you to make it only vertical scroll there should not be any horizontal scroll and none of the things should be cut so optimize the things in a way that it should be only vertical scroll and as I said whenever I press on top of the on top of the like the days tracking thing that should only open on the right side as whatever is done already so I wanted to fix the ui of it and also fix the back end and check why isn't it actually updating anything and the Supabase publishable url and also the Also the publishable key is both put inside. env but I don't know why it isn't updating. So yeah just go ahead and do this for me."
+    },
+    {
+      "id": "7e797f59",
+      "timestamp": "2026-04-30T21:50:40.854730+00:00",
+      "mode": "dictation",
+      "original_text": "Also the colors that I asked the pill to turn into whenever I do something like what is it whenever I dictate something if it fails or if it passes or if it pastes or anything like all the overlay pill animations the colors aren't being shown so just fix that 1 thing also and for the tasks pill animation whatever I asked you to do isn't actually working right now so just do that too for me.",
+      "final_text": "Also the colors that I asked the pill to turn into whenever I do something like what is it whenever I dictate something if it fails or if it passes or if it pastes or anything like all the overlay pill animations the colors aren't being shown so just fix that 1 thing also and for the tasks pill animation whatever I asked you to do isn't actually working right now so just do that too for me."
+    },
+    {
+      "id": "493a0d3d",
+      "timestamp": "2026-04-30T21:48:59.576460+00:00",
+      "mode": "dictation",
+      "original_text": "See I want you to go ahead and focus on the overlay pill. So the overlay pill is not doing any animation whenever I'm on the agent mode. So I wanted to do a different kind of an animation come up with an animation for the voice the same thing the same voice animation whatever is put for the dictating the same voice thing even the same same stop button but then whenever the agent is doing it's task I wanted to glue in a certain way showing that the agent is active or even better would be to have another overlay blob a green color blob which will be on the left side of the overlay pill showing that the agent is doing it's task and whenever it opens something or does something on the computer it should turn green and then again to again into the blue color so the blue color should be the agent is active and the green color is that it is doing it's thing and red color if it runs into an error and yeah if it doesn't work and it ends then it should not even show up and the whole overlay field should glow red.",
+      "final_text": "See I want you to go ahead and focus on the overlay pill. So the overlay pill is not doing any animation whenever I'm on the agent mode. So I wanted to do a different kind of an animation come up with an animation for the voice the same thing the same voice animation whatever is put for the dictating the same voice thing even the same same stop button but then whenever the agent is doing it's task I wanted to glue in a certain way showing that the agent is active or even better would be to have another overlay blob a green color blob which will be on the left side of the overlay pill showing that the agent is doing it's task and whenever it opens something or does something on the computer it should turn green and then again to again into the blue color so the blue color should be the agent is active and the green color is that it is doing it's thing and red color if it runs into an error and yeah if it doesn't work and it ends then it should not even show up and the whole overlay field should glow red."
+    },
+    {
+      "id": "368bd89d",
+      "timestamp": "2026-04-30T21:38:37.750008+00:00",
+      "mode": "dictation",
+      "original_text": "So for the tasks, I want you to make it so that like if I specify a time on the dictation for the tasks after pressing F10, it should not include the text of the date or the time that I mentioned but then keep it as the date and time for the completion of the task and 1 more thing would be I want you to base it off off of the time so they can sort it any way they want so I want you to make a sort button wherein they can sort it by time they can sort it by date they can sort it by even a to z or z to a or time reverse or day reverse.",
+      "final_text": "So for the tasks, I want you to make it so that like if I specify a time on the dictation for the tasks after pressing F10, it should not include the text of the date or the time that I mentioned but then keep it as the date and time for the completion of the task and 1 more thing would be I want you to base it off off of the time so they can sort it any way they want so I want you to make a sort button wherein they can sort it by time they can sort it by date they can sort it by even a to z or z to a or time reverse or day reverse."
+    },
+    {
+      "id": "c88ea124",
+      "timestamp": "2026-04-30T21:35:24.798817+00:00",
+      "mode": "task",
+      "original_text": "The SHIVORA website should be done by today which is by 10 30 p. m 5 1 26 this is May 1st 26th Friday.",
+      "final_text": "The SHIVORA website should be done by today which is by 10 30 p. m 5 1 26 this is May 1st 26th Friday."
+    },
+    {
+      "id": "60105152",
+      "timestamp": "2026-04-30T21:33:57.346431+00:00",
+      "mode": "dictation",
+      "original_text": "See what I want you to go ahead and do is after I dictate something it isn't pasting the text what I dictated and it is pasting the previous thing what was already copied and 1 more thing would be like the panel I asked you to make it so that like whenever we want to edit the prompt inside the memories, I want you to make it so that there is a different overlay that is opened on the right side. Go through the tasks menu edit overlay and implement the same thing but then I want you to do it for the memories tab. I want to edit some dictation that I've done it should open up another overlay on the right side with the dictation like whatever it should have so yeah do that for me.",
+      "final_text": "See what I want you to go ahead and do is after I dictate something it isn't pasting the text what I dictated and it is pasting the previous thing what was already copied and 1 more thing would be like the panel I asked you to make it so that like whenever we want to edit the prompt inside the memories, I want you to make it so that there is a different overlay that is opened on the right side. Go through the tasks menu edit overlay and implement the same thing but then I want you to do it for the memories tab. I want to edit some dictation that I've done it should open up another overlay on the right side with the dictation like whatever it should have so yeah do that for me."
+    },
+    {
+      "id": "4599c81a",
+      "timestamp": "2026-04-30T21:30:18.485312+00:00",
+      "mode": "dictation",
+      "original_text": "You to go ahead and do is I want you to go through the whole agent mode itself so what I want you to do is go through. Windsurf/rules superpowers and inside that requesting code review skill I want you to learn that skill first and then go ahead with this task I want you to find out each and every bug that might be there in the agent mode and 1 more thing would be whenever I press f9 twice this would be on Linux or I don't know if it's on Windows but yeah whenever I press f9 y's the thing agent isn't getting toggled is what I feel so that is what I want you to fix and yeah I want you to fix this.",
+      "final_text": "You to go ahead and do is I want you to go through the whole agent mode itself so what I want you to do is go through. Windsurf/rules superpowers and inside that requesting code review skill I want you to learn that skill first and then go ahead with this task I want you to find out each and every bug that might be there in the agent mode and 1 more thing would be whenever I press f9 twice this would be on Linux or I don't know if it's on Windows but yeah whenever I press f9 y's the thing agent isn't getting toggled is what I feel so that is what I want you to fix and yeah I want you to fix this."
+    },
+    {
+      "id": "9085e4ea",
+      "timestamp": "2026-04-30T21:26:44.951441+00:00",
+      "mode": "dictation",
+      "original_text": "So I wanted to create edge cases for the dictation mode but then I don't want it to be very far fetched edge cases like time or things like it's not relevant or whatever it might be. I just want edge cases for like when it's not processed properly or it just hallucinates and tells thank you or might say anything else and yeah create edge cases just for those things like if it's a empty dictation it shouldn't go over and process that and put some text there.",
+      "final_text": "So I wanted to create edge cases for the dictation mode but then I don't want it to be very far fetched edge cases like time or things like it's not relevant or whatever it might be. I just want edge cases for like when it's not processed properly or it just hallucinates and tells thank you or might say anything else and yeah create edge cases just for those things like if it's a empty dictation it shouldn't go over and process that and put some text there."
+    },
+    {
+      "id": "d132d386",
+      "timestamp": "2026-04-30T21:24:52.444995+00:00",
+      "mode": "dictation",
+      "original_text": "Thank you.",
+      "final_text": "Thank you."
+    },
+    {
+      "id": "d01edcf2",
+      "timestamp": "2026-04-30T21:24:33.228679+00:00",
+      "mode": "dictation",
+      "original_text": "Thank you.",
+      "final_text": "Thank you."
+    },
+    {
+      "id": "95be3dad",
+      "timestamp": "2026-04-30T21:20:52.079362+00:00",
+      "mode": "dictation",
+      "original_text": "No, no, I have got a subscription of Kimi which is Allegretto. So can I get an API key from Kimi to use my subscription API key? Can I get that API key and use it on open code is what I'm asking you for.",
+      "final_text": "No, no, I have got a subscription of Kimi which is Allegretto. So can I get an API key from Kimi to use my subscription API key? Can I get that API key and use it on open code is what I'm asking you for."
+    },
+    {
+      "id": "69dfee51",
+      "timestamp": "2026-04-30T21:19:51.609073+00:00",
+      "mode": "dictation",
+      "original_text": "Is there any way that I can get an API key that I can use my subscription model through my like I have bought the subscription now which is Allegretto so yeah is there any way that I can get an API key that I can use through open code.",
+      "final_text": "Is there any way that I can get an API key that I can use my subscription model through my like I have bought the subscription now which is Allegretto so yeah is there any way that I can get an API key that I can use through open code."
+    },
+    {
+      "id": "dd4c181a",
+      "timestamp": "2026-04-30T21:17:59.863664+00:00",
+      "mode": "dictation",
+      "original_text": "Copy button inside the memories for each prompt so whenever they press on a prompt it should directly copy it and if they if they double click it it should open up an edit panel on the right side just like how for tasks when I press the thing it opens up on the right side the same way I want it to open up on the right side where you can edit the prompt or even enhance the prompt by reprompt so yeah do that for me.",
+      "final_text": "Copy button inside the memories for each prompt so whenever they press on a prompt it should directly copy it and if they if they double click it it should open up an edit panel on the right side just like how for tasks when I press the thing it opens up on the right side the same way I want it to open up on the right side where you can edit the prompt or even enhance the prompt by reprompt so yeah do that for me."
+    },
+    {
+      "id": "9b9906a3",
+      "timestamp": "2026-04-30T21:13:18.872022+00:00",
+      "mode": "dictation",
+      "original_text": "Okay so perfect you have done what I asked for just 1 thing the whisp prompt tab isn't needed the reprompt itself is whisp prompt so whatever is put inside this prompt I want the same contents to be put inside the reprompt but then yeah keep the name as the reprompt itself and the hero animation which have whatever Whatever is there inside the reprompt should be whatever should be the same. And yeah, I want you to rename the whisp prompt as reprompt and delete the reprompt page. Is what I want you to do basically.",
+      "final_text": "Okay so perfect you have done what I asked for just 1 thing the whisp prompt tab isn't needed the reprompt itself is whisp prompt so whatever is put inside this prompt I want the same contents to be put inside the reprompt but then yeah keep the name as the reprompt itself and the hero animation which have whatever Whatever is there inside the reprompt should be whatever should be the same. And yeah, I want you to rename the whisp prompt as reprompt and delete the reprompt page. Is what I want you to do basically."
+    },
+    {
+      "id": "9e7f6504",
+      "timestamp": "2026-04-30T21:09:45.360428+00:00",
+      "mode": "dictation",
+      "original_text": "Hey see perfect the navbar is perfect now just 1 more thing the space that you had for the navbar before is still there on the top so take that out and keep only the navbar the space that you had left out for the navbar before is still there so yeah that blank space should be taken out and the page should be pushed up I feel.",
+      "final_text": "Hey see perfect the navbar is perfect now just 1 more thing the space that you had for the navbar before is still there on the top so take that out and keep only the navbar the space that you had left out for the navbar before is still there so yeah that blank space should be taken out and the page should be pushed up I feel."
+    },
+    {
+      "id": "5ebea9ab",
+      "timestamp": "2026-04-30T21:07:50.716281+00:00",
+      "mode": "dictation",
+      "original_text": "Okay see what I want you to do is go ahead and optimize the tasks menu and also the tasks animations that I had asked you to do so.",
+      "final_text": "Okay see what I want you to do is go ahead and optimize the tasks menu and also the tasks animations that I had asked you to do so."
+    },
+    {
+      "id": "80f3e449",
+      "timestamp": "2026-04-30T21:06:01.041236+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, the nav bar is still like this so I want you to go ahead and fix that for me. And yeah, make it so that the nav bar is always the same way how it is when you scroll down. Like even on the top, let it be the same.",
+      "final_text": "Hey, the nav bar is still like this so I want you to go ahead and fix that for me. And yeah, make it so that the nav bar is always the same way how it is when you scroll down. Like even on the top, let it be the same."
+    },
+    {
+      "id": "f77f397e",
+      "timestamp": "2026-04-30T21:03:09.729364+00:00",
+      "mode": "task",
+      "original_text": "For the just a greeting edge case, let it be that's a greeting not a prompt. Tell the AI what you want it to optimize. And 1 more thing would be if it's all caps, there's no need to have an edge case. Case so remove that and yeah do that for me.",
+      "final_text": "For the just a greeting edge case, let it be that's a greeting not a prompt. Tell the AI what you want it to optimize. And 1 more thing would be if it's all caps, there's no need to have an edge case. Case so remove that and yeah do that for me."
+    },
+    {
+      "id": "d2ef2c6c",
+      "timestamp": "2026-04-30T21:01:48.839738+00:00",
+      "mode": "dictation",
+      "original_text": "1 more thing, see I want you to go ahead and check why the overlay pill is not showing any animations. Just go ahead and fix that for me and come back to me when it actually works.",
+      "final_text": "1 more thing, see I want you to go ahead and check why the overlay pill is not showing any animations. Just go ahead and fix that for me and come back to me when it actually works."
+    },
+    {
+      "id": "cb4d79ad",
+      "timestamp": "2026-04-30T21:01:12.541936+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, the prompt can be how many ever characters it wants to be. So don't put a constraint to how much big the prompt should be.",
+      "final_text": "Hey, the prompt can be how many ever characters it wants to be. So don't put a constraint to how much big the prompt should be."
+    },
+    {
+      "id": "e44a84f7",
+      "timestamp": "2026-04-30T20:59:53.356860+00:00",
+      "mode": "dictation",
+      "original_text": "1 more thing, the nav bar on the top of the screen makes itself small right? So that thing, I want you to make it so that it is always the same size but then while scrolling down make it so that it's inside a glass menu and the bottom spacing isn't right whenever it's on the top so yeah that is why I am telling you to do this and 1 more thing would be when going to any page while you're scrolled down into some page already it should not go to that page at that scroll level it should go to the top of that page again. So yeah, make that 1 more fix and yeah, go ahead and do this.",
+      "final_text": "1 more thing, the nav bar on the top of the screen makes itself small right? So that thing, I want you to make it so that it is always the same size but then while scrolling down make it so that it's inside a glass menu and the bottom spacing isn't right whenever it's on the top so yeah that is why I am telling you to do this and 1 more thing would be when going to any page while you're scrolled down into some page already it should not go to that page at that scroll level it should go to the top of that page again. So yeah, make that 1 more fix and yeah, go ahead and do this."
+    },
+    {
+      "id": "2e260d3e",
+      "timestamp": "2026-04-30T20:57:20.214778+00:00",
+      "mode": "dictation",
+      "original_text": "And there should be a toggle button inside the settings dictation menu I want you to add a toggle menu where like I want you to like what is that specify whatever it might be but yeah that toggle menu should make a thing where in like you know like if I tell something right now if I iterate something or dictate something whatever I dictated should come up as kind of an overlay on top of the pill where it shows the text what I iterated or dictated and it should be editable and even it should be able to trigger this prompt through ctrl shift space so yeah the place where it shows the text that should be toggleable so whenever they want it to be on they can keep it on or they can keep it off so do that and 1 more thing would be even keep a like it should it should automatically clipboard after the this prompt does it's thing like on the edit menu itself and also if edited it should copy the edited thing to the clipboard which can be for the pasted wherever they want so make that happen and I want the look and feel to be the same as however the app feels and looks and it should be according to whatever theme they are put so it should be having all themes and according to whatever theme they are on it should be that so make that happen.",
+      "final_text": "And there should be a toggle button inside the settings dictation menu I want you to add a toggle menu where like I want you to like what is that specify whatever it might be but yeah that toggle menu should make a thing where in like you know like if I tell something right now if I iterate something or dictate something whatever I dictated should come up as kind of an overlay on top of the pill where it shows the text what I iterated or dictated and it should be editable and even it should be able to trigger this prompt through ctrl shift space so yeah the place where it shows the text that should be toggleable so whenever they want it to be on they can keep it on or they can keep it off so do that and 1 more thing would be even keep a like it should it should automatically clipboard after the this prompt does it's thing like on the edit menu itself and also if edited it should copy the edited thing to the clipboard which can be for the pasted wherever they want so make that happen and I want the look and feel to be the same as however the app feels and looks and it should be according to whatever theme they are put so it should be having all themes and according to whatever theme they are on it should be that so make that happen."
+    },
+    {
+      "id": "80f3479c",
+      "timestamp": "2026-04-30T20:53:59.340652+00:00",
+      "mode": "dictation",
+      "original_text": "To go ahead and also add edge cases to it where in yeah you know what is it case edge cases so whatever edge cases that might feel right to you I want you to go ahead and implement them and also make it so that make it so that the edge cases actually mattered and things like imagine they put a silly prompt on the thing and press optimize prompt it shouldn't work so yeah just do that.",
+      "final_text": "To go ahead and also add edge cases to it where in yeah you know what is it case edge cases so whatever edge cases that might feel right to you I want you to go ahead and implement them and also make it so that make it so that the edge cases actually mattered and things like imagine they put a silly prompt on the thing and press optimize prompt it shouldn't work so yeah just do that."
+    }
+  ]
+}

@@ -1,0 +1,212 @@
+{
+  "recipe_library": {
+    "agent_automate_file_open_a5e93bc0": {
+      "recipe_id": "agent_automate_file_open_a5e93bc0",
+      "name": "Learned Recipe",
+      "description": "automate file open",
+      "target_app": "unknown",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "unknown"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 10
+      }
+    },
+    "agent_automate_file_open_bcc63e56": {
+      "recipe_id": "agent_automate_file_open_bcc63e56",
+      "name": "Learned Recipe",
+      "description": "automate file open",
+      "target_app": "unknown",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "unknown"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 4
+      }
+    },
+    "agent_automate_file_open_05480b07": {
+      "recipe_id": "agent_automate_file_open_05480b07",
+      "name": "Learned Recipe",
+      "description": "automate file open",
+      "target_app": "unknown",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "unknown"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 9
+      }
+    },
+    "agent_automate_file_open_058e2e39": {
+      "recipe_id": "agent_automate_file_open_058e2e39",
+      "name": "Learned Recipe",
+      "description": "automate file open",
+      "target_app": "unknown",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "unknown"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 10
+      }
+    },
+    "agent_automate_file_open_6ff9bd33": {
+      "recipe_id": "agent_automate_file_open_6ff9bd33",
+      "name": "Learned Recipe",
+      "description": "automate file open",
+      "target_app": "unknown",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "unknown"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 4
+      }
+    },
+    "agent_automate_file_open_0161aaf6": {
+      "recipe_id": "agent_automate_file_open_0161aaf6",
+      "name": "Learned Recipe",
+      "description": "automate file open",
+      "target_app": "unknown",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "unknown"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 10
+      }
+    }
+  },
+  "causal_model": {
+    "edges": [],
+    "variables": []
+  }
+}

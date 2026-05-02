@@ -1,0 +1,19 @@
+{
+  "memory_enabled": true,
+  "identity": {},
+  "preferences": {
+    "music_sources": "['Apple Music', 'YouTube']"
+  },
+  "current_projects": {
+    "email_campaigns_targeting_Indian_businesses_without_websites": "True"
+  },
+  "tools_and_tech": {
+    "Windsurf": "used for prompting",
+    "browser": "Arc browser"
+  },
+  "goals": {
+    "optimize_Arkham_City_performance": "without changing in-game settings, prefers other tweaks"
+  },
+  "context": {},
+  "notes": {}
+}

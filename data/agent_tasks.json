@@ -1,0 +1,1119 @@
+[
+  {
+    "task_id": "task_1774699389_1224e9",
+    "description": "I want you to make me... I want you to open up ARC browser, go to YouTube and search up Doja Cat and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-03-28T17:33:09.888436",
+    "completed_at": "2026-03-28T17:34:01.640124",
+    "current_step": 16,
+    "total_steps": 20,
+    "progress_percent": 100,
+    "result": {
+      "status": "incomplete",
+      "data": null,
+      "error": "Target window closed unexpectedly"
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1774699556_971c8c",
+    "description": "Thank you. the problem now is it is actually opening up the browser imagine it is our browser it is opening up our browser but it is popping up in the front page that is the first problem and it should be all background until the whole task it should not come up in the front and One more problem is it isn Typing on the thing so what is happening is I told it to open the art browser Search up YouTube So you go on to YouTube and then play search up doja cat and then play the first video which pops up is what I asked it to do but it is just stuck at opening the browser it is closing the browser opening the browser minimizing opening minimizing opening minimizing opening so make it so that the AI gets the screenshot of only the browser like only the background task whatever is going on I wanted to get only that as the screenshot for the AI not the whole screen you know",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-03-28T17:35:56.768015",
+    "completed_at": "2026-03-28T17:36:27.578985",
+    "current_step": 14,
+    "total_steps": 20,
+    "progress_percent": 100,
+    "result": {
+      "status": "incomplete",
+      "data": null,
+      "error": "Failed to capture window screenshot"
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1774708468_e1905d",
+    "description": "I want you to open the ARC browser and then navigate to YouTube and play a DojaCat YouTube video. Search up DojaCat and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-03-28T20:04:28.286987",
+    "completed_at": "2026-03-28T20:04:38.782318",
+    "current_step": 2,
+    "total_steps": 20,
+    "progress_percent": 100,
+    "result": {
+      "status": "incomplete",
+      "data": null,
+      "error": "The task cannot be completed because the current environment does not support browser automation. The error indicates a type conversion issue in the code, which is unrelated to the intended browser task."
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1774708549_630dea",
+    "description": "Go to the ARC browser and navigate to YouTube and search up Doja Cat and play the first video which pops up. I am using under bipartisanvioletiliters under 199 mask I have received a lot from thiserkil hydraics",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-03-28T20:05:49.147852",
+    "completed_at": "2026-03-28T20:06:26.832752",
+    "current_step": 16,
+    "total_steps": 20,
+    "progress_percent": 100,
+    "result": {
+      "status": "incomplete",
+      "data": null,
+      "error": "Manager stopped"
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1774857213_43615d",
+    "description": "Open Art Browser",
+    "status": "executing",
+    "task_type": "browser",
+    "created_at": "2026-03-30T13:23:33.780717",
+    "completed_at": null,
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "task_1774857247_272783",
+    "description": "Type on the URL youtube.com",
+    "status": "queued",
+    "task_type": "browser",
+    "created_at": "2026-03-30T13:24:07.774167",
+    "completed_at": null,
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "task_1774873035_29221e",
+    "description": "I want you to open up ARC browser, navigate to youtube.com Thank you. I think it's easy. I can't put any other person's on. I know. Hey, I know. I know. Is there anyone here? Oh, my God.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-03-30T17:47:15.157766",
+    "completed_at": "2026-03-30T17:48:10.651250",
+    "current_step": 20,
+    "total_steps": 20,
+    "progress_percent": 100,
+    "result": {
+      "status": "incomplete",
+      "data": null,
+      "error": "Reached max steps (20) without completing"
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1774874378_a7c39b",
+    "description": "I want you to open up ARC browser and search youtube.com and on youtube.com search up Doja Cat and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-03-30T18:09:38.785296",
+    "completed_at": "2026-03-30T18:10:22.952634",
+    "current_step": 20,
+    "total_steps": 20,
+    "progress_percent": 100,
+    "result": {
+      "status": "incomplete",
+      "data": null,
+      "error": "Reached max steps (20) without completing"
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775204690_4ba0be",
+    "description": "I want you to open up our browser, navigate to YouTube and play the video Because I thought the computer died or something. About after a couple of minutes, the computer came back to life. When I was 4, it always went through a splash screen. Ah, ah, ah. Okay. Oh my God. Again, excuse my moaning. I was kind of excited at the time. So I went through the usual signing process. and after a couple of minutes I was greeted by the",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-03T13:54:50.220109",
+    "completed_at": "2026-04-03T13:55:50.307587",
+    "current_step": 20,
+    "total_steps": 20,
+    "progress_percent": 100,
+    "result": {
+      "status": "incomplete",
+      "data": null,
+      "error": "Reached max steps (20) without completing"
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775397378_4af749",
+    "description": "I want you to open Chrome and on YouTube search up Doja Cat and play the first video",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-05T19:26:18.305199",
+    "completed_at": "2026-04-05T19:27:18.286625",
+    "current_step": 20,
+    "total_steps": 20,
+    "progress_percent": 100,
+    "result": {
+      "status": "incomplete",
+      "data": null,
+      "error": "Reached max steps (20) without completing"
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775398172_86108a",
+    "description": "I want you to open the Chrome browser, navigate to youtube.com and search up DojaCat and play the first video which pops up.",
+    "status": "queued",
+    "task_type": "browser",
+    "created_at": "2026-04-05T19:39:32.836927",
+    "completed_at": null,
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "task_1775398173_de3fd0",
+    "description": "I want you to open the Chrome browser, navigate to youtube.com and search up DojaCat and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-05T19:39:33.334895",
+    "completed_at": "2026-04-05T19:40:21.702357",
+    "current_step": 13,
+    "total_steps": 20,
+    "progress_percent": 100,
+    "result": {
+      "status": "incomplete",
+      "data": null,
+      "error": "The current window is a terminal, not a browser. No valid action can be taken to open Chrome or navigate to a website."
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775399584_22f424",
+    "description": "Okay, I'll put it on the floor.",
+    "status": "queued",
+    "task_type": "browser",
+    "created_at": "2026-04-05T20:03:04.174788",
+    "completed_at": null,
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "task_1775399584_30aa76",
+    "description": "Yeah, I'll put it somewhere.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-05T20:03:04.722034",
+    "completed_at": "2026-04-05T20:03:27.931186",
+    "current_step": 5,
+    "total_steps": 20,
+    "progress_percent": 100,
+    "result": {
+      "status": "incomplete",
+      "data": null,
+      "error": "Manager stopped"
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775399657_feac63",
+    "description": "I want you to open up our browser, navigate to youtube.com and search up Mr. Beast and play the first video which pops up.",
+    "status": "executing",
+    "task_type": "browser",
+    "created_at": "2026-04-05T20:04:17.827650",
+    "completed_at": null,
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "task_1775400405_5e7952",
+    "description": "I want you to open up ARC browser, go onto YouTube and search up Doja Cat and play the first video which pops up.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-05T20:16:45.463601",
+    "completed_at": "2026-04-05T20:16:54.204182",
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": "Planner step 2 has unsupported action type 'wait'"
+  },
+  {
+    "task_id": "task_1775403897_a86446",
+    "description": "Open ARC browser, navigate to youtube.com, search MrBeast and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-05T21:14:57.039584",
+    "completed_at": "2026-04-05T21:15:14.309473",
+    "current_step": 7,
+    "total_steps": 7,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Open ARC browser, navigate to youtube.com, search MrBeast and play the first video which pops up.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775404777_0663f0",
+    "description": "I want you to open up the ARC browser, navigate to youtube.com and search up MrBeast and play the first video which pops up.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-05T21:29:37.217947",
+    "completed_at": "2026-04-05T21:29:46.930122",
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": "Failed to find browser window after launch"
+  },
+  {
+    "task_id": "task_1775404965_7c0651",
+    "description": "I want you to open up ARC browser, navigate to youtube.com, search up MrBeast and play the first video which pops up.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-05T21:32:45.575279",
+    "completed_at": "2026-04-05T21:33:01.023737",
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": "Failed to find browser window after launch"
+  },
+  {
+    "task_id": "task_1775405697_7d0926",
+    "description": "Open the ARC browser, navigate to youtube.com and play the first video which pops up while searching Mr. Beast.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-05T21:44:57.636471",
+    "completed_at": "2026-04-05T21:45:08.352134",
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": "Planner step 1 click action is missing coordinates"
+  },
+  {
+    "task_id": "task_1775405975_12f9d5",
+    "description": "I want you to open up ARC browser, navigate to youtube.com, search MrBeast and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-05T21:49:35.367928",
+    "completed_at": "2026-04-05T21:49:53.496284",
+    "current_step": 7,
+    "total_steps": 7,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Open ARC browser, navigate to youtube.com, search MrBeast and play the first video which pops up.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775406429_dc1b5b",
+    "description": "I want you to open up ARC browser, navigate to youtube.com, search MrBeast and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-05T21:57:09.035523",
+    "completed_at": "2026-04-05T21:57:32.652056",
+    "current_step": 7,
+    "total_steps": 7,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Open ARC browser, navigate to youtube.com, search MrBeast and play the first video which pops up.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775407398_cb6fc4",
+    "description": "Search MrBeast on YouTube and open up the first result.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-05T22:13:18.791934",
+    "completed_at": "2026-04-05T22:13:32.188069",
+    "current_step": 3,
+    "total_steps": 3,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Search MrBeast on YouTube and open up the first result.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775407447_9e2f30",
+    "description": "open up regedit on Windows and navigate to yeah yeah, yeah, I read it in the app app",
+    "status": "complete",
+    "task_type": "registry",
+    "created_at": "2026-04-05T22:14:07.220608",
+    "completed_at": "2026-04-05T22:14:28.041991",
+    "current_step": 6,
+    "total_steps": 20,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "changes": [
+        "Registry: open up regedit on Windows and navigate to yeah yeah, yeah, I read it in the app app"
+      ],
+      "data": "The task was completed by opening regedit and navigating to the specified path.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775407597_86a2da",
+    "description": "Open the comment browser, search up YouTube and search MrBeast and play the first video that pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-05T22:16:37.746432",
+    "completed_at": "2026-04-05T22:16:54.615338",
+    "current_step": 7,
+    "total_steps": 7,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Open the comment browser, search up YouTube and search MrBeast and play the first video that pops up.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775407697_a9cc2b",
+    "description": "Open up Chrome, navigate to the latest news on OpenAI and what the secret model that they're releasing is gonna be. A paper. Open up that.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-05T22:18:17.122157",
+    "completed_at": "2026-04-05T22:18:34.567227",
+    "current_step": 3,
+    "total_steps": 3,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Open up Chrome, navigate to the latest news on OpenAI and what the secret model that they're releasing is gonna be. A paper. Open up that.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775412803_2e188a",
+    "description": "I want you to open up the Comet browser, search up the most recent news on OpenAI, the new model which is coming and click on one of the best papers speaking about it.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-05T23:43:23.671635",
+    "completed_at": "2026-04-05T23:43:36.512468",
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": "Planner step 4 has unsupported action type 'scroll'"
+  },
+  {
+    "task_id": "task_1775413095_d4c444",
+    "description": "Open the Chrome browser, search for the latest news on AI and open that page and on a different tab I want you to open up the latest news on open AI's new model.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-05T23:48:15.542110",
+    "completed_at": "2026-04-05T23:48:37.605329",
+    "current_step": 5,
+    "total_steps": 5,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Open the Chrome browser, search for the latest news on AI and open that page and on a different tab I want you to open up the latest news on open AI's new model.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775413433_34d0e8",
+    "description": "I want you to open up the settings and change the theme of the laptop to light",
+    "status": "failed",
+    "task_type": "settings",
+    "created_at": "2026-04-05T23:53:53.454993",
+    "completed_at": "2026-04-05T23:54:04.553788",
+    "current_step": 2,
+    "total_steps": 20,
+    "progress_percent": 10,
+    "result": {
+      "status": "incomplete",
+      "setting": "I want you to open up the settings and change the theme of the laptop to light",
+      "data": null,
+      "error": "The task cannot be completed because the current application is a command-line interface, not a web browser or settings menu. The error indicates a programming issue, not a user action."
+    },
+    "error": "The task cannot be completed because the current application is a command-line interface, not a web browser or settings menu. The error indicates a programming issue, not a user action."
+  },
+  {
+    "task_id": "task_1775413468_cf6fed",
+    "description": "Change the laptops dark mode to light mode",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-05T23:54:28.711005",
+    "completed_at": "2026-04-05T23:54:39.756297",
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": "Expecting ',' delimiter: line 1 column 789 (char 788)"
+  },
+  {
+    "task_id": "task_1775415986_7f4a11",
+    "description": "Change the theme of my laptop from dark mode to light mode.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-06T00:36:26.476023",
+    "completed_at": "2026-04-06T00:36:36.222201",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Change the theme of my laptop from dark mode to light mode.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775433617_3c0376",
+    "description": "Open up WhatsApp and navigate to RenaultVavisChat.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-06T05:30:17.288068",
+    "completed_at": "2026-04-06T05:30:33.242132",
+    "current_step": 4,
+    "total_steps": 4,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Open up WhatsApp and navigate to RenaultVavisChat.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775466506_ed2bea",
+    "description": "On Arc Browser, navigate to notion.com",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-06T14:38:26.523776",
+    "completed_at": "2026-04-06T14:38:41.567797",
+    "current_step": 3,
+    "total_steps": 3,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "On Arc Browser, navigate to notion.com",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775466541_bfe852",
+    "description": "Open YouTube, search MrBeast and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-06T14:39:01.035680",
+    "completed_at": "2026-04-06T14:39:25.829991",
+    "current_step": 7,
+    "total_steps": 7,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Open YouTube, search MrBeast and play the first video which pops up.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775482731_2e2ebe",
+    "description": "I want you to open ARC browser, navigate to youtube.com, search up MrBeast and play the latest video.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-06T19:08:51.408285",
+    "completed_at": "2026-04-06T19:09:20.407576",
+    "current_step": 8,
+    "total_steps": 8,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Open ARC browser, navigate to youtube.com, search for MrBeast, and play the latest video.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775494072_127104",
+    "description": "I want you to open up Chrome, navigate to youtube.com, search up MrBeast and play the first video which pops up.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-06T22:17:52.925995",
+    "completed_at": "2026-04-06T22:17:58.513491",
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": "module 'core.vlm' has no attribute 'call_qwen_planner'"
+  },
+  {
+    "task_id": "task_1775496106_431663",
+    "description": "Open Chrome and navigate to Twitter and click on the sign in button.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-06T22:51:46.004021",
+    "completed_at": "2026-04-06T22:51:48.199907",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Could not plan this task \u2014 please try rephrasing.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1775496997_b2f73d",
+    "description": "Open Chrome, navigate to twitter.com and click on the sign in option. Sign in button.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-06T23:06:37.568853",
+    "completed_at": "2026-04-06T23:06:51.020951",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "int() argument must be a string, a bytes-like object or a real number, not 'list'"
+  },
+  {
+    "task_id": "task_1775588038_4af866",
+    "description": "Open Chrome, navigate to youtube.com, search up MrBeast and play the first video which pops up.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-08T00:23:58.913051",
+    "completed_at": "2026-04-08T00:23:59.738199",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "name '_is_research_task' is not defined"
+  },
+  {
+    "task_id": "task_1775919563_870868",
+    "description": "Open ARC browser, navigate to YouTube and search up Elon Musk and play the first video which pops up.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-11T20:29:23.639761",
+    "completed_at": "2026-04-11T20:29:24.301648",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "name '_is_research_task' is not defined"
+  },
+  {
+    "task_id": "task_1775921493_0bb89f",
+    "description": "I want you to open up our browser, navigate to youtube.com and search up MrBeast and play the first video which pops up.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-11T21:01:33.688337",
+    "completed_at": "2026-04-11T21:01:34.715020",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "name '_research_pipeline' is not defined"
+  },
+  {
+    "task_id": "task_1775989964_12ec40",
+    "description": "I want you to open up our browser, navigate to youtube.com, search up Mr. Beast and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-12T16:02:44.596638",
+    "completed_at": "2026-04-12T16:02:50.548978",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "open chrome, then go to youtube.com",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776056469_3763ab",
+    "description": "I want you to open the Chrome browser, navigate to youtube.com, search up MrBeast and play the most recent video of his.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-13T10:31:09.958466",
+    "completed_at": "2026-04-13T10:31:24.964530",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "open chrome, then go to youtube.com",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776170075_cccdb4",
+    "description": "I want you to open up ARC browser, navigate to youtube.com, play the first video that pops up, which is the most recent, at least like 20 hours ago.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-14T18:04:35.383052",
+    "completed_at": "2026-04-14T18:04:49.788505",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "open arc browser, then go to youtube.com",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776170144_192861",
+    "description": "Open up our browser, navigate to youtube.com and play the first video that pops up which has the most recent post which is about 20 hours ago. And if not there, search up MrBeast and play the first video which pops up there.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-14T18:05:44.552293",
+    "completed_at": "2026-04-14T18:06:05.881197",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "open our browser, then go to youtube.com",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776174561_dd8ade",
+    "description": "Open up ARC browser, navigate to youtube.com, search up Supabass and play the first video.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-14T19:19:21.259048",
+    "completed_at": "2026-04-14T19:19:31.347327",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "open arc browser, then go to youtube.com",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776175150_a600a5",
+    "description": "Open up ARC browser, navigate to youtube.com, search up MrBeast and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-14T19:29:10.139401",
+    "completed_at": "2026-04-14T19:29:19.651802",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "open arc browser, then go to youtube.com",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776175496_fa6a04",
+    "description": "Open up our browser, navigate to youtube.com and play the first video that pops up of Linus Tech Tips.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-14T19:34:56.560259",
+    "completed_at": "2026-04-14T19:35:05.464859",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "open chrome, then go to youtube.com",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776176398_749e16",
+    "description": "Open up the ARC browser, navigate to youtube.com, search up Linus Tech Tips and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-14T19:49:58.510844",
+    "completed_at": "2026-04-14T19:50:11.074183",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "open arc browser, then go to youtube.com",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776176713_f91d7e",
+    "description": "I want you to open up ARC browser, navigate to youtube.com, search up Linus Tech Tips and play the first video which pops up.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-14T19:55:13.075537",
+    "completed_at": "2026-04-14T19:55:36.992214",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "open arc browser, then go to youtube.com, then search Linus Tech Tips, then open the first video",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776182813_bbb3a3",
+    "description": "I want you to open up the ARC browser, navigate to youtube.com and play the first video which pops up about Linus Tech's tip.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-14T21:36:53.669370",
+    "completed_at": "2026-04-14T21:37:01.433579",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "name '_parse_json' is not defined"
+  },
+  {
+    "task_id": "task_1776264224_bb2935",
+    "description": "I want you to open up a Chrome browser, navigate to LinkedIn.com and login into my account.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-15T20:13:44.245991",
+    "completed_at": "2026-04-15T20:13:57.493967",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "name '_parse_json' is not defined"
+  },
+  {
+    "task_id": "task_1776371972_784e0b",
+    "description": "So I want you to go to the Chrome browser, navigate to YouTube, open up MrBeast's new video and play it for me.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-17T02:09:32.492014",
+    "completed_at": "2026-04-17T02:09:48.354734",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "name '_parse_json' is not defined"
+  },
+  {
+    "task_id": "task_1776374515_21e8b5",
+    "description": "Open up Chrome, navigate to youtube.com and search up MrBeast and play the first video which comes up.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-17T02:51:55.571852",
+    "completed_at": "2026-04-17T02:51:56.136236",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "name '_parse_json' is not defined"
+  },
+  {
+    "task_id": "task_1776374620_9bde50",
+    "description": "I want you to open up Chrome, navigate to youtube.com, search up MrBeast and play the first video which pops up.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-17T02:53:40.247552",
+    "completed_at": "2026-04-17T02:53:41.019048",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "name '_parse_json' is not defined"
+  },
+  {
+    "task_id": "task_1776375087_18755d",
+    "description": "I want you to go to Chrome and search up YouTube.com and search up Mr. Beast and play the first video that pops up.",
+    "status": "cancelled",
+    "task_type": "browser",
+    "created_at": "2026-04-17T03:01:27.679990",
+    "completed_at": "2026-04-17T03:02:43.053168",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "App shutdown"
+  },
+  {
+    "task_id": "task_1776375807_67c844",
+    "description": "Open up Chrome, navigate to YouTube.com and search up MrBeast and play the first video which pops up.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-17T03:13:27.277780",
+    "completed_at": "2026-04-17T03:13:48.338691",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": {
+      "status": "failed",
+      "data": null,
+      "error": "Task failed: failed: could not find requested video result"
+    },
+    "error": "Task failed: failed: could not find requested video result"
+  },
+  {
+    "task_id": "task_1776376304_a47c4b",
+    "description": "Open up Chrome, navigate to youtube.com, search up MrBeast and play the most recent video.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-17T03:21:44.708672",
+    "completed_at": "2026-04-17T03:22:08.590981",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": {
+      "status": "failed",
+      "data": null,
+      "error": "Task failed: failed: could not find requested video result (most recent)"
+    },
+    "error": "Task failed: failed: could not find requested video result (most recent)"
+  },
+  {
+    "task_id": "task_1776379329_c43ae9",
+    "description": "I want you to open up Chrome, navigate to youtube.com and search up MrBeast and play the most recent video that he has uploaded.",
+    "status": "queued",
+    "task_type": "browser",
+    "created_at": "2026-04-17T04:12:09.995836",
+    "completed_at": null,
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "task_1776379711_0726d0",
+    "description": "PROBE_NOOP describe latest wallpaper",
+    "status": "cancelled",
+    "task_type": "browser",
+    "created_at": "2026-04-17T04:18:31.902041",
+    "completed_at": "2026-04-17T04:18:32.409342",
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": "App shutdown"
+  },
+  {
+    "task_id": "task_1776379868_913fef",
+    "description": "PROBE_NOOP test task",
+    "status": "cancelled",
+    "task_type": "browser",
+    "created_at": "2026-04-17T04:21:08.552577",
+    "completed_at": "2026-04-17T04:21:09.065987",
+    "current_step": 0,
+    "total_steps": 0,
+    "progress_percent": 0,
+    "result": null,
+    "error": "App shutdown"
+  },
+  {
+    "task_id": "task_1776380178_daa803",
+    "description": "Open up this thing, what is it? Chrome. Navigate to YouTube. Search up Mr. Beast's most recent video and play that.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-17T04:26:18.452384",
+    "completed_at": "2026-04-17T04:26:28.203982",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "open Chrome, then go to youtube.com, then search Mr, then matching most recent",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776380334_6fc89c",
+    "description": "Bumpery! Bumpery!",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-17T04:28:54.998023",
+    "completed_at": "2026-04-17T04:29:17.252165",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Bumpery game search completed and results are visible.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776380725_936fb5",
+    "description": "I want you to open up notepad and I want you to write these down as a task to do for tomorrow so the first task is I should make the agent more smarter have some edge cases add some constraints to it and some guardrails to follow first thing second thing would be I needed to go I need to complete the whole shivora website and then give it back to Aryan and third thing would be just to make up a whole task overview of whatever should be done whatever should not be done from tomorrow onwards I want a whole ui to be made wherein I can track everything everyday basis. So this is the third thing.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-17T04:35:25.429467",
+    "completed_at": "2026-04-17T04:35:38.421100",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Tasks for tomorrow have been written in Notepad.",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776462427_539aaf",
+    "description": "okay bro I want you to go ahead and I have opened a notepad right now so there are three notes in that I want you to save all three as task one task two task three and put all three into one folder named to do for tomorrow.",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-18T03:17:07.532050",
+    "completed_at": "2026-04-18T03:17:26.130031",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Loop detected at step 3 \u2014 aborting",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776462502_157aed",
+    "description": "okay bro I want you to go ahead and open notepad right now there are three tabs which are in the left side of each other and I want you to save all three as task one task two and task three respectively and put all three into one folder named as to do for tomorrow",
+    "status": "complete",
+    "task_type": "browser",
+    "created_at": "2026-04-18T03:18:22.845800",
+    "completed_at": "2026-04-18T03:18:44.018210",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 100,
+    "result": {
+      "status": "success",
+      "data": "Loop detected at step 4 \u2014 aborting",
+      "error": null
+    },
+    "error": null
+  },
+  {
+    "task_id": "task_1776521244_a3e203",
+    "description": "Open up Chrome and navigate to YouTube.com Search up MrBeast and play the most recent video that he has made",
+    "status": "cancelled",
+    "task_type": "browser",
+    "created_at": "2026-04-18T19:37:24.320567",
+    "completed_at": "2026-04-18T19:38:46.091231",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "App shutdown"
+  },
+  {
+    "task_id": "task_1776522169_d9037a",
+    "description": "navigate to Chrome open youtube.com and go to the search bar search of Mr. Beast and play the most recent video of Mr. Beast",
+    "status": "cancelled",
+    "task_type": "browser",
+    "created_at": "2026-04-18T19:52:49.139998",
+    "completed_at": "2026-04-18T19:53:18.825637",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "App shutdown"
+  },
+  {
+    "task_id": "task_1776526838_9e5afc",
+    "description": "Open Chrome, go to youtube.com, search up MrBeast and play the first video which pops up.",
+    "status": "cancelled",
+    "task_type": "browser",
+    "created_at": "2026-04-18T21:10:38.401810",
+    "completed_at": "2026-04-18T21:11:05.724466",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "App shutdown"
+  },
+  {
+    "task_id": "task_1776527570_401d19",
+    "description": "Open Chrome, navigate to youtube.com and search up MrBeast and play the most recent video of MrBeast.",
+    "status": "cancelled",
+    "task_type": "browser",
+    "created_at": "2026-04-18T21:22:50.800505",
+    "completed_at": "2026-04-18T21:23:54.216152",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "App shutdown"
+  },
+  {
+    "task_id": "task_1776527824_9d3ecf",
+    "description": "Open Chrome, go to YouTube and search for MrBeast and play the first video which pops up. And if it's not the most recent, play the most recent video of MrBeast.",
+    "status": "executing",
+    "task_type": "browser",
+    "created_at": "2026-04-18T21:27:04.917558",
+    "completed_at": null,
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": null
+  },
+  {
+    "task_id": "task_1776802305_642dc1",
+    "description": "I just wanted to check if it works or not.",
+    "status": "failed",
+    "task_type": "browser",
+    "created_at": "2026-04-22T01:41:45.493962",
+    "completed_at": "2026-04-22T01:41:52.340443",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "No module named 'win32gui'"
+  },
+  {
+    "task_id": "task_1776803184_629527",
+    "description": ". ..",
+    "status": "cancelled",
+    "task_type": "browser",
+    "created_at": "2026-04-22T01:56:24.441065",
+    "completed_at": "2026-04-22T01:56:29.508214",
+    "current_step": 1,
+    "total_steps": 1,
+    "progress_percent": 25,
+    "result": null,
+    "error": "App shutdown"
+  }
+]

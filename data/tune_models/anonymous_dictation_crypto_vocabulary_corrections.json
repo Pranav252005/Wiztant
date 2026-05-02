@@ -1,0 +1,41 @@
+{
+  "correction_map": {},
+  "confidence_model": {
+    "default_threshold": 0.85,
+    "thresholds": {}
+  },
+  "domain_profiles": {
+    "general": {
+      "correction_count": 0,
+      "convergence_status": "LEARNING"
+    },
+    "software": {
+      "correction_count": 0,
+      "convergence_status": "LEARNING"
+    },
+    "crypto": {
+      "correction_count": 0,
+      "convergence_status": "LEARNING"
+    },
+    "medical": {
+      "correction_count": 0,
+      "convergence_status": "LEARNING"
+    },
+    "legal": {
+      "correction_count": 0,
+      "convergence_status": "LEARNING"
+    },
+    "creative_writing": {
+      "correction_count": 0,
+      "convergence_status": "LEARNING"
+    },
+    "business": {
+      "correction_count": 0,
+      "convergence_status": "LEARNING"
+    },
+    "custom": {
+      "correction_count": 0,
+      "convergence_status": "LEARNING"
+    }
+  }
+}

@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-gradient-primary {
+    background: linear-gradient(135deg, #e85d4a 0%, #ff8a65 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-gradient-warm {
+    background: linear-gradient(135deg, #ff8a65 0%, #ffd54f 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .glass {
+    background: rgba(20, 20, 20, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .glow-primary {
+    box-shadow: 0 0 60px rgba(232, 93, 74, 0.15);
+  }
+  .glow-warm {
+    box-shadow: 0 0 60px rgba(255, 138, 101, 0.12);
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-semibold text-bg-dark transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(232,93,74,0.4)];
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-7 py-3 text-sm font-medium text-text-primary transition-all duration-300 hover:bg-white/10 hover:border-white/20;
+  }
+  .card {
+    @apply rounded-2xl border border-white/[0.06] bg-white/[0.03] p-8 transition-all duration-500 hover:border-primary/30 hover:bg-white/[0.05];
+  }
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-[0.2em] text-primary;
+  }
+  .kbd {
+    @apply inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-2 py-1 font-mono text-xs text-text-secondary;
+  }
+  .prose-dark {
+    @apply text-text-secondary;
+  }
+  .prose-dark h1,
+  .prose-dark h2,
+  .prose-dark h3 {
+    @apply text-text-primary;
+  }
+  .page-wrap {
+    @apply mx-auto max-w-7xl px-6;
+  }
+  .section {
+    @apply py-28;
+  }
+  .section-alt {
+    @apply bg-white/[0.02];
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: #0a0a0a;
+    color: #f5f5f5;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    overflow-x: hidden;
+  }
+  ::selection {
+    background: rgba(232, 93, 74, 0.4);
+    color: #fff;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #333 #0a0a0a;
+  }
+  *::-webkit-scrollbar {
+    width: 6px;
+  }
+  *::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+  }
+}

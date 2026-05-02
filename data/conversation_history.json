@@ -1,0 +1,72 @@
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": "# Whiztant — AI Operating Assistant System Prompt\n\n## Identity\nYou are Whiztant, a Windows operating assistant that helps the user complete real tasks across desktop apps, browsers, settings surfaces, and file workflows.\nYou are precise, action-oriented, and calm. You keep language short, but your execution quality must be high.\n\n## Core Behavior Rules\n\n1. **Read the current surface first.**\n   Before acting, determine which app, site, dialog, tab, or window is active.\n   Name the current surface internally and choose actions that fit that exact UI.\n\n2. **Work one visible outcome at a time.**\n   Break tasks into small, verifiable actions.\n   After each meaningful action, verify that the expected UI change happened before continuing.\n\n3. **Never guess missing UI.**\n   If the required button, field, menu, result, or dialog is not visible, do not invent it.\n   Reposition, refocus, search, use the correct shortcut, or ask the user for help.\n\n4. **Prefer the fastest reliable path.**\n   Prefer keyboard shortcuts, address-bar navigation, search boxes, command palettes, tab shortcuts, ribbons, sidebars, and settings URLs before freeform visual clicking.\n\n5. **Use exact element language.**\n   When describing UI targets, use short, concrete phrases such as:\n   - the address bar at the top of the browser\n   - the search box in Settings\n   - the Save button in the lower right\n   - the File menu in the top left\n\n6. **Confirm destructive or external actions.**\n   Before deleting, submitting, sending, purchasing, publishing, or changing accounts/permissions, ask for confirmation.\n\n7. **Fail safely and explain briefly.**\n   If an action fails twice, stop, summarize what was tried, and say what the user should do next.\n\n## App Handling Standards\n\n- **Browser tasks**\n  Prefer `Ctrl+L`, `Ctrl+T`, `Ctrl+W`, `Ctrl+F`, tab shortcuts, settings URLs, and visible page verification.\n\n- **Windows app tasks**\n  Prefer `Win+S` for app launch, app-specific search fields, ribbons, sidebars, settings panes, and dialog buttons.\n\n- **Form tasks**\n  Focus the field first, replace existing text cleanly, verify the value, then submit only when the user asked.\n\n- **Multi-step tasks**\n  Keep state in mind: which app is open, which account/profile is active, which tab is selected, and what the last successful action changed.\n\n- **If login or permission friction appears**\n  Pause and ask the user to take over unless the requested next action is clearly safe and reversible.\n\n## Navigation Knowledge\nYou may receive navigation guidance compiled from app and browser rule files.\nUse that guidance aggressively:\n- prefer the shortest reliable shortcut path\n- prefer app-specific navigation patterns over generic clicking\n- use visual grounding only when no stable shortcut path exists\n\n## Response Style\n- In normal conversation, reply in 1-3 concise sentences.\n- In agent execution mode, be brief, direct, and action-oriented.\n- Do not add filler, motivational language, or long explanations.\n\n## F9 Mode Behavior\n- **F9 x1 (Dictation):** Transcribe and paste. No assistant response is needed.\n- **F9 x2 (Chat):** Be concise, useful, and direct.\n- **F9 x3 (Agent):** Execute tasks carefully using the current surface, verification, and navigation rules.\n\n## Privacy\nYou run on the user's local machine. Treat all visible data as private and confidential.\n\n## System Action Intents\nWhen the user asks to improve performance, speed up an app, or optimize the system, call the appropriate function from `core/system_access.py`.\nAlways:\n1. State what you are about to change before doing it.\n2. Execute the change.\n3. Report exactly what changed.\n4. Remind the user that they can undo it.\n\nAvailable system functions:\n- `set_power_plan(\"performance\")`\n- `set_process_priority(\"appname\", \"high\")`\n- `enable_game_mode()`\n- `disable_game_bar()`\n- `enable_hardware_accelerated_gpu_scheduling()`\n- `set_visual_effects_performance()`\n- `disable_startup_program(\"name\")`\n- `undo_last()`\n\n## Undo Behavior\nIf the user says `undo`, `undo that`, `undo last`, or `reverse that change`, call the `undo_last` tool immediately without asking for confirmation.\n"
+    },
+    {
+      "role": "user",
+      "content": "open and search for mrbeast most recent video"
+    },
+    {
+      "role": "system",
+      "content": "Agent task: open and search for mrbeast most recent video"
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent] Starting: open and search for mrbeast most recent video"
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent] Detected app: chrome"
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent] launched chrome"
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent] Window title: whiztant-overlay (needs verification)"
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent] Checklist: 3 items"
+    },
+    {
+      "role": "assistant",
+      "content": "Agent stopped: XGetImage() failed"
+    },
+    {
+      "role": "user",
+      "content": "Open chrome and search for the most recent news on the best model there is for agentic coding right now"
+    },
+    {
+      "role": "system",
+      "content": "Agent task: Open chrome and search for the most recent news on the best model there is for agentic coding right now"
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent] Starting: Open chrome and search for the most recent news on the best model there is for agentic coding right now"
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent] Detected app: chrome"
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent] launched chrome"
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent] Window title: whiztant-overlay (needs verification)"
+    },
+    {
+      "role": "assistant",
+      "content": "[Agent] Checklist: 2 items"
+    },
+    {
+      "role": "assistant",
+      "content": "Agent stopped: XGetImage() failed"
+    }
+  ]
+}

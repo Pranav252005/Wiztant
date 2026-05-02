@@ -1,0 +1,75 @@
+# =============================================================
+#  Whiztant — Python dependencies
+#  Group: STT | TTS | LLM | UI | Auth | System | Utilities
+#
+#  After a clean install, pin exact versions with:
+#    pip freeze > requirements.lock
+#  Use this file for fresh installs; requirements.lock for
+#  reproducible deploys.
+#
+#  External installs required (NOT pip):
+#    espeak-ng  — TTS phoneme engine for Kokoro
+#      https://github.com/espeak-ng/espeak-ng/releases/latest
+#
+#  Linux system packages — for clipboard + auto-paste:
+#    X11:   sudo apt install xdotool xclip
+#    Wayland: sudo apt install wtype wl-clipboard  (or ydotool as root)
+# =============================================================
+
+# ── STT (Speech-to-Text) ─────────────────────────────────────
+groq>=0.9.0                  # Cloud Whisper Large v3 Turbo via Groq
+faster-whisper>=1.0.0        # Local offline STT fallback
+sounddevice>=0.4.6           # Cross-platform audio capture
+soundfile>=0.12.1            # Audio file I/O
+numpy>=1.26.0                # Audio buffer math
+
+# ── TTS (Text-to-Speech) ─────────────────────────────────────
+kokoro>=0.9.4                # Local neural TTS (requires espeak-ng)
+edge-tts>=6.1.9              # Microsoft Edge TTS fallback (cloud)
+
+# ── LLM & Agent ──────────────────────────────────────────────
+openai>=1.40.0               # OpenAI SDK (GPT-5.x, also used for OpenRouter)
+gui-agents==0.3.2            # Agent S3 GUI agent framework - pinned to avoid dep hell
+requests>=2.31.0             # HTTP client — Lemon Squeezy API, DuckDuckGo, etc.
+pyppeteer>=2.0.0             # Headless browser automation for browser_devtools
+httpx>=0.27.0                # Async HTTP client for local Ollama / WizType
+
+# ── UI & Overlay ─────────────────────────────────────────────
+PyQt6>=6.6.0                 # Main window, overlays, signals
+PyQt6-Qt6>=6.6.0             # Qt6 runtime binaries
+pillow>=10.3.0               # PIL — waveform pill rendering, screenshot processing
+pystray>=0.19.5              # System tray icon + menu
+winotify>=1.1.0; sys_platform == "win32"              # Windows toast notifications
+pywebview>=4.4.0             # Native webview for React overlay window
+
+# ── Input & Automation ───────────────────────────────────────
+keyboard>=0.13.5             # Global hotkeys (F9, Ctrl+Space, Escape)
+mouse>=0.7.1                 # Mouse event capture for workflow recording
+pyautogui>=0.9.54            # Mouse / keyboard automation for agent mode
+pynput>=1.7.7                # Global keystroke capture for WizType
+pyperclip>=1.8.2             # Clipboard read / write
+
+# ── Auth & Backend ───────────────────────────────────────────
+supabase==2.13.0             # Auth, usage tracking, profiles - pinned stable
+python-dotenv>=1.0.0         # Robust .env parsing (replacing custom parser)
+
+# ── System Access ────────────────────────────────────────────
+psutil>=5.9.8                # Process priority, CPU/RAM metrics
+cryptography>=42.0.0         # Used by supabase JWT handling
+mss>=9.0.1                   # Fast multi-monitor screenshots for agent vision
+pytesseract>=0.3.10          # OCR for screenshot-based page verification
+websockets>=10.0,<11.0       # Overlay bridge server; pinned for pyppeteer compatibility
+metaphone>=0.6               # Double Metaphone for vocab phonetic matching
+rapidfuzz>=3.0               # Fast fuzzy string similarity for vocab + task dedupe
+
+# ── Windows-Only System Access (installed automatically on Windows) ──
+pywin32>=304; sys_platform == "win32"                 # Win32 API: input isolation, PrintWindow, window management
+pywinauto>=0.6.8; sys_platform == "win32"             # UIA automation for agent primary path
+
+# ── Web & API Server ─────────────────────────────────────────
+fastapi>=0.111.0             # Internal REST bridge for Electron ↔ Python
+uvicorn[standard]>=0.29.0    # ASGI server for FastAPI
+pydantic>=2.7.0              # Request/response models for FastAPI
+pytest>=8.2.0                # Test runner for WizType coverage
+pytest-asyncio>=0.23.0       # Async pytest support
+pytest-cov>=5.0.0            # Coverage reporting for WizType tests

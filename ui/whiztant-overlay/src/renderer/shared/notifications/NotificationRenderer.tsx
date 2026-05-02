@@ -1,0 +1,82 @@
+import type { PillNotification } from '../usePillNotifications';
+import type { Task } from '../ipc';
+import TaskSavedNotification from './TaskSavedNotification';
+import DueAlertNotification from './DueAlertNotification';
+import DueReminderNotification from './DueReminderNotification';
+import DuplicateTaskNotification from './DuplicateTaskNotification';
+
+export interface NotificationHandlers {
+  saveTask: () => void;
+  declineTask: (task: Task) => void;
+  editTask: (task: Task) => void;
+  rescheduleTask: (id: string) => void | Promise<void>;
+  dismissDueAlertAll: () => void | Promise<void>;
+  dismissReminder: () => void;
+  dismissDuplicate: () => void;
+}
+
+interface Props {
+  notification: PillNotification;
+  compact?: boolean;
+  handlers: NotificationHandlers;
+}
+
+export default function NotificationRenderer({ notification, compact, handlers }: Props) {
+  if (notification.kind === 'task_saved') {
+    return (
+      <TaskSavedNotification
+        task={notification.payload.task}
+        compact={compact}
+        onSave={handlers.saveTask}
+        onDecline={() => handlers.declineTask(notification.payload.task)}
+        onEdit={(t) => handlers.editTask(t)}
+      />
+    );
+  }
+  if (notification.kind === 'due_alert') {
+    return (
+      <DueAlertNotification
+        tasks={notification.payload.tasks}
+        compact={compact}
+        onReschedule={handlers.rescheduleTask}
+        onDismissAll={handlers.dismissDueAlertAll}
+      />
+    );
+  }
+  if (notification.kind === 'due_reminder') {
+    return (
+      <DueReminderNotification
+        tasks={notification.payload.tasks}
+        compact={compact}
+        onDismiss={handlers.dismissReminder}
+      />
+    );
+  }
+  if (notification.kind === 'duplicate') {
+    return (
+      <DuplicateTaskNotification
+        existingTask={notification.payload.existingTask}
+        newTime={notification.payload.newTime}
+        compact={compact}
+        onDismiss={handlers.dismissDuplicate}
+      />
+    );
+  }
+  return null;
+}
+
+// Suggested pill window sizes per notification kind.
+export function pillSizeFor(notification: PillNotification): { width: number; height: number } {
+  switch (notification.kind) {
+    case 'task_saved':
+      return { width: 460, height: 120 };
+    case 'due_alert':
+      return { width: 360, height: 200 };
+    case 'due_reminder':
+      return { width: 340, height: 180 };
+    case 'duplicate':
+      return { width: 360, height: 110 };
+    default:
+      return { width: 360, height: 60 };
+  }
+}

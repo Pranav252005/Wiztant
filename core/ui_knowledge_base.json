@@ -1,0 +1,74 @@
+{
+  "websites": {
+    "youtube.com": {
+      "type": "video_platform",
+      "search_method": "url_shortcut",
+      "search_url": "https://www.youtube.com/results?search_query={query}",
+      "search_box_location": "top_center",
+      "video_selector": "first_result_thumbnail"
+    },
+    "google.com": {
+      "type": "search_engine",
+      "search_method": "url_shortcut",
+      "search_url": "https://www.google.com/search?q={query}",
+      "search_box_location": "center"
+    },
+    "github.com": {
+      "type": "code_repository",
+      "search_method": "ui_search",
+      "search_box_location": "top_left"
+    }
+  },
+  "system_ui": {
+    "windows_settings": {
+      "os": "windows",
+      "type": "settings_app",
+      "layout": "sidebar_main",
+      "sidebar_location": "left",
+      "main_panel_location": "right"
+    },
+    "registry_editor": {
+      "os": "windows",
+      "type": "registry_editor",
+      "layout": "tree_main",
+      "tree_location": "left",
+      "value_panel_location": "right"
+    },
+    "file_explorer": {
+      "os": "windows",
+      "type": "file_manager",
+      "address_bar_location": "top",
+      "file_list_location": "center",
+      "sidebar_location": "left"
+    },
+    "windows_terminal": {
+      "os": "windows",
+      "type": "terminal",
+      "input_location": "bottom",
+      "output_location": "full_window"
+    }
+  },
+  "common_elements": {
+    "search_box": {
+      "actions": [
+        "click",
+        "type",
+        "press_enter"
+      ],
+      "verification": "results_or_typed_text_visible"
+    },
+    "button": {
+      "actions": [
+        "click"
+      ],
+      "verification": "page_or_ui_changes"
+    },
+    "input_field": {
+      "actions": [
+        "click",
+        "type"
+      ],
+      "verification": "text_visible_in_field"
+    }
+  }
+}

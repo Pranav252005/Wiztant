@@ -1,0 +1,280 @@
+{
+  "_meta": {
+    "version": 1,
+    "description": "Master shortcut map for Whiztant agent. Keyed by task category A-F with a shared 'global' section. Edit freely — shortcuts_loader.py picks up changes after a process restart.",
+    "categories": {
+      "A": "System Settings",
+      "B": "Files",
+      "C": "App Launch",
+      "D": "Browser (Chrome)",
+      "E": "Code/Docs (VSCode)",
+      "F": "Communication (Outlook + Slack)"
+    }
+  },
+
+  "global": {
+    "description": "Universal Windows shortcuts applicable across every task",
+    "shortcuts": [
+      {"keys": "Alt+Tab",                "action": "Switch between open windows"},
+      {"keys": "Alt+Shift+Tab",          "action": "Switch windows in reverse order"},
+      {"keys": "Win+Tab",                "action": "Open Task View (all windows + desktops)"},
+      {"keys": "Win+D",                  "action": "Show or hide the desktop"},
+      {"keys": "Win+M",                  "action": "Minimize all windows"},
+      {"keys": "Win+L",                  "action": "Lock the PC"},
+      {"keys": "Win+V",                  "action": "Open clipboard history"},
+      {"keys": "Win+Shift+S",            "action": "Snipping Tool — region screenshot"},
+      {"keys": "PrintScreen",            "action": "Capture full screen to clipboard"},
+      {"keys": "Win+Ctrl+D",             "action": "Create a new virtual desktop"},
+      {"keys": "Win+Ctrl+Left/Right",    "action": "Switch virtual desktops"},
+      {"keys": "Win+Ctrl+F4",            "action": "Close current virtual desktop"},
+      {"keys": "Ctrl+Shift+Esc",         "action": "Open Task Manager"},
+      {"keys": "Win+.",                  "action": "Open emoji picker"},
+      {"keys": "Escape",                 "action": "Cancel / close current popup or menu"}
+    ]
+  },
+
+  "A": {
+    "name": "System Settings",
+    "primary_apps": ["Settings", "Control Panel"],
+    "shortcuts": [
+      {"keys": "Win+I",                  "action": "Open Settings app"},
+      {"keys": "Win+A",                  "action": "Open Quick Settings (wifi, volume, brightness)"},
+      {"keys": "Win+X",                  "action": "Open Power User menu (device manager, disk mgmt, terminal)"},
+      {"keys": "Win+U",                  "action": "Open Accessibility settings"},
+      {"keys": "Win+P",                  "action": "Open display-projection picker"},
+      {"keys": "Win+K",                  "action": "Open Cast / Connect menu"},
+      {"keys": "Ctrl+F",                 "action": "Focus search inside Settings"},
+      {"keys": "Alt+Left",               "action": "Back to previous Settings page"},
+      {"keys": "Tab / Shift+Tab",        "action": "Move between Settings controls"},
+      {"keys": "Space",                  "action": "Toggle focused switch or checkbox"},
+      {"keys": "Enter",                  "action": "Activate focused button / link"},
+      {"keys": "Win+R",                  "action": "Open Run dialog (for ms-settings: deep links)"}
+    ],
+    "sequences": [
+      {"goal": "Open Display settings",        "steps": ["Win+I", "type: display", "Enter"]},
+      {"goal": "Open Sound settings",          "steps": ["Win+I", "type: sound", "Enter"]},
+      {"goal": "Open Network settings",        "steps": ["Win+I", "type: network", "Enter"]},
+      {"goal": "Open Startup apps",            "steps": ["Win+I", "type: startup apps", "Enter"]},
+      {"goal": "Open Windows Update",          "steps": ["Win+I", "type: windows update", "Enter"]},
+      {"goal": "Open Default apps",            "steps": ["Win+I", "type: default apps", "Enter"]},
+      {"goal": "Open Bluetooth & devices",     "steps": ["Win+I", "type: bluetooth", "Enter"]}
+    ],
+    "fallbacks": [
+      {"if": "Win+I fails or Settings blocked", "try": ["Win+R", "type: ms-settings:", "Enter"]},
+      {"if": "Need classic Control Panel",       "try": ["Win+R", "type: control", "Enter"]},
+      {"if": "Need Device Manager directly",     "try": ["Win+X", "press: M"]}
+    ]
+  },
+
+  "B": {
+    "name": "Files",
+    "primary_apps": ["File Explorer"],
+    "shortcuts": [
+      {"keys": "Win+E",                  "action": "Open File Explorer"},
+      {"keys": "Ctrl+N",                 "action": "New Explorer window"},
+      {"keys": "Ctrl+W",                 "action": "Close current Explorer window"},
+      {"keys": "Ctrl+Shift+N",           "action": "Create new folder"},
+      {"keys": "Ctrl+L",                 "action": "Focus address bar"},
+      {"keys": "Alt+D",                  "action": "Focus address bar (alt)"},
+      {"keys": "Ctrl+F",                 "action": "Focus search box"},
+      {"keys": "F2",                     "action": "Rename selected item"},
+      {"keys": "F3",                     "action": "Open search"},
+      {"keys": "Delete",                 "action": "Move to Recycle Bin"},
+      {"keys": "Shift+Delete",           "action": "Permanently delete"},
+      {"keys": "Ctrl+C",                 "action": "Copy selected item(s)"},
+      {"keys": "Ctrl+X",                 "action": "Cut selected item(s)"},
+      {"keys": "Ctrl+V",                 "action": "Paste"},
+      {"keys": "Ctrl+A",                 "action": "Select all items in folder"},
+      {"keys": "Alt+Enter",              "action": "Open Properties of selection"},
+      {"keys": "Alt+Left / Right",       "action": "Navigate history back / forward"},
+      {"keys": "Alt+Up",                 "action": "Go to parent folder"},
+      {"keys": "Ctrl+Shift+E",           "action": "Expand current folder in nav pane"}
+    ],
+    "sequences": [
+      {"goal": "Rename then confirm",              "steps": ["F2", "type: <new name>", "Enter"]},
+      {"goal": "Search inside current folder",     "steps": ["Ctrl+F", "type: <query>", "Enter"]},
+      {"goal": "Jump to an absolute path",         "steps": ["Ctrl+L", "type: <full path>", "Enter"]},
+      {"goal": "Copy file path",                   "steps": ["select file", "Ctrl+Shift+C"]}
+    ],
+    "fallbacks": [
+      {"if": "F2 unavailable (Explorer variant)",  "try": ["right-click", "press: M"]},
+      {"if": "Delete blocked by prompt",            "try": ["press: Enter"]}
+    ]
+  },
+
+  "C": {
+    "name": "App Launch",
+    "primary_apps": ["Start", "Run", "Taskbar", "Windows Terminal"],
+    "shortcuts": [
+      {"keys": "Win",                    "action": "Open Start menu (type app name)"},
+      {"keys": "Win+R",                  "action": "Open Run dialog"},
+      {"keys": "Win+S",                  "action": "Open Windows Search"},
+      {"keys": "Win+Q",                  "action": "Open Search (alias)"},
+      {"keys": "Win+1..9",               "action": "Launch / focus pinned taskbar app by position"},
+      {"keys": "Win+T",                  "action": "Cycle focus through taskbar icons"},
+      {"keys": "Win+Shift+<digit>",      "action": "Open new instance of pinned taskbar app"},
+      {"keys": "Ctrl+Shift+Enter (Run)", "action": "Run command as administrator"},
+      {"keys": "Alt+F4",                 "action": "Close focused app"},
+      {"keys": "Win+Alt+D",              "action": "Show / hide date-time flyout"}
+    ],
+    "sequences": [
+      {"goal": "Launch any installed app",          "steps": ["Win", "type: <app name>", "Enter"]},
+      {"goal": "Open Windows Terminal",             "steps": ["Win+R", "type: wt", "Enter"]},
+      {"goal": "Open PowerShell",                   "steps": ["Win+R", "type: powershell", "Enter"]},
+      {"goal": "Open Command Prompt",               "steps": ["Win+R", "type: cmd", "Enter"]},
+      {"goal": "Open Registry Editor",              "steps": ["Win+R", "type: regedit", "Enter"]},
+      {"goal": "Open System Info",                  "steps": ["Win+R", "type: msinfo32", "Enter"]},
+      {"goal": "Open user profile folder",          "steps": ["Win+R", "type: %userprofile%", "Enter"]},
+      {"goal": "Open Startup folder",               "steps": ["Win+R", "type: shell:startup", "Enter"]}
+    ],
+    "run_commands": [
+      {"cmd": "ms-settings:",       "opens": "Settings app root"},
+      {"cmd": "control",            "opens": "Classic Control Panel"},
+      {"cmd": "explorer",           "opens": "File Explorer"},
+      {"cmd": "taskmgr",            "opens": "Task Manager"},
+      {"cmd": "notepad",            "opens": "Notepad"},
+      {"cmd": "calc",               "opens": "Calculator"},
+      {"cmd": "mspaint",            "opens": "Paint"},
+      {"cmd": "snippingtool",       "opens": "Snipping Tool"}
+    ],
+    "fallbacks": [
+      {"if": "App not pinned and not indexed",      "try": ["Win+R", "type: <exe name>", "Enter"]},
+      {"if": "Start search returns wrong result",   "try": ["Win", "type: full exact name", "Arrow keys to select", "Enter"]}
+    ]
+  },
+
+  "D": {
+    "name": "Browser (Chrome)",
+    "primary_apps": ["Chrome"],
+    "shortcuts": [
+      {"keys": "Ctrl+L",                 "action": "Focus address bar (omnibox)"},
+      {"keys": "Alt+D",                  "action": "Focus address bar (alt)"},
+      {"keys": "F6",                     "action": "Cycle focus to address bar"},
+      {"keys": "Ctrl+T",                 "action": "New tab"},
+      {"keys": "Ctrl+W",                 "action": "Close current tab"},
+      {"keys": "Ctrl+Shift+T",           "action": "Reopen last closed tab"},
+      {"keys": "Ctrl+Tab",               "action": "Next tab"},
+      {"keys": "Ctrl+Shift+Tab",         "action": "Previous tab"},
+      {"keys": "Ctrl+1..8",              "action": "Jump to tab by position"},
+      {"keys": "Ctrl+9",                 "action": "Jump to last tab"},
+      {"keys": "Ctrl+N",                 "action": "New window"},
+      {"keys": "Ctrl+Shift+N",           "action": "New incognito window"},
+      {"keys": "Ctrl+F",                 "action": "Find on page"},
+      {"keys": "Ctrl+G / Ctrl+Shift+G",  "action": "Find next / previous match"},
+      {"keys": "Ctrl+H",                 "action": "Open History"},
+      {"keys": "Ctrl+J",                 "action": "Open Downloads"},
+      {"keys": "Ctrl+D",                 "action": "Bookmark current page"},
+      {"keys": "Ctrl+Shift+D",           "action": "Bookmark all open tabs"},
+      {"keys": "Ctrl+Shift+B",           "action": "Toggle bookmarks bar"},
+      {"keys": "Ctrl+Shift+I",           "action": "Open DevTools"},
+      {"keys": "Ctrl+Shift+J",           "action": "Open DevTools Console"},
+      {"keys": "Ctrl+Shift+C",           "action": "DevTools — Inspect element picker"},
+      {"keys": "F5 / Ctrl+R",            "action": "Reload page"},
+      {"keys": "Ctrl+Shift+R",           "action": "Hard reload (bypass cache)"},
+      {"keys": "Alt+Left / Right",       "action": "History back / forward"},
+      {"keys": "Ctrl++ / Ctrl+-",        "action": "Zoom in / out"},
+      {"keys": "Ctrl+0",                 "action": "Reset zoom"},
+      {"keys": "F11",                    "action": "Toggle fullscreen"}
+    ],
+    "sequences": [
+      {"goal": "Search the web from anywhere in Chrome", "steps": ["Ctrl+L", "type: <query>", "Enter"]},
+      {"goal": "Open a specific URL",                    "steps": ["Ctrl+L", "type: <url>", "Enter"]},
+      {"goal": "Open link in new tab from omnibox",      "steps": ["Ctrl+L", "type: <query>", "Alt+Enter"]},
+      {"goal": "Open site in incognito",                 "steps": ["Ctrl+Shift+N", "Ctrl+L", "type: <url>", "Enter"]},
+      {"goal": "Inspect a page element",                 "steps": ["Ctrl+Shift+C"]},
+      {"goal": "Check a downloaded file",                "steps": ["Ctrl+J"]}
+    ],
+    "fallbacks": [
+      {"if": "Ctrl+L doesn't focus (page captured focus)", "try": ["Escape", "Ctrl+L"]},
+      {"if": "DevTools blocked by site",                     "try": ["F12"]},
+      {"if": "New tab shortcut fails",                       "try": ["click: + tab button"]}
+    ]
+  },
+
+  "E": {
+    "name": "Code/Docs (VSCode)",
+    "primary_apps": ["Visual Studio Code", "Cursor", "Windsurf"],
+    "shortcuts": [
+      {"keys": "Ctrl+Shift+P",           "action": "Open Command Palette"},
+      {"keys": "Ctrl+P",                 "action": "Quick Open file by name"},
+      {"keys": "Ctrl+Shift+F",           "action": "Find in all files"},
+      {"keys": "Ctrl+Shift+H",           "action": "Replace in all files"},
+      {"keys": "Ctrl+F",                 "action": "Find in current file"},
+      {"keys": "Ctrl+H",                 "action": "Replace in current file"},
+      {"keys": "F2",                     "action": "Rename symbol"},
+      {"keys": "F12",                    "action": "Go to definition"},
+      {"keys": "Alt+F12",                "action": "Peek definition"},
+      {"keys": "Shift+F12",              "action": "Find all references"},
+      {"keys": "Ctrl+`",                 "action": "Toggle integrated terminal"},
+      {"keys": "Ctrl+Shift+`",           "action": "New terminal"},
+      {"keys": "Ctrl+Shift+G",           "action": "Open Source Control (Git) panel"},
+      {"keys": "Ctrl+Shift+E",           "action": "Open Explorer panel"},
+      {"keys": "Ctrl+Shift+X",           "action": "Open Extensions panel"},
+      {"keys": "Ctrl+Shift+D",           "action": "Open Run & Debug panel"},
+      {"keys": "Ctrl+B",                 "action": "Toggle sidebar"},
+      {"keys": "Ctrl+\\",                "action": "Split editor"},
+      {"keys": "Ctrl+1 / Ctrl+2 / Ctrl+3","action": "Focus editor group 1 / 2 / 3"},
+      {"keys": "Ctrl+W",                 "action": "Close editor tab"},
+      {"keys": "Ctrl+K Ctrl+W",          "action": "Close all editors"},
+      {"keys": "Ctrl+S",                 "action": "Save file"},
+      {"keys": "Ctrl+K S",               "action": "Save without formatting"},
+      {"keys": "Alt+Up / Alt+Down",      "action": "Move line up / down"},
+      {"keys": "Shift+Alt+Up / Down",    "action": "Copy line up / down"},
+      {"keys": "Ctrl+/",                 "action": "Toggle line comment"}
+    ],
+    "sequences": [
+      {"goal": "Run a command palette action",      "steps": ["Ctrl+Shift+P", "type: <command>", "Enter"]},
+      {"goal": "Open a specific file by name",      "steps": ["Ctrl+P", "type: <filename>", "Enter"]},
+      {"goal": "Stage & commit in Git panel",       "steps": ["Ctrl+Shift+G", "click: + on file", "type: <message> into commit box", "Ctrl+Enter"]},
+      {"goal": "Open terminal and run command",     "steps": ["Ctrl+`", "type: <command>", "Enter"]},
+      {"goal": "Find and replace in repo",          "steps": ["Ctrl+Shift+H", "type: <find>", "Tab", "type: <replace>", "Enter"]}
+    ],
+    "fallbacks": [
+      {"if": "Shortcut conflicts with OS capture",  "try": ["Ctrl+Shift+P", "type: <command name>", "Enter"]},
+      {"if": "Terminal won't open",                  "try": ["Ctrl+Shift+P", "type: terminal: create", "Enter"]}
+    ]
+  },
+
+  "F": {
+    "name": "Communication (Outlook + Slack)",
+    "primary_apps": ["Outlook", "Slack"],
+    "outlook_shortcuts": [
+      {"keys": "Ctrl+N",                 "action": "New email"},
+      {"keys": "Ctrl+R",                 "action": "Reply to selected mail"},
+      {"keys": "Ctrl+Shift+R",           "action": "Reply all"},
+      {"keys": "Ctrl+F",                 "action": "Forward selected mail"},
+      {"keys": "Ctrl+Enter",             "action": "Send composed mail"},
+      {"keys": "Ctrl+E",                 "action": "Focus search box"},
+      {"keys": "Ctrl+1",                 "action": "Switch to Mail view"},
+      {"keys": "Ctrl+2",                 "action": "Switch to Calendar view"},
+      {"keys": "Ctrl+3",                 "action": "Switch to Contacts"},
+      {"keys": "Delete",                 "action": "Delete selected mail"},
+      {"keys": "Ctrl+Shift+V",           "action": "Move mail to folder"},
+      {"keys": "Backspace",              "action": "Archive selected mail (Outlook web/new)"}
+    ],
+    "slack_shortcuts": [
+      {"keys": "Ctrl+K",                 "action": "Quick switcher — jump to channel/DM"},
+      {"keys": "Ctrl+T",                 "action": "Quick switcher (alt)"},
+      {"keys": "Ctrl+G",                 "action": "Search messages"},
+      {"keys": "Ctrl+F",                 "action": "Search within current channel"},
+      {"keys": "Ctrl+Shift+M",           "action": "Open mentions & reactions"},
+      {"keys": "Ctrl+Shift+A",           "action": "Open all unreads"},
+      {"keys": "Ctrl+Shift+T",           "action": "Open threads view"},
+      {"keys": "Ctrl+Shift+K",           "action": "Open direct messages list"},
+      {"keys": "Alt+Up / Alt+Down",      "action": "Prev / next channel in sidebar"},
+      {"keys": "Alt+Shift+Up / Down",    "action": "Prev / next unread channel"},
+      {"keys": "Esc",                    "action": "Mark current channel read"},
+      {"keys": "Enter",                  "action": "Send message (when composer focused)"}
+    ],
+    "sequences": [
+      {"goal": "Compose and send email in Outlook",   "steps": ["Ctrl+N", "type recipients, Tab, subject, Tab, body", "Ctrl+Enter"]},
+      {"goal": "Reply to currently selected email",   "steps": ["Ctrl+R", "type reply", "Ctrl+Enter"]},
+      {"goal": "Jump to a Slack channel",             "steps": ["Ctrl+K", "type: <channel name>", "Enter"]},
+      {"goal": "Search all Slack messages",           "steps": ["Ctrl+G", "type: <query>", "Enter"]}
+    ],
+    "fallbacks": [
+      {"if": "Outlook Ctrl+Enter prompts confirmation","try": ["press: Enter"]},
+      {"if": "Slack Ctrl+K not focusing",             "try": ["click: search bar at top"]}
+    ]
+  }
+}

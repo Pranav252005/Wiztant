@@ -1,0 +1,6 @@
+{
+  "enabled": false,
+  "current_model": "llama3.2:1b",
+  "debounce_ms": 1,
+  "installed_models": []
+}

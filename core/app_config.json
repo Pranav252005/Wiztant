@@ -1,0 +1,640 @@
+{
+  "version": "1.0",
+  "spec_sources": [
+    "agent_rules/browser_navigation_spec.md",
+    "agent_rules/agent_navigation.md",
+    "agent_rules/agent_universal_optimize.md"
+  ],
+  "default_browser": "chrome",
+  "never_default_to": ["arc"],
+  "browser_task_keywords": [
+    "search", "navigate", "go to", "visit", "browse", "open website",
+    "youtube", "google", "github", "gmail", "web", "website", "url",
+    "look up", "find online", "news", "article", "paper", "page"
+  ],
+  "browsers": {
+    "chrome": {
+      "keywords": [
+        "chrome", "google chrome", "chromium"
+      ],
+      "process": "chrome.exe",
+      "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "window_class": "Chrome_WidgetWin_1",
+      "window_title_contains": ["Google Chrome", "Chrome"],
+      "is_default": true,
+      "search_url": "https://www.google.com/search?q={query}",
+      "navigation": {
+        "focus_address_bar": "ctrl+l",
+        "new_tab": "ctrl+t",
+        "close_tab": "ctrl+w",
+        "reload": "f5",
+        "hard_reload": "ctrl+shift+r",
+        "settings_url": "chrome://settings",
+        "action_sequence_navigate": [
+          "keypress: Ctrl+L",
+          "keypress: Ctrl+A",
+          "type: {url}",
+          "keypress: Enter",
+          "wait: 1.5"
+        ],
+        "action_sequence_search": [
+          "keypress: Ctrl+L",
+          "type: {query}",
+          "keypress: Enter",
+          "wait: 2.0"
+        ],
+        "ui_descriptions": {
+          "address_bar": "the address bar at the top of the Chrome browser",
+          "menu": "the three dot menu at the very top right corner of Chrome",
+          "new_tab": "the new tab button, a plus sign at the right end of the tab bar"
+        }
+      },
+      "optimizations": [
+        "prefer_ctrl_l_over_clicking_address_bar",
+        "use_direct_url_navigation",
+        "use_ctrl_t_for_new_tab"
+      ]
+    },
+    "firefox": {
+      "keywords": [
+        "firefox", "mozilla firefox", "mozilla", "ff", "gecko"
+      ],
+      "process": "firefox.exe",
+      "path": "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
+      "window_class": "MozillaWindowClass",
+      "window_title_contains": ["Mozilla Firefox", "Firefox"],
+      "is_default": false,
+      "search_url": "https://www.google.com/search?q={query}",
+      "navigation": {
+        "focus_address_bar": "ctrl+l",
+        "new_tab": "ctrl+t",
+        "close_tab": "ctrl+w",
+        "new_private_window": "ctrl+shift+p",
+        "reload": "f5",
+        "hard_reload": "ctrl+shift+r",
+        "settings_url": "about:preferences",
+        "action_sequence_navigate": [
+          "keypress: Ctrl+L",
+          "keypress: Ctrl+A",
+          "type: {url}",
+          "keypress: Enter",
+          "wait: 1.5"
+        ],
+        "action_sequence_search": [
+          "keypress: Ctrl+L",
+          "type: {query}",
+          "keypress: Enter",
+          "wait: 2.0"
+        ],
+        "ui_descriptions": {
+          "address_bar": "the address bar at the top of Firefox",
+          "menu": "the hamburger menu, three horizontal lines at the top right of Firefox",
+          "reader_view": "the Firefox reader view icon in the address bar"
+        }
+      },
+      "optimizations": [
+        "prefer_ctrl_l_over_clicking_address_bar",
+        "use_direct_url_navigation"
+      ]
+    },
+    "edge": {
+      "keywords": [
+        "edge", "microsoft edge", "msedge", "ms edge"
+      ],
+      "process": "msedge.exe",
+      "path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "window_class": "Chrome_WidgetWin_1",
+      "window_title_contains": ["Microsoft Edge", "Edge"],
+      "is_default": false,
+      "search_url": "https://www.google.com/search?q={query}",
+      "navigation": {
+        "focus_address_bar": "ctrl+l",
+        "new_tab": "ctrl+t",
+        "close_tab": "ctrl+w",
+        "immersive_reader": "f9",
+        "copilot": "ctrl+shift+.",
+        "reload": "f5",
+        "settings_url": "edge://settings",
+        "action_sequence_navigate": [
+          "keypress: Ctrl+L",
+          "keypress: Ctrl+A",
+          "type: {url}",
+          "keypress: Enter",
+          "wait: 1.5"
+        ],
+        "action_sequence_search": [
+          "keypress: Ctrl+L",
+          "type: {query}",
+          "keypress: Enter",
+          "wait: 2.0"
+        ],
+        "ui_descriptions": {
+          "address_bar": "the address bar at the top of Edge",
+          "menu": "the three dot menu at the top right of Edge labeled Settings and more",
+          "copilot": "the Copilot button in the Edge toolbar, shows a star or copilot icon"
+        }
+      },
+      "optimizations": [
+        "prefer_ctrl_l_over_clicking_address_bar",
+        "use_direct_url_navigation"
+      ]
+    },
+    "brave": {
+      "keywords": [
+        "brave", "brave browser"
+      ],
+      "process": "brave.exe",
+      "path": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+      "window_class": "Chrome_WidgetWin_1",
+      "window_title_contains": ["Brave"],
+      "is_default": false,
+      "search_url": "https://search.brave.com/search?q={query}",
+      "navigation": {
+        "focus_address_bar": "ctrl+l",
+        "new_tab": "ctrl+t",
+        "close_tab": "ctrl+w",
+        "toggle_shields": "click: brave shields icon in address bar",
+        "settings_url": "brave://settings",
+        "action_sequence_navigate": [
+          "keypress: Ctrl+L",
+          "keypress: Ctrl+A",
+          "type: {url}",
+          "keypress: Enter",
+          "wait: 1.5"
+        ],
+        "ui_descriptions": {
+          "address_bar": "the address bar at the top of Brave",
+          "shields": "the Brave Shields lion icon in the address bar",
+          "menu": "the Brave menu, three dots at top right same as Chrome"
+        }
+      },
+      "optimizations": [
+        "prefer_ctrl_l_over_clicking_address_bar",
+        "use_direct_url_navigation"
+      ]
+    },
+    "opera": {
+      "keywords": [
+        "opera", "opera gx", "opera browser"
+      ],
+      "process": "opera.exe",
+      "path": "C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Opera\\opera.exe",
+      "window_class": "Chrome_WidgetWin_1",
+      "window_title_contains": ["Opera"],
+      "is_default": false,
+      "search_url": "https://www.google.com/search?q={query}",
+      "navigation": {
+        "focus_address_bar": "ctrl+l",
+        "new_tab": "ctrl+t",
+        "settings_url": "opera://settings",
+        "action_sequence_navigate": [
+          "keypress: Ctrl+L",
+          "type: {url}",
+          "keypress: Enter",
+          "wait: 1.5"
+        ],
+        "ui_descriptions": {
+          "address_bar": "the address bar at the top of Opera",
+          "menu": "the Opera menu, the red O icon at the top left",
+          "sidebar": "the Opera sidebar on the left showing app icons"
+        }
+      },
+      "optimizations": ["use_direct_url_navigation"]
+    },
+    "vivaldi": {
+      "keywords": [
+        "vivaldi", "vivaldi browser"
+      ],
+      "process": "vivaldi.exe",
+      "path": "C:\\Users\\%USERNAME%\\AppData\\Local\\Vivaldi\\Application\\vivaldi.exe",
+      "window_class": "Chrome_WidgetWin_1",
+      "window_title_contains": ["Vivaldi"],
+      "is_default": false,
+      "search_url": "https://www.google.com/search?q={query}",
+      "navigation": {
+        "focus_address_bar": "ctrl+l",
+        "new_tab": "ctrl+t",
+        "settings_url": "vivaldi://settings",
+        "action_sequence_navigate": [
+          "keypress: Ctrl+L",
+          "type: {url}",
+          "keypress: Enter",
+          "wait: 1.5"
+        ],
+        "ui_descriptions": {
+          "address_bar": "the address bar at the top of Vivaldi",
+          "sidebar": "the Vivaldi sidebar on the left with panel icons"
+        }
+      },
+      "optimizations": ["use_direct_url_navigation"]
+    },
+    "arc": {
+      "keywords": [
+        "arc", "arc browser"
+      ],
+      "process": "arc.exe",
+      "path": "C:\\Program Files (x86)\\Arc\\Application\\arc.exe",
+      "window_class": "Chrome_WidgetWin_1",
+      "window_title_contains": ["Arc"],
+      "is_default": false,
+      "never_open_unless_requested": true,
+      "search_url": "https://www.google.com/search?q={query}",
+      "navigation": {
+        "focus_address_bar": "ctrl+l",
+        "new_tab": "ctrl+t",
+        "toggle_sidebar": "ctrl+s",
+        "split_view": "ctrl+shift+enter",
+        "action_sequence_navigate": [
+          "keypress: Ctrl+L",
+          "type: {url}",
+          "keypress: Enter",
+          "wait: 1.5"
+        ],
+        "ui_descriptions": {
+          "address_bar": "the Arc command bar that opened as an overlay in the center of the browser",
+          "sidebar": "the Arc sidebar on the left showing tabs and spaces",
+          "spaces": "the Spaces icons at the top of the Arc sidebar"
+        }
+      },
+      "optimizations": ["use_direct_url_navigation"]
+    },
+    "comet": {
+      "keywords": [
+        "comet", "comet browser"
+      ],
+      "process": "comet.exe",
+      "path": "C:\\Program Files\\Comet\\comet.exe",
+      "window_class": "Chrome_WidgetWin_1",
+      "window_title_contains": ["Comet"],
+      "is_default": false,
+      "search_url": "https://www.google.com/search?q={query}",
+      "navigation": {
+        "focus_address_bar": "ctrl+l",
+        "new_tab": "ctrl+t",
+        "action_sequence_navigate": [
+          "keypress: Ctrl+L",
+          "type: {url}",
+          "keypress: Enter",
+          "wait: 1.5"
+        ],
+        "ui_descriptions": {
+          "address_bar": "the address bar at the top of the Comet browser"
+        }
+      },
+      "optimizations": ["use_direct_url_navigation"]
+    }
+  },
+  "system_apps": {
+    "settings": {
+      "keywords": [
+        "settings", "setting", "theme", "dark mode", "light mode", "night mode",
+        "display", "sound", "audio", "volume", "network", "wifi", "bluetooth",
+        "update", "windows update", "personalization", "wallpaper", "background",
+        "privacy", "security", "account", "accounts", "language", "region",
+        "accessibility", "power", "battery", "sleep", "hibernate",
+        "notifications", "apps", "default apps", "startup apps",
+        "color scheme", "accent color", "taskbar", "start menu"
+      ],
+      "process": "SystemSettings.exe",
+      "path": "ms-settings:",
+      "window_class": "Windows.UI.Core.CoreWindow",
+      "window_title_contains": ["Settings"],
+      "navigation": {
+        "open_command": "ms-settings:",
+        "action_sequence_open": [
+          "keypress: Win",
+          "type: Settings",
+          "keypress: Enter",
+          "wait: 1.5"
+        ],
+        "action_sequence_theme": [
+          "open Settings",
+          "navigate to: Personalization",
+          "navigate to: Colors",
+          "select: Light or Dark mode"
+        ],
+        "sub_pages": {
+          "personalization": "ms-settings:personalization",
+          "display": "ms-settings:display",
+          "sound": "ms-settings:sound",
+          "network": "ms-settings:network",
+          "bluetooth": "ms-settings:bluetooth",
+          "update": "ms-settings:windowsupdate",
+          "privacy": "ms-settings:privacy",
+          "apps": "ms-settings:appsfeatures",
+          "accounts": "ms-settings:accounts",
+          "accessibility": "ms-settings:easeofaccess",
+          "power": "ms-settings:powersleep"
+        },
+        "ui_descriptions": {
+          "search": "the search settings input field at the top of the Settings page",
+          "back": "the back arrow button at the top left of Settings",
+          "toggle": "the toggle switch for {setting_name} in Settings"
+        }
+      }
+    },
+    "registry": {
+      "keywords": [
+        "registry", "regedit", "registry editor", "reg key", "reg edit",
+        "hkey", "hkcu", "hklm", "hkey_current_user", "hkey_local_machine",
+        "registry key", "registry value", "dword", "string value", "reg"
+      ],
+      "process": "regedit.exe",
+      "path": "regedit.exe",
+      "window_class": "RegEdit_MainFrame",
+      "window_title_contains": ["Registry Editor"],
+      "navigation": {
+        "action_sequence_open": [
+          "keypress: Win+R",
+          "type: regedit",
+          "keypress: Enter",
+          "wait: 1.0",
+          "click: Yes if UAC prompt appears"
+        ],
+        "action_sequence_navigate_to_key": [
+          "click: the address bar at the top of Registry Editor",
+          "type: {registry_path}",
+          "keypress: Enter"
+        ],
+        "common_paths": {
+          "startup_programs": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+          "uninstall": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
+          "services": "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services",
+          "current_user": "HKEY_CURRENT_USER",
+          "local_machine": "HKEY_LOCAL_MACHINE"
+        },
+        "ui_descriptions": {
+          "address_bar": "the address bar at the top of Registry Editor showing the current path",
+          "tree": "the left panel tree view showing registry keys",
+          "values": "the right panel showing registry values and data"
+        }
+      }
+    },
+    "file_explorer": {
+      "keywords": [
+        "file explorer", "explorer", "files", "folder", "directory",
+        "my documents", "this pc", "downloads", "desktop files",
+        "file manager", "windows explorer", "browse files"
+      ],
+      "process": "explorer.exe",
+      "path": "explorer.exe",
+      "window_class": "CabinetWClass",
+      "window_title_contains": ["File Explorer", "This PC", "Documents", "Downloads"],
+      "navigation": {
+        "action_sequence_open": [
+          "keypress: Win+E"
+        ],
+        "shortcuts": {
+          "address_bar": "ctrl+l",
+          "new_folder": "ctrl+shift+n",
+          "properties": "alt+enter",
+          "copy": "ctrl+c",
+          "paste": "ctrl+v",
+          "delete": "delete",
+          "rename": "f2",
+          "select_all": "ctrl+a",
+          "search": "ctrl+f"
+        },
+        "ui_descriptions": {
+          "address_bar": "the address bar at the top of File Explorer showing the current folder path",
+          "search": "the search box at the top right of File Explorer",
+          "navigation_pane": "the left panel of File Explorer showing Quick access, This PC, and network locations"
+        }
+      }
+    },
+    "task_manager": {
+      "keywords": [
+        "task manager", "taskmgr", "processes", "cpu usage", "ram usage",
+        "memory usage", "kill process", "end task", "running processes",
+        "performance monitor", "startup programs task manager"
+      ],
+      "process": "taskmgr.exe",
+      "path": "taskmgr.exe",
+      "window_class": "TaskManagerWindow",
+      "window_title_contains": ["Task Manager"],
+      "navigation": {
+        "action_sequence_open": [
+          "keypress: Ctrl+Shift+Esc"
+        ],
+        "shortcuts": {
+          "processes_tab": "click: Processes tab",
+          "performance_tab": "click: Performance tab",
+          "startup_tab": "click: Startup tab"
+        },
+        "ui_descriptions": {
+          "processes_tab": "the Processes tab in Task Manager",
+          "end_task": "the End task button at the bottom right of Task Manager",
+          "search": "the search processes input at the top of Task Manager"
+        }
+      }
+    },
+    "terminal": {
+      "keywords": [
+        "terminal", "windows terminal", "command prompt", "cmd", "powershell",
+        "command line", "shell", "console", "bash", "git bash", "wsl",
+        "run command", "open terminal", "open cmd", "open powershell"
+      ],
+      "process": "WindowsTerminal.exe",
+      "path": "wt.exe",
+      "window_class": "CASCADIA_WINDOW",
+      "window_title_contains": ["Terminal", "PowerShell", "Command Prompt", "cmd"],
+      "navigation": {
+        "action_sequence_open": [
+          "keypress: Win+R",
+          "type: wt",
+          "keypress: Enter"
+        ],
+        "shortcuts": {
+          "new_tab": "ctrl+shift+t",
+          "close_tab": "ctrl+w",
+          "command_palette": "ctrl+shift+p",
+          "split_horizontal": "alt+shift++",
+          "split_vertical": "alt+shift+-"
+        },
+        "ui_descriptions": {
+          "tab_bar": "the tab bar at the top of Windows Terminal",
+          "new_tab_button": "the plus button at the top of Windows Terminal to open a new tab"
+        }
+      }
+    },
+    "notepad": {
+      "keywords": [
+        "notepad", "text editor", "note", "plain text", "txt file",
+        "open notepad", "write note"
+      ],
+      "process": "notepad.exe",
+      "path": "notepad.exe",
+      "window_class": "Notepad",
+      "window_title_contains": ["Notepad"],
+      "navigation": {
+        "action_sequence_open": [
+          "keypress: Win",
+          "type: Notepad",
+          "keypress: Enter"
+        ],
+        "shortcuts": {
+          "new": "ctrl+n",
+          "open": "ctrl+o",
+          "save": "ctrl+s",
+          "save_as": "ctrl+shift+s",
+          "find": "ctrl+f",
+          "replace": "ctrl+h",
+          "select_all": "ctrl+a"
+        }
+      }
+    },
+    "vscode": {
+      "keywords": [
+        "vscode", "vs code", "visual studio code", "code editor",
+        "windsurf", "cursor", "open code", "open vscode", "code",
+        "ide", "editor", "programming"
+      ],
+      "process": "Code.exe",
+      "path": "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe",
+      "window_class": "Chrome_WidgetWin_1",
+      "window_title_contains": ["Visual Studio Code", "VS Code", "Windsurf", "Cursor"],
+      "navigation": {
+        "action_sequence_open": [
+          "keypress: Win",
+          "type: VS Code",
+          "keypress: Enter"
+        ],
+        "shortcuts": {
+          "command_palette": "ctrl+shift+p",
+          "settings": "ctrl+,",
+          "terminal": "ctrl+`",
+          "explorer": "ctrl+shift+e",
+          "search": "ctrl+shift+f",
+          "extensions": "ctrl+shift+x",
+          "new_file": "ctrl+n",
+          "open_file": "ctrl+o",
+          "save": "ctrl+s",
+          "format": "shift+alt+f"
+        },
+        "ui_descriptions": {
+          "command_palette": "the VS Code command palette input that opened at the top",
+          "sidebar": "the left sidebar of VS Code showing explorer, search, git icons",
+          "terminal": "the integrated terminal at the bottom of VS Code"
+        }
+      }
+    },
+    "discord": {
+      "keywords": [
+        "discord", "discord app", "voice chat discord", "discord server",
+        "discord channel", "open discord"
+      ],
+      "process": "Discord.exe",
+      "path": "%LOCALAPPDATA%\\Discord\\Update.exe --processStart Discord.exe",
+      "window_class": "Chrome_WidgetWin_1",
+      "window_title_contains": ["Discord"],
+      "navigation": {
+        "action_sequence_open": [
+          "keypress: Win",
+          "type: Discord",
+          "keypress: Enter"
+        ],
+        "shortcuts": {
+          "settings": "ctrl+,",
+          "quick_switcher": "ctrl+k",
+          "mute": "ctrl+shift+m",
+          "deafen": "ctrl+shift+d",
+          "search": "ctrl+f"
+        }
+      }
+    },
+    "spotify": {
+      "keywords": [
+        "spotify", "play music", "play song", "music player", "spotify app",
+        "open spotify", "play on spotify"
+      ],
+      "process": "Spotify.exe",
+      "path": "%APPDATA%\\Spotify\\Spotify.exe",
+      "window_class": "Chrome_WidgetWin_1",
+      "window_title_contains": ["Spotify"],
+      "navigation": {
+        "action_sequence_open": [
+          "keypress: Win",
+          "type: Spotify",
+          "keypress: Enter"
+        ],
+        "shortcuts": {
+          "search": "ctrl+l",
+          "play_pause": "space",
+          "next_track": "ctrl+right",
+          "prev_track": "ctrl+left",
+          "volume_up": "ctrl+up",
+          "volume_down": "ctrl+down"
+        }
+      }
+    },
+    "obs": {
+      "keywords": [
+        "obs", "obs studio", "streaming", "stream", "recording", "record screen",
+        "screen capture", "screen record", "streamlabs", "start recording",
+        "stop recording", "start stream", "stop stream"
+      ],
+      "process": "obs64.exe",
+      "path": "C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe",
+      "window_class": "Qt5QWindowIcon",
+      "window_title_contains": ["OBS Studio", "OBS"],
+      "navigation": {
+        "action_sequence_open": [
+          "keypress: Win",
+          "type: OBS",
+          "keypress: Enter"
+        ],
+        "shortcuts": {
+          "settings": "ctrl+,",
+          "start_recording": "ctrl+shift+r",
+          "pause_recording": "ctrl+shift+p",
+          "studio_mode": "ctrl+shift+s"
+        },
+        "ui_descriptions": {
+          "start_stream": "the Start Streaming button in the Controls panel at the bottom right of OBS",
+          "start_recording": "the Start Recording button in the Controls panel",
+          "scenes": "the Scenes panel at the bottom left of OBS"
+        }
+      }
+    }
+  },
+  "optimizations": {
+    "universal": {
+      "prefer_keyboard_over_mouse": true,
+      "address_bar_shortcut": "ctrl+l",
+      "new_tab_shortcut": "ctrl+t",
+      "close_tab_shortcut": "ctrl+w",
+      "reload_shortcut": "f5",
+      "find_on_page": "ctrl+f",
+      "prefer_direct_url": true,
+      "screenshot_verify_after_action": true,
+      "wait_after_navigation": 1.5,
+      "wait_after_app_open": 2.0
+    },
+    "browser_universal": {
+      "navigate_to_url_sequence": [
+        "keypress: Ctrl+L",
+        "keypress: Ctrl+A",
+        "type: {url}",
+        "keypress: Enter",
+        "wait: 1.5"
+      ],
+      "search_sequence": [
+        "keypress: Ctrl+L",
+        "type: {query}",
+        "keypress: Enter",
+        "wait: 2.0"
+      ],
+      "open_new_tab_sequence": [
+        "keypress: Ctrl+T",
+        "type: {url_or_query}",
+        "keypress: Enter"
+      ]
+    },
+    "system_detection": {
+      "gpu_detect_command": "Win+R → dxdiag → Enter → Display tab",
+      "storage_detect_command": "Win → Defragment → check media type",
+      "ram_detect_command": "Win+R → msinfo32 → Enter",
+      "windows_version_command": "Win+R → winver → Enter"
+    }
+  }
+}

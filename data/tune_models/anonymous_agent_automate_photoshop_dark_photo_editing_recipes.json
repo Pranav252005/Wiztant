@@ -1,0 +1,227 @@
+{
+  "recipe_library": {
+    "agent_automate_photoshop_dark_photo_editing_9e5ae2c4": {
+      "recipe_id": "agent_automate_photoshop_dark_photo_editing_9e5ae2c4",
+      "name": "Learned Recipe",
+      "description": "automate photoshop dark photo editing",
+      "target_app": "Adobe Photoshop",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "Adobe Photoshop"
+          }
+        },
+        {
+          "action": "menu_select",
+          "params": {
+            "path": [
+              "File",
+              "New"
+            ]
+          }
+        },
+        {
+          "action": "type",
+          "params": {
+            "text": "placeholder"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 7
+      }
+    },
+    "agent_automate_photoshop_dark_photo_editing_dad85d5b": {
+      "recipe_id": "agent_automate_photoshop_dark_photo_editing_dad85d5b",
+      "name": "Learned Recipe",
+      "description": "automate photoshop dark photo editing",
+      "target_app": "Adobe Photoshop",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "Adobe Photoshop"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 8
+      }
+    },
+    "agent_automate_photoshop_dark_photo_editing_e9d0ac0a": {
+      "recipe_id": "agent_automate_photoshop_dark_photo_editing_e9d0ac0a",
+      "name": "Learned Recipe",
+      "description": "automate photoshop dark photo editing",
+      "target_app": "Adobe Photoshop",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "Adobe Photoshop"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 4
+      }
+    },
+    "agent_automate_photoshop_dark_photo_editing_8ebf214e": {
+      "recipe_id": "agent_automate_photoshop_dark_photo_editing_8ebf214e",
+      "name": "Learned Recipe",
+      "description": "automate photoshop dark photo editing",
+      "target_app": "Adobe Photoshop",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "Adobe Photoshop"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 4
+      }
+    },
+    "agent_automate_photoshop_dark_photo_editing_fdba3173": {
+      "recipe_id": "agent_automate_photoshop_dark_photo_editing_fdba3173",
+      "name": "Learned Recipe",
+      "description": "automate photoshop dark photo editing",
+      "target_app": "Adobe Photoshop",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "Adobe Photoshop"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 4
+      }
+    },
+    "agent_automate_photoshop_dark_photo_editing_9b2e1712": {
+      "recipe_id": "agent_automate_photoshop_dark_photo_editing_9b2e1712",
+      "name": "Learned Recipe",
+      "description": "automate photoshop dark photo editing",
+      "target_app": "Adobe Photoshop",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "Adobe Photoshop"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 4
+      }
+    }
+  },
+  "causal_model": {
+    "edges": [],
+    "variables": []
+  }
+}
