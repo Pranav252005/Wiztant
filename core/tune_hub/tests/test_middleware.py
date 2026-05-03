@@ -5,7 +5,6 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from core.tune_hub.credit_system.free_tracker import FreeCreditTracker
 from core.tune_hub.middleware import TuneApplicationMiddleware
 from core.tune_hub.orchestrator import TuneHub, TuneRequest
 from core.tune_hub.quality.judge import SimpleJudge
@@ -16,12 +15,10 @@ class TestMiddleware:
     def setup_method(self):
         self.tmpdir = tempfile.mkdtemp()
         db_path = Path(self.tmpdir) / "tunes.db"
-        ledger_path = Path(self.tmpdir) / "credits.json"
         self.storage = SQLiteTuneStore(str(db_path))
-        self.credits = FreeCreditTracker(str(ledger_path))
+        self.credits = None  # No credit tracking
         self.hub = TuneHub(
             storage=self.storage,
-            credit_tracker=self.credits,
             quality_judge_factory=SimpleJudge,
             desktop_mode="desktop2",
         )

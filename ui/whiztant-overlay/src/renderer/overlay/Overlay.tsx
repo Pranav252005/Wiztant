@@ -25,6 +25,7 @@ import { usePillNotifications, type PillNotification } from '../shared/usePillNo
 import NotificationRenderer from '../shared/notifications/NotificationRenderer';
 import type { Task } from '../shared/ipc';
 import { useTopTabNav, type TopTabId } from './useTopTabNav';
+import { readFeatureFlags, writeFeatureFlags, type FeatureFlags, type FeatureKey } from '../settings/Settings';
 import { useTasks } from './useTasks';
 import Settings from '../settings/Settings';
 
@@ -156,6 +157,7 @@ export default function Overlay() {
   const previousTasksRef = useRef<TaskItem[]>([]);
   const tasksState = useTasks(tasks, taskHistory);
   const [showSettings, setShowSettings] = useState(false);
+  const [features, setFeatures] = useState<FeatureFlags>(() => readFeatureFlags());
   const [memoriesFilter, setMemoriesFilter] = useState<DictationMemory['mode'] | 'all'>('all');
   const [tasksSortMode, setTasksSortMode] = useState<SortMode>('smart');
   const [wizPromptPreloaded, setWizPromptPreloaded] = useState<{
@@ -249,6 +251,15 @@ export default function Overlay() {
             (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
           );
         });
+      } else if (msg.type === 'features/update') {
+        const updated = msg.features as Partial<FeatureFlags> | undefined;
+        if (updated) {
+          setFeatures((prev) => {
+            const next = { ...prev, ...updated };
+            writeFeatureFlags(next);
+            return next;
+          });
+        }
       }
       // due_alert / due_reminder / task_duplicate / task_saved (as pill
       // notification) are all handled by `usePillNotifications` and rendered
@@ -304,10 +315,24 @@ export default function Overlay() {
     setTopTab(tab, setActiveTopTab);
   });
 
+  // Redirect to a valid tab if the active tab's feature was disabled
+  useEffect(() => {
+    if (activeTopTab === 'agent' && !features.agent) {
+      setTopTab('chat', setActiveTopTab);
+    } else if (activeTopTab === 'tasks' && !features.tasks) {
+      setTopTab('chat', setActiveTopTab);
+    } else if (activeTopTab === 'wizprompt' && !features.reprompt) {
+      setTopTab('chat', setActiveTopTab);
+    } else if (activeTopTab === 'tunehub' && !features.tunehub) {
+      setTopTab('chat', setActiveTopTab);
+    }
+  }, [activeTopTab, features]);
+
   // Request dictation memories on mount and whenever the bridge reconnects
   useEffect(() => {
     if (bridgeConnected) {
       sendBridgeMessage({ type: 'dictation_memories/get', limit: 50 });
+      sendBridgeMessage({ type: 'features/get' });
     }
   }, [bridgeConnected]);
 
@@ -544,6 +569,7 @@ export default function Overlay() {
         active={activeTopTab}
         onChange={(tab) => setTopTab(tab, setActiveTopTab)}
         theme={theme}
+        enabledFeatures={features}
       />
 
       {activeNotification ? (
@@ -787,9 +813,9 @@ export default function Overlay() {
             </div>
           </>
         }
-        wizprompt={<WizPromptPanel theme={theme} preloaded={wizPromptPreloaded} />}
-        agent={<AgentPanel theme={theme} />}
-        tasks={(
+        wizprompt={features.reprompt ? <WizPromptPanel theme={theme} preloaded={wizPromptPreloaded} /> : null}
+        agent={features.agent ? <AgentPanel theme={theme} /> : null}
+        tasks={features.tasks ? (
           <TasksPanel
             theme={theme}
             active={activeTopTab === 'tasks'}
@@ -808,9 +834,9 @@ export default function Overlay() {
             sortMode={tasksSortMode}
             onSortChange={setTasksSortMode}
           />
-        )}
+        ) : null}
         memories={<MemoriesPanel theme={theme} memories={dictationMemories} filter={memoriesFilter} onFilterChange={setMemoriesFilter} />}
-        chat={<TuneHubPanel theme={theme} />}
+        chat={features.tunehub ? <TuneHubPanel theme={theme} /> : null}
       />
 
       <input

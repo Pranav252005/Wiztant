@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { themes, defaultTheme, type Theme } from '../shared/themes';
 import type { ThemeName } from '../shared/ipc';
@@ -17,7 +17,7 @@ const SHORTCUTS: Array<{ key: string; action: string }> = [
 type SystemAccess = 'standard' | 'system' | 'deep';
 const SYSTEM_ACCESS_VALUES: SystemAccess[] = ['standard', 'system', 'deep'];
 
-type SettingsTab = 'general' | 'dictation' | 'agent' | 'tasks';
+type SettingsTab = 'general' | 'dictation' | 'agent' | 'tasks' | 'features';
 
 const LS_KEYS = {
   sound: 'whiztant.sound',
@@ -28,6 +28,60 @@ const LS_KEYS = {
   wizpromptModelName: 'whiztant.wizprompt.modelName',
   wizpromptApiKey: 'whiztant.wizprompt.apiKey',
 } as const;
+
+// ─── Feature flags ─────────────────────────────────────────
+export type FeatureKey = 'agent' | 'tunehub' | 'tasks' | 'reprompt';
+
+export interface FeatureFlags {
+  agent: boolean;
+  tunehub: boolean;
+  tasks: boolean;
+  reprompt: boolean;
+}
+
+const FEATURE_KEYS: Record<FeatureKey, string> = {
+  agent: 'whiztant.feature.agent',
+  tunehub: 'whiztant.feature.tunehub',
+  tasks: 'whiztant.feature.tasks',
+  reprompt: 'whiztant.feature.reprompt',
+};
+
+export const DEFAULT_FEATURES: FeatureFlags = {
+  agent: true,
+  tunehub: true,
+  tasks: true,
+  reprompt: true,
+};
+
+export function readFeatureFlags(): FeatureFlags {
+  try {
+    const stored = window.localStorage.getItem('whiztant.features');
+    if (stored) {
+      const parsed = JSON.parse(stored) as Partial<FeatureFlags>;
+      return { ...DEFAULT_FEATURES, ...parsed };
+    }
+  } catch {
+    /* noop */
+  }
+  // Fallback: read individual keys
+  return {
+    agent: readLS(FEATURE_KEYS.agent, 'true') === 'true',
+    tunehub: readLS(FEATURE_KEYS.tunehub, 'true') === 'true',
+    tasks: readLS(FEATURE_KEYS.tasks, 'true') === 'true',
+    reprompt: readLS(FEATURE_KEYS.reprompt, 'true') === 'true',
+  };
+}
+
+export function writeFeatureFlags(features: FeatureFlags) {
+  try {
+    window.localStorage.setItem('whiztant.features', JSON.stringify(features));
+    for (const [key, lsKey] of Object.entries(FEATURE_KEYS)) {
+      window.localStorage.setItem(lsKey, String(features[key as FeatureKey]));
+    }
+  } catch {
+    /* noop */
+  }
+}
 
 const PREDEFINED_MODELS = [
   { value: 'default', label: 'Default (Whiztant)' },
@@ -86,11 +140,22 @@ export default function Settings({
   );
   const [liveDictationPreview, setLiveDictationPreview] = useState<boolean>(false);
 
+  // Feature flags state
+  const [features, setFeatures] = useState<FeatureFlags>(() => readFeatureFlags());
+
   // Sync live dictation preview setting with Python backend
   useBridgeMessage((msg) => {
     if (msg?.type === 'settings/update' && msg.settings) {
       const settings = msg.settings as Record<string, unknown>;
       setLiveDictationPreview(Boolean(settings.live_dictation_preview));
+    }
+    if (msg?.type === 'features/update' && msg.features) {
+      const updated = (msg.features as Partial<FeatureFlags>);
+      setFeatures((prev) => {
+        const next = { ...prev, ...updated };
+        writeFeatureFlags(next);
+        return next;
+      });
     }
   });
 
@@ -107,6 +172,13 @@ export default function Settings({
     const next = !liveDictationPreview;
     setLiveDictationPreview(next);
     sendBridgeMessage({ type: 'settings/set', key: 'live_dictation_preview', value: next });
+  };
+
+  const toggleFeature = (key: FeatureKey) => {
+    const next = { ...features, [key]: !features[key] };
+    setFeatures(next);
+    writeFeatureFlags(next);
+    sendBridgeMessage({ type: 'features/update', features: next });
   };
 
   return (
@@ -135,6 +207,8 @@ export default function Settings({
         setExpandedUI={setExpandedUI}
         liveDictationPreview={liveDictationPreview}
         onToggleLivePreview={toggleLivePreview}
+        features={features}
+        onToggleFeature={toggleFeature}
         onBack={onBack}
       />
     </div>
@@ -152,6 +226,8 @@ function SettingsContent({
   setExpandedUI,
   liveDictationPreview,
   onToggleLivePreview,
+  features,
+  onToggleFeature,
   onBack,
 }: {
   theme: Theme['panel'];
@@ -163,12 +239,15 @@ function SettingsContent({
   setExpandedUI: (v: boolean) => void;
   liveDictationPreview: boolean;
   onToggleLivePreview: () => void;
+  features: FeatureFlags;
+  onToggleFeature: (key: FeatureKey) => void;
   onBack: () => void;
 }) {
   const [tab, setTab] = useState<SettingsTab>('general');
 
   const tabs: { id: SettingsTab; label: string }[] = [
     { id: 'general', label: 'General' },
+    { id: 'features', label: 'Features' },
     { id: 'dictation', label: 'Dictation' },
     { id: 'agent', label: 'Agent' },
     { id: 'tasks', label: 'Tasks' },
@@ -287,6 +366,9 @@ function SettingsContent({
             expandedUI={expandedUI}
             setExpandedUI={setExpandedUI}
           />
+        )}
+        {tab === 'features' && (
+          <FeaturesTab theme={theme} features={features} onToggleFeature={onToggleFeature} />
         )}
         {tab === 'dictation' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -598,22 +680,316 @@ function AgentTab({ theme }: { theme: Theme['panel'] }) {
 }
 
 // ─── Tasks tab ─────────────────────────────────────────────
+const TASKS_LS_KEYS = {
+  reminderInterval: 'whiztant.tasks.reminderInterval',
+  defaultDueTime: 'whiztant.tasks.defaultDueTime',
+  snoozePresets: 'whiztant.tasks.snoozePresets',
+  preDueWarning: 'whiztant.tasks.preDueWarning',
+  carryOver: 'whiztant.tasks.carryOver',
+} as const;
+
+const INTERVAL_OPTIONS = [
+  { value: 5, label: '5 minutes' },
+  { value: 15, label: '15 minutes' },
+  { value: 30, label: '30 minutes' },
+  { value: 60, label: '1 hour' },
+];
+
+const ALL_SNOOZE_PRESETS = [
+  { value: 15, label: '15 min' },
+  { value: 30, label: '30 min' },
+  { value: 60, label: '1 hour' },
+  { value: 1440, label: 'Tomorrow' },
+];
+
 function TasksTab({ theme }: { theme: Theme['panel'] }) {
+  const [reminderInterval, setReminderInterval] = useState<number>(() => {
+    try {
+      const v = window.localStorage.getItem(TASKS_LS_KEYS.reminderInterval);
+      return v ? parseInt(v, 10) : 15;
+    } catch { return 15; }
+  });
+  const [defaultDueTime, setDefaultDueTime] = useState<string>(() => {
+    return window.localStorage.getItem(TASKS_LS_KEYS.defaultDueTime) || '17:00';
+  });
+  const [snoozePresets, setSnoozePresets] = useState<number[]>(() => {
+    try {
+      const v = window.localStorage.getItem(TASKS_LS_KEYS.snoozePresets);
+      return v ? (JSON.parse(v) as number[]) : [15, 30, 60, 1440];
+    } catch { return [15, 30, 60, 1440]; }
+  });
+  const [preDueWarning, setPreDueWarning] = useState<boolean>(() => {
+    return window.localStorage.getItem(TASKS_LS_KEYS.preDueWarning) !== 'false';
+  });
+  const [carryOver, setCarryOver] = useState<boolean>(() => {
+    return window.localStorage.getItem(TASKS_LS_KEYS.carryOver) !== 'false';
+  });
+
+  // Persist to localStorage and sync to backend
+  const syncTasksSettings = useCallback((patch?: Record<string, unknown>) => {
+    const settings: Record<string, unknown> = {
+      reminder_interval_min: reminderInterval,
+      default_due_time: defaultDueTime,
+      snooze_presets: snoozePresets,
+      pre_due_warning: preDueWarning,
+      carry_over: carryOver,
+      ...patch,
+    };
+    sendBridgeMessage({ type: 'tasks/settings/set', ...settings });
+  }, [reminderInterval, defaultDueTime, snoozePresets, preDueWarning, carryOver]);
+
+  useEffect(() => {
+    // Request current settings on mount
+    sendBridgeMessage({ type: 'tasks/settings/get' });
+  }, []);
+
+  // Listen for backend settings updates
+  useBridgeMessage((msg) => {
+    if (msg?.type === 'tasks/settings/update' && msg.settings) {
+      const s = msg.settings as Record<string, unknown>;
+      if (typeof s.reminder_interval_min === 'number') {
+        setReminderInterval(s.reminder_interval_min);
+        window.localStorage.setItem(TASKS_LS_KEYS.reminderInterval, String(s.reminder_interval_min));
+      }
+      if (typeof s.default_due_time === 'string') {
+        setDefaultDueTime(s.default_due_time);
+        window.localStorage.setItem(TASKS_LS_KEYS.defaultDueTime, s.default_due_time);
+      }
+      if (Array.isArray(s.snooze_presets)) {
+        setSnoozePresets(s.snooze_presets as number[]);
+        window.localStorage.setItem(TASKS_LS_KEYS.snoozePresets, JSON.stringify(s.snooze_presets));
+      }
+      if (typeof s.pre_due_warning === 'boolean') {
+        setPreDueWarning(s.pre_due_warning);
+        window.localStorage.setItem(TASKS_LS_KEYS.preDueWarning, String(s.pre_due_warning));
+      }
+      if (typeof s.carry_over === 'boolean') {
+        setCarryOver(s.carry_over);
+        window.localStorage.setItem(TASKS_LS_KEYS.carryOver, String(s.carry_over));
+      }
+    }
+  });
+
+  const updateReminderInterval = (v: number) => {
+    setReminderInterval(v);
+    window.localStorage.setItem(TASKS_LS_KEYS.reminderInterval, String(v));
+    syncTasksSettings({ reminder_interval_min: v });
+  };
+  const updateDefaultDueTime = (v: string) => {
+    setDefaultDueTime(v);
+    window.localStorage.setItem(TASKS_LS_KEYS.defaultDueTime, v);
+    syncTasksSettings({ default_due_time: v });
+  };
+  const updateSnoozePresets = (v: number[]) => {
+    setSnoozePresets(v);
+    window.localStorage.setItem(TASKS_LS_KEYS.snoozePresets, JSON.stringify(v));
+    // Also update the overlay's local copy so TaskTile sees the change
+    window.localStorage.setItem('whiztant.snooze_presets', JSON.stringify(v));
+    syncTasksSettings({ snooze_presets: v });
+  };
+  const updatePreDueWarning = (v: boolean) => {
+    setPreDueWarning(v);
+    window.localStorage.setItem(TASKS_LS_KEYS.preDueWarning, String(v));
+    syncTasksSettings({ pre_due_warning: v });
+  };
+  const updateCarryOver = (v: boolean) => {
+    setCarryOver(v);
+    window.localStorage.setItem(TASKS_LS_KEYS.carryOver, String(v));
+    syncTasksSettings({ carry_over: v });
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <section>
-        <Label text="Coming soon" color={theme.textMuted} />
+        <Label text="Reminders" color={theme.textMuted} />
         <p
           style={{
-            fontSize: 12,
+            fontSize: 11,
             color: theme.textMuted,
-            marginTop: 10,
             lineHeight: 1.55,
+            margin: '8px 0 10px',
           }}
         >
-          Tasks settings will include default due times, reminder intervals, and
-          carry-over preferences.
+          Control how often Whiztant checks for due tasks and when you receive warnings.
         </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 10 }}>
+          {/* Reminder interval */}
+          <div>
+            <div style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Reminder check interval
+            </div>
+            <select
+              value={reminderInterval}
+              onChange={(e) => updateReminderInterval(parseInt(e.target.value, 10))}
+              style={selectStyle(theme)}
+            >
+              {INTERVAL_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Default due time */}
+          <div>
+            <div style={{ fontSize: 10, color: theme.textMuted, marginBottom: 4, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Default due time
+            </div>
+            <input
+              type="time"
+              value={defaultDueTime}
+              onChange={(e) => updateDefaultDueTime(e.target.value)}
+              style={{
+                ...selectStyle(theme),
+                width: 'auto',
+                minWidth: 120,
+              }}
+            />
+          </div>
+        </div>
+      </section>
+
+      <Divider color={theme.border} />
+
+      <section>
+        <Label text="Snooze" color={theme.textMuted} />
+        <p
+          style={{
+            fontSize: 11,
+            color: theme.textMuted,
+            lineHeight: 1.55,
+            margin: '8px 0 10px',
+          }}
+        >
+          Choose which snooze options appear on task tiles.
+        </p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+          {ALL_SNOOZE_PRESETS.map((preset) => {
+            const active = snoozePresets.includes(preset.value);
+            return (
+              <button
+                key={preset.value}
+                onClick={() => {
+                  const next = active
+                    ? snoozePresets.filter((v) => v !== preset.value)
+                    : [...snoozePresets, preset.value].sort((a, b) => a - b);
+                  if (next.length > 0) {
+                    updateSnoozePresets(next);
+                  }
+                }}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 999,
+                  border: `1px solid ${active ? theme.aiAccent : theme.border}`,
+                  background: active ? `${theme.aiAccent}22` : 'transparent',
+                  color: active ? theme.text : theme.textMuted,
+                  fontSize: 11,
+                  fontWeight: active ? 600 : 500,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'background 0.12s, color 0.12s',
+                }}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <Divider color={theme.border} />
+
+      <section>
+        <Label text="Behavior" color={theme.textMuted} />
+        <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <ToggleRow
+            theme={theme}
+            label="Pre-due warning"
+            description="Warn me 30 minutes before a task is due"
+            value={preDueWarning}
+            onChange={updatePreDueWarning}
+          />
+          <ToggleRow
+            theme={theme}
+            label="Carry over tasks"
+            description="Automatically carry over unfinished tasks to the next day"
+            value={carryOver}
+            onChange={updateCarryOver}
+          />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ─── Features tab ──────────────────────────────────────────
+function FeaturesTab({
+  theme,
+  features,
+  onToggleFeature,
+}: {
+  theme: Theme['panel'];
+  features: FeatureFlags;
+  onToggleFeature: (key: FeatureKey) => void;
+}) {
+  const FEATURE_DEFS: { key: FeatureKey; label: string; description: string }[] = [
+    {
+      key: 'agent',
+      label: 'Enable Agent',
+      description: 'F9 double-tap to toggle agent mode for autonomous task execution',
+    },
+    {
+      key: 'tunehub',
+      label: 'Enable TuneHub',
+      description: 'AI calibration engine that learns your preferences across features',
+    },
+    {
+      key: 'tasks',
+      label: 'Enable Tasks',
+      description: 'Task management with voice capture and reminders',
+    },
+    {
+      key: 'reprompt',
+      label: 'Enable RePrompt',
+      description: 'Ctrl+Shift+Space to optimize prompts with AI agents',
+    },
+  ];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <section>
+        <Label text="Feature toggles" color={theme.textMuted} />
+        <p
+          style={{
+            fontSize: 11,
+            color: theme.textMuted,
+            lineHeight: 1.55,
+            margin: '8px 0 10px',
+          }}
+        >
+          Enable or disable individual features. Changes take effect immediately and persist across sessions.
+        </p>
+        <div
+          style={{
+            marginTop: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          {FEATURE_DEFS.map((f) => (
+            <ToggleRow
+              key={f.key}
+              theme={theme}
+              label={f.label}
+              description={f.description}
+              value={features[f.key]}
+              onChange={() => onToggleFeature(f.key)}
+            />
+          ))}
+        </div>
       </section>
     </div>
   );

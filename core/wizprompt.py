@@ -163,7 +163,10 @@ def parse_emotional(text: str) -> Optional[Dict[str, str]]:
     return {"emotion": emo.group(1).strip().lower(), "framing_directive": (frame.group(1).strip() if frame else "")}
 
 
-def _synthesize(user_prompt: str, critiques: dict, emotional: Optional[dict], model: str | None = None) -> str:
+def _synthesize(user_prompt: str, critiques: dict, emotional: Optional[dict], model: str | None = None, preset: str | None = None) -> str:
+    synthesis_prompt = SYNTHESIS
+    if preset:
+        synthesis_prompt = synthesis_prompt + "\n\nADDITIONAL OPTIMIZATION FOCUS:\n" + preset
     parts = [f"STRUCTURAL CRITIQUE:\n{critiques.get('structure','N/A')}\n",
              f"SEMANTIC CRITIQUE:\n{critiques.get('semantic','N/A')}\n"]
     if "edge_case" in critiques:
@@ -171,7 +174,7 @@ def _synthesize(user_prompt: str, critiques: dict, emotional: Optional[dict], mo
     if emotional:
         parts.append(f"EMOTIONAL DIRECTIVE:\nEMOTION: {emotional['emotion']}\nFRAMING_DIRECTIVE: {emotional['framing_directive']}\n")
     parts.append(f"ORIGINAL PROMPT:\n{user_prompt}")
-    messages = [{"role": "system", "content": SYNTHESIS}, {"role": "user", "content": "\n".join(parts)}]
+    messages = [{"role": "system", "content": synthesis_prompt}, {"role": "user", "content": "\n".join(parts)}]
     try:
         resp = _openrouter_client.chat.completions.create(
             model=model or WIZPROMPT_MODEL,
@@ -229,7 +232,40 @@ def validate_prompt(text: str) -> str | None:
     return None
 
 
-async def optimize_prompt_with_dynamic_agents(user_prompt: str, model: str | None = None) -> dict:
+# Mapping from TuneHub persona weight keys to WizPrompt agent names
+_PERSONA_WEIGHT_TO_AGENT = {
+    "research": "structure",
+    "write": "semantic",
+    "build": "edge_case",
+    "debug": "edge_case",
+    "plan": "structure",
+}
+
+
+def _apply_persona_weights(selected: list, persona_weights: dict) -> list:
+    """Reorder selected agents based on TuneHub persona weights."""
+    if not persona_weights:
+        return selected
+
+    # Calculate priority score for each agent based on mapped persona weights
+    agent_scores: dict[str, float] = {a: 0.0 for a in selected}
+    for persona_key, weight in persona_weights.items():
+        agent = _PERSONA_WEIGHT_TO_AGENT.get(persona_key)
+        if agent and agent in agent_scores:
+            agent_scores[agent] += float(weight)
+
+    # Sort selected agents by score descending, preserving original order for ties
+    scored = [(a, agent_scores[a]) for a in selected]
+    scored.sort(key=lambda x: x[1], reverse=True)
+    return [a for a, _ in scored]
+
+
+async def optimize_prompt_with_dynamic_agents(
+    user_prompt: str,
+    model: str | None = None,
+    feature_input: dict | None = None,
+    preset: str | None = None,
+) -> dict:
     if not user_prompt or not user_prompt.strip():
         raise ValueError("Prompt cannot be empty")
 
@@ -239,14 +275,21 @@ async def optimize_prompt_with_dynamic_agents(user_prompt: str, model: str | Non
 
     line_count = len(user_prompt.split("\n"))
     config = select_agents_by_size(line_count)
-    selected = config["selected_agents"]
-    log.info("WizPrompt: %s prompt (%d lines), %d agents, model=%s", config["size_category"], line_count, len(selected), model or WIZPROMPT_MODEL)
+    selected = list(config["selected_agents"])
+
+    # Apply TuneHub persona weights if present
+    persona_weights = (feature_input or {}).get("persona_weights")
+    if persona_weights:
+        selected = _apply_persona_weights(selected, persona_weights)
+        log.info("WizPrompt: persona weights applied, agent order: %s", selected)
+
+    log.info("WizPrompt: %s prompt (%d lines), %d agents, model=%s, preset=%s", config["size_category"], line_count, len(selected), model or WIZPROMPT_MODEL, preset if preset else "none")
     loop = asyncio.get_event_loop()
     coros = [(a, loop.run_in_executor(None, _call_agent, a, user_prompt, model)) for a in selected]
     critiques = {a: await c for a, c in coros}
     emotional = parse_emotional(critiques.get("emotional", "")) if "emotional" in critiques else None
     try:
-        optimized = await loop.run_in_executor(None, _synthesize, user_prompt, critiques, emotional, model)
+        optimized = await loop.run_in_executor(None, _synthesize, user_prompt, critiques, emotional, model, preset)
         synthesis_failed = False
     except Exception as e:
         optimized = ""
@@ -261,4 +304,5 @@ async def optimize_prompt_with_dynamic_agents(user_prompt: str, model: str | Non
         "critiques": critiques,
         "line_count": line_count,
         "synthesis_failed": synthesis_failed,
+        "preset_used": preset,
     }

@@ -13,13 +13,10 @@ from typing import Any, Callable, Dict, List, Optional
 
 from .base import (
     ComplexityLevel,
-    CreditBudget,
     LearnedModel,
     TuneStatus,
-    InsufficientCreditsError,
     ValidationError,
 )
-from .credit_system.abstract import CreditTracker
 from .storage.abstract import TuneStorage
 from .tune_base import TuneBase
 
@@ -36,8 +33,7 @@ class TuneRequest:
     user_id: str
     feature_name: str
     task: str
-    approved_credits: int
-    tier: str
+    budget_limit: int
     urgency: str = "normal"
     context: Dict[str, Any] = field(default_factory=dict)
 
@@ -48,8 +44,8 @@ class TuneResult:
 
     success: bool
     model: Optional[LearnedModel]
-    credits_used: int
-    credits_remaining: int
+    iterations_used: int
+    iterations_remaining: int
     message: str
     reusable: bool
     sync_status: Optional[str] = None
@@ -72,26 +68,15 @@ class TuneHub:
     def __init__(
         self,
         storage: TuneStorage,
-        credit_tracker: CreditTracker,
         sync_manager: Optional[Any] = None,
         quality_judge_factory: Optional[Callable[[], Any]] = None,
         desktop_mode: str = "desktop2",
     ):
         self.storage = storage
-        self.credit_tracker = credit_tracker
         self.sync_manager = sync_manager
         self.quality_judge_factory = quality_judge_factory
         self.desktop_mode = desktop_mode
 
-        self._tier_matrix = {
-            "free": {ComplexityLevel.LOW},
-            "pro": {ComplexityLevel.LOW, ComplexityLevel.MEDIUM},
-            "power": {
-                ComplexityLevel.LOW,
-                ComplexityLevel.MEDIUM,
-                ComplexityLevel.HIGH,
-            },
-        }
 
     def tune_feature(self, request: TuneRequest) -> TuneResult:
         """
@@ -112,44 +97,16 @@ class TuneHub:
             # Step 2: Estimate complexity
             complexity = tuner.estimate_complexity(request.task, request.context)
 
-            # Step 3: Tier gate
-            if complexity not in self._tier_matrix.get(request.tier, set()):
-                return TuneResult(
-                    success=False,
-                    model=None,
-                    credits_used=0,
-                    credits_remaining=request.approved_credits,
-                    message=f"Complexity {complexity.name} requires tier upgrade",
-                    reusable=False,
-                )
+            # Step 3: Budget initialization
+            budget = CreditBudget(approved=request.budget_limit)
 
-            # Step 4: Credit budget initialization
-            budget = CreditBudget(approved=request.approved_credits)
-
-            # Step 5: Check existing tune (Free tier limit = 1 total)
-            existing = self.storage.get_tune(
-                user_id=request.user_id,
-                feature_name=request.feature_name,
-                task_signature=self._normalize_task(request.task),
-            )
-            total_tunes = self.storage.count_tunes(request.user_id)
-            if total_tunes >= 1 and request.tier == "free":
-                return TuneResult(
-                    success=False,
-                    model=existing,
-                    credits_used=0,
-                    credits_remaining=request.approved_credits,
-                    message="Free tier: Only 1 tune allowed. Delete existing first.",
-                    reusable=True,
-                )
-
-            # Step 6: LEARN (expensive, Desktop 2 only)
+            # Step 4: LEARN (expensive, Desktop 2 only)
             if self.desktop_mode != "desktop2":
                 return TuneResult(
                     success=False,
                     model=None,
-                    credits_used=0,
-                    credits_remaining=request.approved_credits,
+                    iterations_used=0,
+                    iterations_remaining=request.budget_limit,
                     message="Learning only available on Desktop 2",
                     reusable=False,
                 )
@@ -170,8 +127,8 @@ class TuneHub:
                 return TuneResult(
                     success=False,
                     model=learned_model,
-                    credits_used=budget.consumed,
-                    credits_remaining=budget.approved - budget.consumed,
+                    credits_used=budget["consumed"],
+                    iterations_remaining=budget["approved"] - budget["consumed"],
                     message="Learning failed — could not find viable configuration",
                     reusable=False,
                 )
@@ -184,8 +141,8 @@ class TuneHub:
                 return TuneResult(
                     success=False,
                     model=learned_model,
-                    credits_used=budget.consumed,
-                    credits_remaining=budget.approved - budget.consumed,
+                    credits_used=budget["consumed"],
+                    iterations_remaining=budget["approved"] - budget["consumed"],
                     message="Validation failed — learned model did not generalize",
                     reusable=False,
                 )
@@ -200,42 +157,28 @@ class TuneHub:
             self.storage.store_tune(request.user_id, learned_model)
 
             sync_status = None
-            if self.sync_manager and request.tier in ("pro", "power"):
+            if self.sync_manager:
                 sync_status = self._sync_to_desktop1(request.user_id, learned_model)
 
-            # Step 10: Record credit consumption
-            # Credits consumed = experiments run (tracked in model metadata)
-            credits_consumed = learned_model.metadata.get("credits_consumed", 0)
-            if credits_consumed == 0:
-                # Fallback: infer from payload experiment_count
-                credits_consumed = learned_model.payload.get("experiment_count", 0)
-            self.credit_tracker.consume(request.user_id, credits_consumed)
+            # Step 5: Record iterations used
+            iterations_consumed = learned_model.payload.get("experiment_count", 0)
 
             return TuneResult(
                 success=True,
                 model=learned_model,
-                credits_used=credits_consumed,
-                credits_remaining=request.approved_credits - credits_consumed,
+                iterations_used=iterations_consumed,
+                iterations_remaining=request.budget_limit - iterations_consumed,
                 message=f"Tune deployed successfully (v{learned_model.version})",
                 reusable=True,
                 sync_status=sync_status,
             )
 
-        except InsufficientCreditsError as e:
-            return TuneResult(
-                success=False,
-                model=None,
-                credits_used=0,
-                credits_remaining=request.approved_credits,
-                message=f"Credit budget exceeded: {e}",
-                reusable=False,
-            )
         except KeyError as e:
             return TuneResult(
                 success=False,
                 model=None,
-                credits_used=0,
-                credits_remaining=request.approved_credits,
+                iterations_used=0,
+                iterations_remaining=request.budget_limit,
                 message=f"Unknown feature: {e}",
                 reusable=False,
             )
@@ -243,8 +186,8 @@ class TuneHub:
             return TuneResult(
                 success=False,
                 model=None,
-                credits_used=0,
-                credits_remaining=request.approved_credits,
+                iterations_used=0,
+                iterations_remaining=request.budget_limit,
                 message=f"Internal error: {type(e).__name__}: {str(e)}",
                 reusable=False,
             )

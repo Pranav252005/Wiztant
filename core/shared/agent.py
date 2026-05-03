@@ -314,7 +314,7 @@ def _endpoint_reachable(url: str, timeout: float = 3.5) -> bool:
 
 
 def _agent_executor_name() -> str:
-    return (os.getenv("AGENT_EXECUTOR", "agent_s3") or "agent_s3").strip().lower()
+    return (os.getenv("AGENT_EXECUTOR", "agent_unified") or "agent_s3").strip().lower()
 
 
 def _agent_required_endpoints() -> list[str]:
@@ -563,19 +563,6 @@ def process_conversation_turn(user_text: str):
     if state.overlay:
         state.overlay.set_idle()
     return response
-
-
-async def execute_agent_task_fixed(task: str) -> dict:
-    from core.agent_s3_wrapper import get_agent_s3
-
-    return await get_agent_s3().execute_task(
-        instruction=task,
-        speak_fn=lambda *_args, **_kwargs: None,
-        set_wave_state_fn=lambda *_args, **_kwargs: None,
-        append_chat_fn=lambda *_args, **_kwargs: None,
-        stop_event=None,
-        max_steps=int(os.getenv("AGENT_MAX_STEPS", "20")),
-    )
 
 
 if not state.conversation_history:
@@ -911,60 +898,6 @@ def tool_undo_last(**_):
     return _sa.undo_last()
 
 
-@tool("start_recording",
-      "Start recording the user's workflow. Captures screenshots and input events. "
-      "Call this when the user says 'watch what I do', 'record this', 'learn this workflow'.")
-def tool_start_recording(**_):
-    from core.workflow_recorder import get_recorder
-    recorder = get_recorder()
-    if recorder.is_recording:
-        return "Already recording."
-    recorder.start_recording()
-    state.workflow_recording = True
-    return "Recording started. I'm watching — perform your workflow, then say 'stop recording'."
-
-
-@tool("stop_recording",
-      "Stop recording and save the workflow as a replayable skill. "
-      "Args: name (str, optional), description (str, optional). "
-      "Call this when the user says 'stop recording', 'save that', 'done recording'.")
-def tool_stop_recording(name="", description="", **_):
-    from core.workflow_recorder import get_recorder
-    recorder = get_recorder()
-    if not recorder.is_recording:
-        return "Not currently recording."
-    skill = recorder.stop_recording(skill_name=name, description=description)
-    state.workflow_recording = False
-    if skill:
-        return f"Saved skill '{skill['name']}' with {len(skill['steps'])} steps."
-    return "Recording stopped but no steps were captured."
-
-
-@tool("list_skills",
-      "List all recorded workflow skills available for replay.")
-def tool_list_skills(**_):
-    from core.workflow_recorder import SkillStore
-    store = SkillStore()
-    skills = store.list_all()
-    if not skills:
-        return "No saved skills yet. Say 'watch what I do' to record one."
-    lines = [f"- {s['name']}: {s['description']} ({s['steps']} steps)" for s in skills]
-    return "Available skills:\n" + "\n".join(lines)
-
-
-@tool("replay_skill",
-      "Replay a previously recorded workflow skill. Args: name (str) — the skill name to replay.")
-def tool_replay_skill(name="", **_):
-    if not name:
-        return "No skill name given. Use list_skills to see available skills."
-    from core.workflow_recorder import SkillStore
-    store = SkillStore()
-    skill = store.load(name)
-    if not skill:
-        return f"Skill '{name}' not found. Use list_skills to see available skills."
-    return f"REPLAY_SKILL:{name}"
-
-
 # =============================================================
 #  ROUTING
 # =============================================================
@@ -1141,44 +1074,6 @@ def _set_agent_wave_state(name: str):
         pass
 
 
-_COMPILER_KEYWORDS = [
-    "prepare", "set up", "setup", "configure", "build", "deploy",
-    "install and configure", "create a", "make a", "design a",
-    "optimize my", "clean up", "migrate", "automate", "organize",
-    "update all", "fix all", "check all", "audit", "benchmark",
-    "for my application", "for my portfolio", "for my project",
-    "multiple steps", "several things", "a few things",
-]
-
-
-def _should_use_compiler(text: str) -> bool:
-    """
-    Detect whether a task is complex enough to use the Intent Compiler
-    (dependency graph with parallel steps, checkpoints, re-planning)
-    vs the simpler sequential Planner + UI-TARS pipeline.
-    
-    Heuristic: use compiler for multi-step goals with dependencies.
-    Use regular pipeline for simple direct actions.
-    """
-    low = text.lower().strip()
-    
-    # Short commands are usually simple actions → regular pipeline
-    if len(low.split()) <= 4:
-        return False
-    
-    # Check for compiler-triggering keywords
-    if any(kw in low for kw in _COMPILER_KEYWORDS):
-        return True
-    
-    # Check for "and" connecting multiple distinct goals
-    if " and " in low and len(low.split()) > 8:
-        return True
-    
-    # Explicit user trigger
-    if "compile" in low or "plan this" in low or "break this down" in low:
-        return True
-    
-    return False
 
 
 def _append_agent_chat(role: str, text: str):
@@ -1233,58 +1128,28 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
 
         executor_name = _agent_executor_name()
 
-        # Decide: Intent Compiler (complex multi-step goals) vs regular agent pipeline
-        use_compiler = executor_name != "agent_s3" and _should_use_compiler(user_text)
-
-        if use_compiler:
-            print(f"\n[Router] AGENT mode → Intent Compiler")
-        elif executor_name == "agent_s3":
-            print(f"\n[Router] AGENT mode → Agent S3")
-        else:
-            print(f"\n[Router] AGENT mode → Planner + UI-TARS grounding")
+        print(f"\n[Router] AGENT mode → Planner + UI-TARS grounding")
 
         stop_event = threading.Event()
         state._agent_stop_event = stop_event
         state._agent_running = True
 
         try:
-            if use_compiler:
-                from core.intent_compiler import run_compiled_task
-                summary = asyncio.run(run_compiled_task(
-                    goal=user_text,
-                    speak_fn=_speak_via_tts,
-                    transcribe_fn=_transcribe_once_for_agent,
-                    set_wave_state_fn=_set_agent_wave_state,
-                    append_chat_fn=_append_agent_chat,
-                    stop_event=stop_event,
-                ))
-            elif executor_name == "agent_s3":
-                from core.agent_s3_wrapper import run_agent_s3_task
+            from core.toast import show_toast
 
-                summary = asyncio.run(run_agent_s3_task(
-                    task=user_text,
-                    speak_fn=_speak_via_tts,
-                    set_wave_state_fn=_set_agent_wave_state,
-                    append_chat_fn=_append_agent_chat,
-                    stop_event=stop_event,
-                    max_steps=int(os.getenv("AGENT_MAX_STEPS", "20")),
-                ))
-            else:
-                from core.toast import show_toast
+            overlay = getattr(state, "chat_overlay", None)
+            if overlay:
+                overlay.show_progress(user_text)
 
-                overlay = getattr(state, "chat_overlay", None)
+            def _progress_cb(event_type: str, message: str) -> None:
                 if overlay:
-                    overlay.show_progress(user_text)
+                    overlay.update_progress(event_type, message)
 
-                def _progress_cb(event_type: str, message: str) -> None:
-                    if overlay:
-                        overlay.update_progress(event_type, message)
-
-                summary = vlm.run_agent_task(
-                    task=user_text,
-                    toast=lambda title, body: show_toast(body, title),
-                    progress_cb=_progress_cb,
-                )
+            summary = vlm.run_agent_task(
+                task=user_text,
+                toast=lambda title, body: show_toast(body, title),
+                progress_cb=_progress_cb,
+            )
         except Exception as e:
             summary = f"Agent stopped: {e}"
         finally:
@@ -1382,36 +1247,6 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
                 result = TOOLS[tool_name]["fn"](**args)
             except Exception as e:
                 result = f"Tool error: {e}"
-            
-            # Handle REPLAY_SKILL special result — route to skill replay
-            if isinstance(result, str) and result.startswith("REPLAY_SKILL:"):
-                skill_name = result[len("REPLAY_SKILL:"):].strip()
-                add_history_message("assistant", f"Replaying skill: {skill_name}")
-                try:
-                    from core.workflow_recorder import SkillStore, replay_skill
-                    skill_data = SkillStore().load(skill_name)
-                    if skill_data:
-                        stop_event = threading.Event()
-                        state._agent_stop_event = stop_event
-                        state._agent_running = True
-                        try:
-                            replay_result = asyncio.run(replay_skill(
-                                skill_data,
-                                speak_fn=_speak_via_tts,
-                                transcribe_fn=_transcribe_once_for_agent,
-                                set_wave_state_fn=_set_agent_wave_state,
-                                append_chat_fn=_append_agent_chat,
-                                stop_event=stop_event,
-                            ))
-                            result = replay_result
-                        finally:
-                            state._agent_running = False
-                            state._agent_stop_event = None
-                            _set_agent_wave_state("idle")
-                    else:
-                        result = f"Skill '{skill_name}' not found."
-                except Exception as e:
-                    result = f"Skill replay failed: {e}"
             
             print(f"[Result] {str(result)[:200]}")
             add_history_message("assistant", reply)

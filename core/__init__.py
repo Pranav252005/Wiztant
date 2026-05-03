@@ -66,7 +66,6 @@ _agent_step_page_cb = None   # optional per-page step callback set by AgentPage
 
 # Workflow recorder state
 workflow_recording       = False
-_workflow_recorder       = None
 
 # System context (set by initialize_system_context on startup)
 system_context_loader    = None

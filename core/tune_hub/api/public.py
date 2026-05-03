@@ -24,7 +24,6 @@ except ImportError:
     APIRouter = object  # type: ignore
 
 from ..base import LearnedModel, TuneStatus
-from ..credit_system.abstract import CreditBalance
 from ..orchestrator import TuneHub, TuneRequest, TuneResult
 
 

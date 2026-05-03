@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional
 
 
 class ComplexityLevel(Enum):
-    """Tune complexity tiers mapped to pricing."""
+    """Tune complexity tiers."""
 
     LOW = auto()      # Free tier eligible
     MEDIUM = auto()   # Pro tier eligible
@@ -40,12 +40,6 @@ class TuneStatus(Enum):
 # =============================================================
 
 
-class InsufficientCreditsError(Exception):
-    """Raised when a learning session exceeds its credit budget."""
-
-    pass
-
-
 class ValidationError(Exception):
     """Raised when a learned model fails validation."""
 
@@ -55,30 +49,6 @@ class ValidationError(Exception):
 # =============================================================
 #  DATA CLASSES
 # =============================================================
-
-
-@dataclass(frozen=True)
-class CreditBudget:
-    """Immutable credit allocation for a learning session."""
-
-    approved: int
-    consumed: int = 0
-    reserved: int = 0  # Credits held for running experiments
-
-    def can_spend(self, amount: int) -> bool:
-        return (self.consumed + self.reserved + amount) <= self.approved
-
-    def spend(self, amount: int) -> CreditBudget:
-        if not self.can_spend(amount):
-            available = self.approved - self.consumed - self.reserved
-            raise InsufficientCreditsError(
-                f"Requested {amount}, only {available} available"
-            )
-        return CreditBudget(
-            approved=self.approved,
-            consumed=self.consumed + amount,
-            reserved=self.reserved,
-        )
 
 
 @dataclass

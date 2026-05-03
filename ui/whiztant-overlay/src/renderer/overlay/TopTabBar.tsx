@@ -1,22 +1,35 @@
 import type { Theme } from '../shared/themes';
 import type { TopTabId } from './useTopTabNav';
+import type { FeatureFlags } from '../settings/Settings';
 
-const TABS: { id: TopTabId; label: string }[] = [
+const ALL_TABS: { id: TopTabId; label: string; featureKey?: keyof FeatureFlags }[] = [
   { id: 'chat', label: 'Tune' },
-  { id: 'wizprompt', label: 'Prompt' },
-  { id: 'agent', label: 'Agent' },
-  { id: 'tasks', label: 'Today' },
+  { id: 'tunehub', label: 'Chat', featureKey: 'tunehub' },
+  { id: 'wizprompt', label: 'Prompt', featureKey: 'reprompt' },
+  { id: 'agent', label: 'Agent', featureKey: 'agent' },
+  { id: 'tasks', label: 'Today', featureKey: 'tasks' },
   { id: 'memories', label: 'Memories' },
-  { id: 'tunehub', label: 'Chat' },
 ];
+
+// Tabs that are always visible regardless of feature flags
+const ALWAYS_VISIBLE: Set<TopTabId> = new Set(['chat', 'memories']);
 
 type Props = {
   active: TopTabId;
   onChange: (tab: TopTabId) => void;
   theme: Theme['panel'];
+  enabledFeatures?: FeatureFlags;
 };
 
-export default function TopTabBar({ active, onChange, theme }: Props) {
+export default function TopTabBar({ active, onChange, theme, enabledFeatures }: Props) {
+  const visibleTabs = ALL_TABS.filter((tab) => {
+    if (ALWAYS_VISIBLE.has(tab.id)) return true;
+    if (!tab.featureKey) return true;
+    // If no feature flags provided, show all tabs (backward compatible)
+    if (!enabledFeatures) return true;
+    return enabledFeatures[tab.featureKey];
+  });
+
   return (
     <div
       role="tablist"
@@ -37,7 +50,7 @@ export default function TopTabBar({ active, onChange, theme }: Props) {
           display: none;
         }
       `}</style>
-      {TABS.map((tab) => {
+      {visibleTabs.map((tab) => {
         const isActive = tab.id === active;
         return (
           <button

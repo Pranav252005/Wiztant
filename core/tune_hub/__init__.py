@@ -9,9 +9,7 @@ from __future__ import annotations
 
 from .base import (
     ComplexityLevel,
-    CreditBudget,
     ExperimentResult,
-    InsufficientCreditsError,
     LearnedModel,
     TuneStatus,
     ValidationError,
@@ -22,9 +20,7 @@ from .orchestrator import TuneHub, TuneRequest, TuneResult
 
 __all__ = [
     "ComplexityLevel",
-    "CreditBudget",
     "ExperimentResult",
-    "InsufficientCreditsError",
     "LearnedModel",
     "TuneStatus",
     "ValidationError",

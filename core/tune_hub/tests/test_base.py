@@ -6,30 +6,9 @@ import pytest
 
 from core.tune_hub.base import (
     ComplexityLevel,
-    CreditBudget,
-    InsufficientCreditsError,
     LearnedModel,
     TuneStatus,
 )
-
-
-class TestCreditBudget:
-    def test_can_spend(self):
-        budget = CreditBudget(approved=10)
-        assert budget.can_spend(5)
-        assert not budget.can_spend(11)
-
-    def test_spend(self):
-        budget = CreditBudget(approved=10)
-        new_budget = budget.spend(3)
-        assert new_budget.consumed == 3
-        assert new_budget.can_spend(7)
-        assert not new_budget.can_spend(8)
-
-    def test_spend_exceeds(self):
-        budget = CreditBudget(approved=10)
-        with pytest.raises(InsufficientCreditsError):
-            budget.spend(11)
 
 
 class TestLearnedModel:

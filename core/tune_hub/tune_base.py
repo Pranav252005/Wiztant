@@ -10,7 +10,6 @@ from typing import Any, Callable, Dict, List, Optional, Protocol, Type
 
 from .base import (
     ComplexityLevel,
-    CreditBudget,
     ExperimentResult,
     LearnedModel,
     TuneStatus,
@@ -98,7 +97,7 @@ class TuneBase(ABC):
     def learn(
         self,
         task: str,
-        budget: CreditBudget,
+        budget: Dict[str, Any],
         context: Optional[Dict[str, Any]] = None,
         judge: Optional[QualityJudge] = None,
     ) -> LearnedModel:
@@ -106,7 +105,7 @@ class TuneBase(ABC):
         Core learning loop. Runs expensive experiments on Desktop 2.
 
         Contract:
-        - Must respect CreditBudget; raise InsufficientCreditsError if exceeded
+        - Must respect budget limit
         - Must return a LearnedModel with status DRAFT or FAILED
         - Should yield intermediate results if possible (for progress UI)
         - Is allowed to run for minutes or hours
@@ -168,7 +167,7 @@ class TuneBase(ABC):
         Default implementations may use:
         - k-fold cross-validation
         - LLM-as-judge on synthetic test cases
-        - Human-in-the-loop verification (Power tier)
+        - Human-in-the-loop verification
         """
         raise NotImplementedError
 
@@ -192,8 +191,7 @@ class TuneBase(ABC):
         """
         Serialize model for cross-machine sync.
 
-        Power tier: Returns encrypted payload.
-        Others: Returns JSON bytes.
+        Returns encrypted payload if encryption is enabled.
         """
         import json
 

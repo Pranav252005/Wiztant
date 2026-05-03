@@ -527,6 +527,16 @@ class DictationTuner(TuneBase, feature_name="dictation"):
         feature_input["auto_apply_threshold"] = model.payload.get(
             "auto_apply_threshold", 0.85
         )
+
+        # Actually process the transcription text if available
+        text = feature_input.get("text", "")
+        if text and model.payload.get("corrections"):
+            result = self.process_transcription(
+                text, user_context=feature_input.get("context")
+            )
+            feature_input["text"] = result["corrected_text"]
+            feature_input["applied_corrections"] = result.get("applied_corrections", [])
+
         return feature_input
 
     def get_default_config(self, task: str) -> Dict[str, Any]:

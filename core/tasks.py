@@ -35,6 +35,7 @@ def _normalize_task_schema(task: dict) -> dict:
     task.setdefault("task_type", None)
     task.setdefault("carried_over", False)
     task.setdefault("failed", False)
+    task.setdefault("snoozed_until", None)
     return task
 
 # Legacy path — migrated on first load if a newer memory/tasks.json is absent.
@@ -430,15 +431,6 @@ def edit_task_fields(task_id: str, fields: dict) -> Optional[dict]:
             _save(data)
             _notify_overlay()
 
-            # Auto-learn spelling corrections when task text was edited
-            try:
-                from core.learning_agent import learn_from_edit
-                new_text = task.get("text", "")
-                if old_text and new_text and old_text != new_text:
-                    learn_from_edit(old_text, new_text)
-            except Exception:
-                pass
-
             return task
     return None
 
@@ -480,6 +472,8 @@ def get_due_today_undone() -> list[dict]:
         _normalize_task_schema(task)
         if task.get("status") == "done" or task.get("failed"):
             continue
+        if is_snoozed(task):
+            continue
         due_at = str(task.get("due_at") or "")
         if not due_at:
             continue
@@ -501,6 +495,71 @@ def get_carried_over_undone() -> list[dict]:
         if task.get("carried_over"):
             carried.append(task)
     return carried
+
+
+def is_snoozed(task: dict) -> bool:
+    """Check if a task has an active snooze (snoozed_until is set and in the future)."""
+    snoozed_until = task.get("snoozed_until")
+    if not snoozed_until:
+        return False
+    try:
+        snooze_dt = datetime.fromisoformat(str(snoozed_until).replace("Z", "+00:00"))
+        return snooze_dt > datetime.now(timezone.utc)
+    except Exception:
+        return False
+
+
+def snooze_task(task_id: str, minutes: int) -> Optional[dict]:
+    """Snooze a task for the given number of minutes. Returns the updated task or None."""
+    data = _load()
+    snooze_until = datetime.now(timezone.utc) + timedelta(minutes=minutes)
+    for task in data.get("tasks", []):
+        if task.get("id") == task_id:
+            task["snoozed_until"] = snooze_until.isoformat()
+            _save(data)
+            _notify_overlay()
+            return task
+    return None
+
+
+def clear_snooze(task_id: str) -> Optional[dict]:
+    """Remove the snooze from a task. Returns the updated task or None."""
+    data = _load()
+    for task in data.get("tasks", []):
+        if task.get("id") == task_id:
+            task["snoozed_until"] = None
+            _save(data)
+            _notify_overlay()
+            return task
+    return None
+
+
+def get_snooze_presets() -> list[int]:
+    """Return default snooze preset durations in minutes."""
+    return [15, 30, 60, 1440]
+
+
+def get_due_soon(minutes: int = 30) -> list[dict]:
+    """Return pending tasks that are due within the next N minutes but not yet overdue."""
+    now_utc = datetime.now(timezone.utc)
+    soon = now_utc + timedelta(minutes=minutes)
+    due_soon = []
+    for task in get_tasks():
+        _normalize_task_schema(task)
+        if task.get("status") == "done" or task.get("failed"):
+            continue
+        if is_snoozed(task):
+            continue
+        due_at = task.get("due_at")
+        if not due_at:
+            continue
+        try:
+            due_dt = datetime.fromisoformat(str(due_at).replace("Z", "+00:00"))
+            if now_utc <= due_dt <= soon:
+                due_soon.append(task)
+        except Exception:
+            continue
+    return due_soon
 
 
 def reschedule_to_tomorrow(task_id: str) -> bool:

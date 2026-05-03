@@ -1,6 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { Theme } from '../shared/themes';
 
+type Preset = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  system_prompt_addendum: string;
+  agent_focus: string | null;
+  icon: string | null;
+};
+
 type Props = {
   theme: Theme['panel'];
   preloaded?: {
@@ -18,6 +28,7 @@ type Props = {
     prompt_size?: string;
     framing_directive?: string | null;
     synthesis_failed?: boolean;
+    preset?: string | null;
   } | null;
 };
 
@@ -35,6 +46,7 @@ type OptimizationResult = {
   prompt_size: string;
   framing_directive: string | null;
   synthesis_failed: boolean;
+  preset: string | null;
 };
 
 function agentLabel(id: string): string {
@@ -89,6 +101,31 @@ export default function WizPromptPanel({ theme, preloaded }: Props) {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Preset state
+  const [presets, setPresets] = useState<Preset[]>([]);
+  const [selectedPreset, setSelectedPreset] = useState<string>('general');
+
+  // Fetch presets on mount
+  useEffect(() => {
+    fetch('http://localhost:8765/presets')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.presets && Array.isArray(data.presets)) {
+          setPresets(data.presets);
+        }
+      })
+      .catch(() => {
+        // Fallback to default presets if server is unreachable
+        setPresets([
+          { id: 'general', name: 'General Optimization', description: 'Standard multi-agent prompt optimization', category: 'company', system_prompt_addendum: '', agent_focus: null, icon: 'zap' },
+          { id: 'product_review', name: 'Product Review', description: 'Optimize for product feedback and reviews', category: 'company', system_prompt_addendum: '', agent_focus: 'semantic', icon: 'star' },
+          { id: 'idea_review', name: 'Idea Review', description: 'Optimize for evaluating and refining ideas', category: 'company', system_prompt_addendum: '', agent_focus: 'structure', icon: 'lightbulb' },
+          { id: 'code_review', name: 'Code Review', description: 'Optimize for reviewing code and technical implementation', category: 'company', system_prompt_addendum: '', agent_focus: 'edge_case', icon: 'code' },
+          { id: 'code_creation', name: 'Code Creation', description: 'Optimize for generating code from descriptions', category: 'company', system_prompt_addendum: '', agent_focus: 'structure', icon: 'terminal' },
+        ]);
+      });
+  }, []);
+
   const liveLines = useMemo(() => {
     const count = input.split('\n').length;
     if (count <= 5) return { size: 'small', agents: 2, label: 'Small prompt — will use 2 agents' };
@@ -97,6 +134,8 @@ export default function WizPromptPanel({ theme, preloaded }: Props) {
   }, [input]);
 
   const liveValidation = useMemo(() => validateInput(input), [input]);
+
+  const selectedPresetData = useMemo(() => presets.find((p) => p.id === selectedPreset), [presets, selectedPreset]);
 
   useEffect(() => {
     if (preloaded) {
@@ -113,6 +152,7 @@ export default function WizPromptPanel({ theme, preloaded }: Props) {
         prompt_size: preloaded.prompt_size || 'unknown',
         framing_directive: preloaded.framing_directive || null,
         synthesis_failed: preloaded.synthesis_failed || false,
+        preset: preloaded.preset || null,
       });
       setStatus('done');
       navigator.clipboard.writeText(preloaded.optimized);
@@ -156,7 +196,7 @@ export default function WizPromptPanel({ theme, preloaded }: Props) {
       const res = await fetch('http://localhost:8765/wizprompt/optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: input, model: model || undefined })
+        body: JSON.stringify({ prompt: input, model: model || undefined, preset: selectedPreset })
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -177,6 +217,7 @@ export default function WizPromptPanel({ theme, preloaded }: Props) {
         prompt_size: data.prompt_size || 'unknown',
         framing_directive: data.framing_directive || null,
         synthesis_failed: data.synthesis_failed || false,
+        preset: data.preset || null,
       });
       setStatus('done');
 
@@ -196,6 +237,45 @@ export default function WizPromptPanel({ theme, preloaded }: Props) {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '12px', gap: 10, minHeight: 0 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: theme.text }}>WizPrompt</span>
+
+        {/* Preset selector */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <label style={{ fontSize: 10, color: theme.textMuted, fontWeight: 500 }}>Optimization Preset</label>
+          <select
+            value={selectedPreset}
+            onChange={(e) => setSelectedPreset(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px 10px',
+              borderRadius: 12,
+              border: `1px solid ${theme.border}`,
+              background: theme.inputBg,
+              color: theme.text,
+              fontSize: 12,
+              fontFamily: 'inherit',
+              outline: 'none',
+              cursor: 'pointer',
+              appearance: 'none',
+              WebkitAppearance: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 10px center',
+              paddingRight: 30,
+            }}
+          >
+            {presets.map((preset) => (
+              <option key={preset.id} value={preset.id}>
+                {preset.name}
+              </option>
+            ))}
+          </select>
+          {selectedPresetData && (
+            <span style={{ fontSize: 10, color: theme.textMuted, fontStyle: 'italic' }}>
+              {selectedPresetData.description}
+            </span>
+          )}
+        </div>
+
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -237,7 +317,7 @@ export default function WizPromptPanel({ theme, preloaded }: Props) {
           flexShrink: 0,
         }}
       >
-        {status === 'processing' ? 'Optimizing with Agents...' : 'Optimize Prompt'}
+        {status === 'processing' ? 'Optimizing with Agents...' : selectedPreset !== 'general' ? `Optimize (${selectedPresetData?.name || selectedPreset})` : 'Optimize Prompt'}
       </button>
 
       {status === 'processing' && (
@@ -271,6 +351,7 @@ export default function WizPromptPanel({ theme, preloaded }: Props) {
           <div style={{ fontSize: 11, color: theme.textMuted, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
             <span>{sizeBadge(result.prompt_size)} ({result.line_count} lines) • {result.agents.length} agents</span>
             {result.emotion && <span>• Emotion: <strong style={{ color: theme.aiAccent }}>{result.emotion}</strong></span>}
+            {result.preset && <span>• Optimized for: <strong style={{ color: theme.aiAccent }}>{result.preset}</strong></span>}
             {copied && <span style={{ color: '#4ade80' }}>• Copied</span>}
           </div>
 

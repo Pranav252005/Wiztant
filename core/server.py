@@ -94,6 +94,7 @@ class VoiceRequest(BaseModel):
 class WizPromptRequest(BaseModel):
     prompt: str
     model: str | None = None
+    preset: str | None = "general"
 
 # ── Routes ──────────────────────────────────────────────────────────────────
 
@@ -285,12 +286,17 @@ def voice_stop():
 async def wizprompt_optimize(req: WizPromptRequest):
     try:
         from core.wizprompt import optimize_prompt_with_dynamic_agents
-        result = await optimize_prompt_with_dynamic_agents(req.prompt, model=req.model)
+        result = await optimize_prompt_with_dynamic_agents(req.prompt, model=req.model, preset_id=req.preset)
         return {"ok": True, **result}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/presets")
+async def get_presets():
+    from core.presets import get_all_presets, preset_to_dict
+    return {"presets": [preset_to_dict(p) for p in get_all_presets()]}
 
 if __name__ == "__main__":
     print("[Wiztant] Starting core API server on http://localhost:8765")

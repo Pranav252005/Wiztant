@@ -65,6 +65,7 @@ export interface Task {
   task_type?: TaskType;
   carried_over?: boolean;
   failed?: boolean;
+  snoozed_until?: string | null;
 }
 
 export interface TaskSnapshot {

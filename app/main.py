@@ -10,7 +10,7 @@ import subprocess
 import sys
 import threading
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # Ensure project root is on path so `core`, `ui`, and `platforms` resolve
@@ -184,6 +184,41 @@ _dbg("[Memory] module imported")
 from core import voice
 _dbg("[Voice] module imported (Groq cloud STT)")
 
+# ─── Feature flags ───────────────────────────────────────────
+_FEATURE_FLAGS = {"agent": True, "tunehub": True, "tasks": True, "reprompt": True}
+
+def _load_feature_flags():
+    """Read feature flags from data/settings.json. All features default to enabled."""
+    global _FEATURE_FLAGS
+    try:
+        settings_path = _ROOT / "data" / "settings.json"
+        if settings_path.exists():
+            data = json.loads(settings_path.read_text(encoding="utf-8"))
+            features = data.get("features", {})
+            if isinstance(features, dict):
+                for key in _FEATURE_FLAGS:
+                    if key in features and isinstance(features[key], bool):
+                        _FEATURE_FLAGS[key] = features[key]
+        _dbg(f"[Features] loaded: {_FEATURE_FLAGS}")
+    except Exception as e:
+        _dbg(f"[Features] load error: {e}")
+
+_load_feature_flags()
+
+
+def _save_feature_flags(features: dict):
+    """Save feature flags to data/settings.json."""
+    try:
+        settings_path = _ROOT / "data" / "settings.json"
+        data = {}
+        if settings_path.exists():
+            data = json.loads(settings_path.read_text(encoding="utf-8"))
+        data["features"] = features
+        settings_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    except Exception as e:
+        _dbg(f"[Features] save error: {e}")
+
+
 from core import agent  # registers tools, sets up OpenAI client
 _dbg(f"[Agent] tools registered: {len(agent.TOOLS)} tools")
 
@@ -208,12 +243,38 @@ _due_reminder_timer: threading.Timer | None = None
 _startup_nudge_thread: threading.Thread | None = None
 _overlay_thread: threading.Thread | None = None
 
+# Reminder tracking: task_id -> {"pre_due_warned": bool, "due_warned": bool, "overdue_reminder_count": int, "last_overdue_reminder": float}
+# Used to implement the aggressive multi-stage reminder schedule without spamming.
+_reminder_tracker: dict[str, dict] = {}
+_REMINDER_CHECK_INTERVAL_SEC = 15 * 60  # 15 minutes
+
+
+def _get_task_settings() -> dict:
+    """Load task reminder settings, with sensible defaults."""
+    import json as _json
+    import os
+    try:
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = _json.load(f)
+                if isinstance(data, dict):
+                    return {
+                        "reminder_interval_min": int(data.get("reminder_interval_min", 15)),
+                        "pre_due_warning": bool(data.get("pre_due_warning", True)),
+                        "carry_over": bool(data.get("carry_over", True)),
+                    }
+    except Exception:
+        pass
+    return {"reminder_interval_min": 15, "pre_due_warning": True, "carry_over": True}
+
 
 def _due_reminder():
+    """Periodic reminder for carried-over tasks (legacy, kept for compatibility)."""
     global _due_reminder_timer
     try:
-        from core.tasks import get_carried_over_undone
-        tasks = get_carried_over_undone()
+        from core.tasks import get_carried_over_undone, is_snoozed
+        tasks = [t for t in get_carried_over_undone() if not is_snoozed(t)]
         if tasks:
             broadcast_sync({
                 "type": "due_reminder",
@@ -223,7 +284,6 @@ def _due_reminder():
                     for task in tasks
                 ],
             })
-        # Only reschedule if there are still undone tasks; otherwise let _due_check restart it.
         if get_carried_over_undone():
             _due_reminder_timer = threading.Timer(4 * 3600, _due_reminder)
             _due_reminder_timer.daemon = True
@@ -234,18 +294,45 @@ def _due_reminder():
         _due_reminder_timer = None
 
 
+def _cleanup_stale_tracker(tasks: list):
+    """Remove tracker entries for tasks that no longer exist or are completed."""
+    global _reminder_tracker
+    valid_ids = {t.get("id", "") for t in tasks}
+    _reminder_tracker = {k: v for k, v in _reminder_tracker.items() if k in valid_ids}
+
+
 def _due_check():
     global _due_check_timer, _due_reminder_timer
     try:
-        from core.tasks import get_due_today_undone, mark_failed
+        from core.tasks import get_due_today_undone, get_due_soon, is_snoozed, mark_failed
+        settings = _get_task_settings()
+
+        # ── 1. Pre-due warnings (tasks due within 30 minutes) ──
+        if settings.get("pre_due_warning", True):
+            soon_tasks = get_due_soon(minutes=30)
+            for task in soon_tasks:
+                tid = task.get("id", "")
+                tracker = _reminder_tracker.setdefault(tid, {})
+                if not tracker.get("pre_due_warned", False):
+                    broadcast_sync({
+                        "type": "due_soon",
+                        "task": {"id": tid, "title": task.get("text", "")},
+                        "due_at": task.get("due_at"),
+                    })
+                    tracker["pre_due_warned"] = True
+
+        # ── 2. Tasks that are due today / right now ──
         tasks = get_due_today_undone()
         if tasks:
             second_miss = [task for task in tasks if task.get("carried_over")]
             first_miss = [task for task in tasks if not task.get("carried_over")]
 
+            # Second miss → mark as failed
             if second_miss:
                 failed_tasks = []
                 for task in second_miss:
+                    if is_snoozed(task):
+                        continue
                     if mark_failed(task.get("id", "")):
                         failed_tasks.append({"id": task.get("id"), "title": task.get("text", "")})
                 if failed_tasks:
@@ -262,22 +349,61 @@ def _due_check():
                     except Exception:
                         pass
 
+            # First miss → due alert + aggressive reminders
             if first_miss:
-                broadcast_sync({
-                    "type": "due_alert",
-                    "count": len(first_miss),
-                    "tasks": [{"id": task.get("id"), "title": task.get("text", "")} for task in first_miss],
-                })
-                # Cancel any existing reminder before starting a fresh one so they don't pile up.
-                if _due_reminder_timer is not None:
-                    _due_reminder_timer.cancel()
+                now_ts = datetime.now(timezone.utc).timestamp()
+                newly_due = []
+                for task in first_miss:
+                    tid = task.get("id", "")
+                    tracker = _reminder_tracker.setdefault(tid, {})
+                    if not tracker.get("due_warned", False):
+                        newly_due.append(task)
+                        tracker["due_warned"] = True
+
+                if newly_due:
+                    broadcast_sync({
+                        "type": "due_alert",
+                        "count": len(newly_due),
+                        "tasks": [{"id": t.get("id"), "title": t.get("text", "")} for t in newly_due],
+                    })
+
+                # Aggressive overdue reminders: every 15 minutes while overdue
+                for task in first_miss:
+                    tid = task.get("id", "")
+                    tracker = _reminder_tracker.setdefault(tid, {})
+                    last_reminder = tracker.get("last_overdue_reminder", 0)
+                    if now_ts - last_reminder >= _REMINDER_CHECK_INTERVAL_SEC:
+                        tracker["last_overdue_reminder"] = now_ts
+                        tracker["overdue_reminder_count"] = tracker.get("overdue_reminder_count", 0) + 1
+                        broadcast_sync({
+                            "type": "overdue_reminder",
+                            "task": {"id": tid, "title": task.get("text", "")},
+                            "reminder_count": tracker["overdue_reminder_count"],
+                        })
+
+        # ── 3. Carried-over undone tasks ──
+        try:
+            from core.tasks import get_carried_over_undone
+            carried = [t for t in get_carried_over_undone() if not is_snoozed(t)]
+            if carried and (_due_reminder_timer is None or not _due_reminder_timer.is_alive()):
                 _due_reminder_timer = threading.Timer(4 * 3600, _due_reminder)
                 _due_reminder_timer.daemon = True
                 _due_reminder_timer.start()
+        except Exception:
+            pass
+
+        # Clean up tracker entries for completed / deleted tasks
+        try:
+            from core.tasks import get_tasks
+            _cleanup_stale_tracker(get_tasks())
+        except Exception:
+            pass
+
     except Exception:
         pass
     finally:
-        _due_check_timer = threading.Timer(seconds_until(18, 0), _due_check)
+        # Reschedule every 15 minutes instead of waiting for 18:00
+        _due_check_timer = threading.Timer(_REMINDER_CHECK_INTERVAL_SEC, _due_check)
         _due_check_timer.daemon = True
         _due_check_timer.start()
 
@@ -338,14 +464,17 @@ try:
 except Exception as _e:
     print(f"[WS] Could not start WebSocket bridge: {_e}")
 
-# Background agent manager
-try:
-    from core.background_agent import init_background_agent
-    _bg_mgr = init_background_agent()
-    _dbg("[BG Agent] Background agent manager started")
-except Exception as _e:
-    print(f"[BG Agent] Could not start background agent: {_e}")
-    _bg_mgr = None
+# Background agent manager (only if agent feature enabled)
+_bg_mgr = None
+if _FEATURE_FLAGS.get("agent", True):
+    try:
+        from core.background_agent import init_background_agent
+        _bg_mgr = init_background_agent()
+        _dbg("[BG Agent] Background agent manager started")
+    except Exception as _e:
+        print(f"[BG Agent] Could not start background agent: {_e}")
+else:
+    _dbg("[BG Agent] Skipped (agent feature disabled)")
 
 # System tray icon
 try:
@@ -354,42 +483,59 @@ try:
 except Exception as _e:
     print(f"[Tray] Could not start tray: {_e}")
 
-# WizType
-try:
-    from core.wiztype import ensure_wiztype_started_from_config
-    ensure_wiztype_started_from_config()
-    _dbg("[WizType] initialized")
-except Exception as _e:
-    print(f"[WizType] Could not initialize: {_e}")
-
 # Tune Hub middleware — wires learned parameters into feature hot paths
-try:
-    from core.tune_hub.factory import create_tune_hub
-    from core.tune_hub.middleware import TuneApplicationMiddleware
-    from core.tune_hub.quality.judge import LLMJudge
+if _FEATURE_FLAGS.get("tunehub", True):
+    try:
+        from core.tune_hub.factory import create_tune_hub
+        from core.tune_hub.middleware import TuneApplicationMiddleware
+        from core.tune_hub.quality.judge import LLMJudge
 
-    # Load persisted Tune Hub settings
-    _tunehub_settings_path = _ROOT / "data" / "tunehub_settings.json"
-    if _tunehub_settings_path.exists():
-        try:
-            core.tune_hub_settings = json.loads(_tunehub_settings_path.read_text(encoding="utf-8"))
-        except Exception:
-            core.tune_hub_settings = {}
+        # Load persisted Tune Hub settings
+        _tunehub_settings_path = _ROOT / "data" / "tunehub_settings.json"
+        if _tunehub_settings_path.exists():
+            try:
+                core.tune_hub_settings = json.loads(_tunehub_settings_path.read_text(encoding="utf-8"))
+            except Exception:
+                core.tune_hub_settings = {}
 
-    def _judge_factory():
-        """Create LLMJudge with user-selected model from settings."""
-        model = core.tune_hub_settings.get("model", "")
-        return LLMJudge(model=model) if model else LLMJudge()
+        def _judge_factory():
+            """Create LLMJudge with user-selected model from settings."""
+            model = core.tune_hub_settings.get("model", "")
+            return LLMJudge(model=model) if model else LLMJudge()
 
-    _tune_hub_tier = os.getenv("CURRENT_TIER", "free")
-    _tune_hub = create_tune_hub(tier=_tune_hub_tier, judge_factory=_judge_factory)
-    core.tune_hub = _tune_hub
-    core.tune_middleware = TuneApplicationMiddleware(_tune_hub)
-    _dbg("[TuneHub] middleware initialized")
-except Exception as _e:
-    print(f"[TuneHub] Could not initialize: {_e}")
+        _tune_hub_tier = os.getenv("CURRENT_TIER", "free")
+        _tune_hub = create_tune_hub(tier=_tune_hub_tier, judge_factory=_judge_factory)
+        core.tune_hub = _tune_hub
+        core.tune_middleware = TuneApplicationMiddleware(_tune_hub)
+        _dbg("[TuneHub] middleware initialized")
+    except Exception as _e:
+        print(f"[TuneHub] Could not initialize: {_e}")
+        core.tune_hub = None
+        core.tune_middleware = None
+else:
+    _dbg("[TuneHub] Skipped (tunehub feature disabled)")
     core.tune_hub = None
     core.tune_middleware = None
+
+
+# =============================================================
+#  FEATURE FLAG API (used by ws_bridge)
+# =============================================================
+
+def get_feature_flags() -> dict:
+    """Return current feature flags."""
+    return dict(_FEATURE_FLAGS)
+
+
+def update_feature_flags(features: dict) -> dict:
+    """Update feature flags, persist to disk, and return the new state."""
+    global _FEATURE_FLAGS
+    for key in _FEATURE_FLAGS:
+        if key in features and isinstance(features[key], bool):
+            _FEATURE_FLAGS[key] = features[key]
+    _save_feature_flags(dict(_FEATURE_FLAGS))
+    _dbg(f"[Features] updated: {_FEATURE_FLAGS}")
+    return dict(_FEATURE_FLAGS)
 
 
 # =============================================================
@@ -438,19 +584,23 @@ def run_app():
         _startup_nudge_thread = threading.Thread(target=_startup_nudge, daemon=True, name="startup-nudge")
         _startup_nudge_thread.start()
 
-    try:
-        from core.tasks import get_carried_over_undone
-        if _due_check_timer is None or not _due_check_timer.is_alive():
-            _due_check_timer = threading.Timer(seconds_until(18, 0), _due_check)
-            _due_check_timer.daemon = True
-            _due_check_timer.start()
-        if get_carried_over_undone():
-            if _due_reminder_timer is None or not _due_reminder_timer.is_alive():
-                _due_reminder_timer = threading.Timer(4 * 3600, _due_reminder)
-                _due_reminder_timer.daemon = True
-                _due_reminder_timer.start()
-    except Exception:
-        pass
+    if _FEATURE_FLAGS.get("tasks", True):
+        try:
+            from core.tasks import get_carried_over_undone, is_snoozed
+            if _due_check_timer is None or not _due_check_timer.is_alive():
+                _due_check_timer = threading.Timer(30, _due_check)
+                _due_check_timer.daemon = True
+                _due_check_timer.start()
+            carried = [t for t in get_carried_over_undone() if not is_snoozed(t)]
+            if carried:
+                if _due_reminder_timer is None or not _due_reminder_timer.is_alive():
+                    _due_reminder_timer = threading.Timer(4 * 3600, _due_reminder)
+                    _due_reminder_timer.daemon = True
+                    _due_reminder_timer.start()
+        except Exception:
+            pass
+    else:
+        _dbg("[Tasks] Due-check timer skipped (tasks feature disabled)")
 
     # Start overlay in background
     def _start_overlay_bg():
@@ -477,11 +627,6 @@ def run_app():
             stop_event = getattr(core, "_agent_stop_event", None)
             if stop_event is not None:
                 stop_event.set()
-        except Exception:
-            pass
-        try:
-            from core.wiztype import shutdown_wiztype
-            shutdown_wiztype()
         except Exception:
             pass
         try:

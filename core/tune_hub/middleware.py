@@ -47,6 +47,8 @@ class TuneApplicationMiddleware:
     and does not cache — TuneHub's storage layer handles caching (SQLite + in-memory).
     """
 
+    _enabled: bool = True
+
     def __init__(self, tune_hub: TuneHub) -> None:
         self.tune_hub = tune_hub
         self._handlers: Dict[str, List[Callable[[TuneEvent], None]]] = {}
@@ -69,6 +71,12 @@ class TuneApplicationMiddleware:
                 h for h in self._handlers[feature_name] if h != handler
             ]
 
+    def enable(self) -> None:
+        self._enabled = True
+
+    def disable(self) -> None:
+        self._enabled = False
+
     def apply(
         self,
         user_id: str,
@@ -81,6 +89,9 @@ class TuneApplicationMiddleware:
 
         Returns the (possibly modified) feature_input with tune parameters injected.
         """
+        if not self._enabled:
+            return feature_input
+
         event = TuneEvent(
             user_id=user_id,
             feature_name=feature_name,

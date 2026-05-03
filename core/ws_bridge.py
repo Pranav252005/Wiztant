@@ -170,6 +170,15 @@ async def _handler(websocket):
                 elif msg_type == "tasks/refresh":
                     _handle_tasks_refresh(msg)
 
+                elif msg_type == "tasks/snooze":
+                    _handle_tasks_snooze(msg)
+
+                elif msg_type == "tasks/settings/set":
+                    await _handle_tasks_settings_set(websocket, msg)
+
+                elif msg_type == "tasks/settings/get":
+                    await _handle_tasks_settings_get(websocket)
+
                 elif msg_type == "vocab_add":
                     _handle_vocab_add(msg)
 
@@ -355,6 +364,38 @@ async def _handler(websocket):
                         }))
                     except Exception as e:
                         print(f"[WsBridge] settings/set error: {e}")
+
+                elif msg_type == "features/update":
+                    try:
+                        import sys
+                        from app.main import update_feature_flags
+                        incoming = msg.get("features", {})
+                        if isinstance(incoming, dict):
+                            updated = update_feature_flags(incoming)
+                            # Broadcast to all clients so they stay in sync
+                            broadcast_sync({
+                                "type": "features/update",
+                                "features": updated,
+                            })
+                        else:
+                            await websocket.send(json.dumps({
+                                "type": "features/update",
+                                "features": {},
+                                "error": "Invalid features payload",
+                            }))
+                    except Exception as e:
+                        print(f"[WsBridge] features/update error: {e}")
+
+                elif msg_type == "features/get":
+                    try:
+                        from app.main import get_feature_flags
+                        flags = get_feature_flags()
+                        await websocket.send(json.dumps({
+                            "type": "features/update",
+                            "features": flags,
+                        }))
+                    except Exception as e:
+                        print(f"[WsBridge] features/get error: {e}")
 
                 # ── Tune Hub ─────────────────────────────────────────────
                 elif msg_type == "tunehub/stats":
@@ -737,6 +778,75 @@ def _handle_tasks_refresh(_msg: dict):
         except Exception as e:
             print(f"[WsBridge] tasks/refresh error: {e}")
     threading.Thread(target=_run, daemon=True).start()
+
+
+def _handle_tasks_snooze(msg: dict):
+    def _run():
+        try:
+            from core.tasks import snooze_task, get_task_snapshot
+            task_id = msg.get("taskId") or msg.get("task_id", "")
+            minutes = int(msg.get("minutes", 15))
+            if task_id and minutes > 0:
+                snooze_task(task_id, minutes)
+                snapshot = get_task_snapshot()
+                broadcast_sync({
+                    "type": "tasks/update",
+                    "payload": snapshot.get("tasks", []),
+                    "history": snapshot.get("history", []),
+                    "suggestion": snapshot.get("suggestion"),
+                })
+        except Exception as e:
+            print(f"[WsBridge] tasks/snooze error: {e}")
+    threading.Thread(target=_run, daemon=True).start()
+
+
+async def _handle_tasks_settings_set(websocket, msg: dict):
+    """Save task settings to settings.json and acknowledge."""
+    try:
+        import json as _json
+        import os
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        data = {}
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = _json.load(f)
+        # Merge task-specific settings
+        for key in ("reminder_interval_min", "default_due_time", "snooze_presets", "pre_due_warning", "carry_over"):
+            if key in msg:
+                data[key] = msg[key]
+        with open(settings_path, "w", encoding="utf-8") as f:
+            _json.dump(data, f, indent=2)
+        await websocket.send(_json.dumps({
+            "type": "tasks/settings/update",
+            "settings": data,
+        }))
+    except Exception as e:
+        print(f"[WsBridge] tasks/settings/set error: {e}")
+
+
+async def _handle_tasks_settings_get(websocket):
+    """Return current task settings from settings.json."""
+    try:
+        import json as _json
+        import os
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        data = {}
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = _json.load(f)
+        task_settings = {
+            "reminder_interval_min": data.get("reminder_interval_min", 15),
+            "default_due_time": data.get("default_due_time", "17:00"),
+            "snooze_presets": data.get("snooze_presets", [15, 30, 60, 1440]),
+            "pre_due_warning": data.get("pre_due_warning", True),
+            "carry_over": data.get("carry_over", True),
+        }
+        await websocket.send(_json.dumps({
+            "type": "tasks/settings/update",
+            "settings": task_settings,
+        }))
+    except Exception as e:
+        print(f"[WsBridge] tasks/settings/get error: {e}")
 
 
 def _handle_vocab_add(msg: dict):
