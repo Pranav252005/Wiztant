@@ -4,7 +4,6 @@ import type { AppState, ThemeName, PillNoticePayload, Task, TaskSnapshot, Dictat
 export interface WhiztantApi {
   toggleOverlay: () => void;
   toggleSettings: () => void;
-  sendMessage: (text: string) => void;
   setTheme: (name: ThemeName) => void;
   quit: () => void;
   showPillMenu: () => void;
@@ -18,7 +17,6 @@ export interface WhiztantApi {
   openMemoryPanel: (memory: DictationMemory) => Promise<boolean>;
   rescheduleTask: (id: string) => Promise<boolean>;
   undoTaskSave: (id: string) => Promise<boolean>;
-  openChatFromConfirm: () => void;
   showOverlay: () => void;
   expandPill: (size: { width: number; height: number } | null) => void;
   stopRecording: () => void;
@@ -32,13 +30,15 @@ export interface WhiztantApi {
   onPillEdge: (cb: (edge: string) => void) => void;
 
   onSetState: (cb: (state: AppState) => void) => void;
-  onAiReply: (cb: (text: string) => void) => void;
   onThemeChanged: (cb: (name: ThemeName) => void) => void;
   onOverlayShow: (cb: () => void) => void;
   onOverlayHide: (cb: () => void) => void;
   onShowSettings: (cb: () => void) => void;
   onHideSettings: (cb: () => void) => void;
   onPillNotice: (cb: (payload: PillNoticePayload) => void) => void;
+  openExternal: (url: string) => void;
+  openOverlayToTasksEdit: (data: Record<string, unknown>) => void;
+  onNavigateToTasksEdit: (cb: (data: Record<string, unknown>) => void) => void;
 }
 
 declare global {
@@ -46,5 +46,34 @@ declare global {
     api: WhiztantApi;
   }
 }
+
+export interface AgentV2PhaseStartEvent {
+  type: 'agent.phase_start';
+  project_id: string;
+  layer?: string;
+  phase?: string;
+  subphase?: string;
+  status?: string;
+}
+
+export interface AgentV2StepCompleteEvent {
+  type: 'agent.step_complete';
+  project_id: string;
+  subphase_id: string;
+}
+
+export interface AgentV2NeedsApprovalEvent {
+  type: 'agent.needs_approval';
+  project_id: string;
+  message: string;
+}
+
+export interface AgentV2LimitHitEvent {
+  type: 'agent.limit_hit';
+  project_id: string;
+  reason: string;
+}
+
+export type AgentV2Event = AgentV2PhaseStartEvent | AgentV2StepCompleteEvent | AgentV2NeedsApprovalEvent | AgentV2LimitHitEvent;
 
 export {};

@@ -30,7 +30,6 @@ export const IPC = {
   TASK_RESCHEDULE: 'task:reschedule',
   TASK_UNDO_SAVE: 'task:undoSave',
   CLIPBOARD_WRITE: 'clipboard:write',
-  CONFIRM_OPEN_CHAT: 'confirm:open-chat',
   SHOW_OVERLAY: 'show-overlay',
   PILL_EXPAND: 'pill:expand',
   STOP_RECORDING: 'stop-recording',
@@ -41,8 +40,14 @@ export const IPC = {
   PILL_DRAG_END: 'pill-drag-end',
   PILL_GET_EDGE: 'pill:get-edge',
   PILL_EDGE_CHANGED: 'pill-edge-changed',
+  // Renderer → Main (shortcuts)
+  RELOAD_SHORTCUTS: 'reload-shortcuts',
+  PILL_NOTIFICATIONS: 'pill-notifications',
   // Main → Renderer (all)
   THEME_CHANGED: 'theme-changed',
+  OPEN_OVERLAY_TO_TASKS_EDIT: 'open-overlay-to-tasks-edit',
+  NAVIGATE_TO_TASKS_EDIT: 'navigate-to-tasks-edit',
+  OPEN_EXTERNAL: 'open-external',
 } as const;
 
 export type AppState = 'idle' | 'recording' | 'thinking' | 'speaking' | 'agent';
@@ -51,6 +56,7 @@ export type ThemeName = 'onyx' | 'graphite' | 'porcelain' | 'midnight' | 'ember'
 export type TaskStatus = 'pending' | 'in_progress' | 'done';
 export type TaskSource = 'voice' | 'typed';
 export type TaskType = 'large' | 'small' | null;
+export type TaskDifficulty = 'easy' | 'medium' | 'hard' | null;
 
 export interface Task {
   id: string;
@@ -66,6 +72,8 @@ export interface Task {
   carried_over?: boolean;
   failed?: boolean;
   snoozed_until?: string | null;
+  category?: string | null;
+  difficulty?: TaskDifficulty;
 }
 
 export interface TaskSnapshot {
@@ -79,7 +87,7 @@ export interface TaskSnapshot {
   }>;
 }
 
-export type DictationMemoryMode = 'dictation' | 'agent' | 'task' | 'bg_agent';
+export type DictationMemoryMode = 'dictation' | 'agent' | 'task' | 'bg_agent' | 'reprompt';
 
 export interface DictationMemory {
   id: string;
@@ -87,6 +95,7 @@ export interface DictationMemory {
   mode: DictationMemoryMode;
   original_text: string;
   final_text: string;
+  session_id?: string;
 }
 
 export type PillNoticeKind =
@@ -103,4 +112,27 @@ export interface PillNoticePayload {
   title: string;
   summary: string;
   duration_ms: number;
+}
+
+export async function startProject(projectPath: string, description: string, stack: string[] = [], approvalMode = 'step-by-step') {
+  const res = await fetch('http://localhost:8765/agent/project/start', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ project_path: projectPath, description, stack, approval_mode: approvalMode }),
+  });
+  return res.json();
+}
+
+export async function getProjectStatus(projectId: string) {
+  const res = await fetch(`http://localhost:8765/agent/project/${projectId}/status`);
+  return res.json();
+}
+
+export async function approveProjectAction(projectId: string, action: 'approve' | 'pause' | 'resume') {
+  const res = await fetch(`http://localhost:8765/agent/project/${projectId}/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action }),
+  });
+  return res.json();
 }
