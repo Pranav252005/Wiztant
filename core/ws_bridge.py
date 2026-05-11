@@ -32,6 +32,18 @@ _pending_questions: Dict[str, threading.Event] = {}
 _question_answers: Dict[str, str] = {}
 _question_lock = threading.Lock()
 
+# ── RePrompt ready signal ────────────────────────────────────────────────────
+_reprompt_ready_event: Optional[threading.Event] = None
+
+
+def get_reprompt_ready_event() -> threading.Event:
+    """Return a threading.Event that is set when the overlay confirms Reprompt tab is open."""
+    global _reprompt_ready_event
+    if _reprompt_ready_event is None:
+        _reprompt_ready_event = threading.Event()
+    _reprompt_ready_event.clear()
+    return _reprompt_ready_event
+
 
 def _set_question_answer(question_id: str, answer: str) -> None:
     """Store an answer and signal any waiter."""
@@ -62,70 +74,49 @@ async def _handler(websocket):
     _clients.add(websocket)
     print(f"[WsBridge] Client connected ({len(_clients)} total)")
 
-    # Send current conversation history on connect
     try:
-        import core as state
-        history = getattr(state, "conversation_history", [])
-        # If history was wiped by a module reload, attempt to restore from disk.
-        if not history:
-            try:
-                from core.agent import _load_conversation_history
-                restored = _load_conversation_history()
-                if restored:
-                    state.conversation_history = restored
-                    history = restored
-            except Exception:
-                pass
+        from core.tasks import get_task_snapshot
+        snapshot = get_task_snapshot()
         await websocket.send(json.dumps({
-            "type": "history",
-            "messages": [
-                {"role": m.get("role", ""), "content": m.get("content", "")}
-                for m in history
-                if m.get("content", "").strip() and len(m.get("content", "")) < 5000
-            ]
+            "type": "tasks/update",
+            "payload": snapshot.get("tasks", []),
+            "history": snapshot.get("history", []),
+            "suggestion": snapshot.get("suggestion"),
+            "categories": snapshot.get("categories", []),
         }))
+    except Exception as task_error:
+        print(f"[WsBridge] Initial tasks send error: {task_error}")
 
-        try:
-            from core.tasks import get_task_snapshot
-            snapshot = get_task_snapshot()
-            await websocket.send(json.dumps({
-                "type": "tasks/update",
-                "payload": snapshot.get("tasks", []),
-                "history": snapshot.get("history", []),
-                "suggestion": snapshot.get("suggestion"),
-            }))
-        except Exception as task_error:
-            print(f"[WsBridge] Initial tasks send error: {task_error}")
+    try:
+        from core.dictation_memory import get_memories
+        memories = get_memories(limit=50)
+        await websocket.send(json.dumps({
+            "type": "dictation_memories/update",
+            "memories": memories,
+        }))
+    except Exception as mem_error:
+        print(f"[WsBridge] Initial memories send error: {mem_error}")
 
-        try:
-            from core.dictation_memory import get_memories
-            memories = get_memories(limit=50)
-            await websocket.send(json.dumps({
-                "type": "dictation_memories/update",
-                "memories": memories,
-            }))
-        except Exception as mem_error:
-            print(f"[WsBridge] Initial memories send error: {mem_error}")
+    try:
+        import os
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        settings_data = {}
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                settings_data = json.load(f)
+        await websocket.send(json.dumps({
+            "type": "settings/update",
+            "settings": settings_data,
+        }))
+    except Exception as settings_error:
+        print(f"[WsBridge] Initial settings send error: {settings_error}")
 
-        try:
-            import os
-            settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
-            settings_data = {}
-            if os.path.exists(settings_path):
-                with open(settings_path, "r", encoding="utf-8") as f:
-                    settings_data = json.load(f)
-            await websocket.send(json.dumps({
-                "type": "settings/update",
-                "settings": settings_data,
-            }))
-        except Exception as settings_error:
-            print(f"[WsBridge] Initial settings send error: {settings_error}")
-
+    try:
         confirmation_snapshot = get_agent_confirmation_overlay().get_bridge_snapshot()
         if confirmation_snapshot:
             await websocket.send(json.dumps(confirmation_snapshot))
     except Exception as e:
-        print(f"[WsBridge] History send error: {e}")
+        print(f"[WsBridge] Confirmation snapshot send error: {e}")
 
     try:
         async for raw in websocket:
@@ -133,12 +124,7 @@ async def _handler(websocket):
                 msg = json.loads(raw)
                 msg_type = msg.get("type", "")
 
-                if msg_type == "send_message":
-                    text = msg.get("text", "").strip()
-                    if text:
-                        _handle_user_message(text)
-
-                elif msg_type == "send_agent_task":
+                if msg_type == "send_agent_task":
                     text = msg.get("text", "").strip()
                     if text:
                         _handle_agent_task(text)
@@ -172,6 +158,18 @@ async def _handler(websocket):
 
                 elif msg_type == "tasks/snooze":
                     _handle_tasks_snooze(msg)
+
+                elif msg_type == "tasks/add_category":
+                    _handle_tasks_add_category(msg)
+
+                elif msg_type == "tasks/remove_category":
+                    _handle_tasks_remove_category(msg)
+
+                elif msg_type == "task_confirm_approve":
+                    _handle_task_confirm_approve(msg)
+
+                elif msg_type == "task_confirm_reject":
+                    _handle_task_confirm_reject(msg)
 
                 elif msg_type == "tasks/settings/set":
                     await _handle_tasks_settings_set(websocket, msg)
@@ -272,23 +270,63 @@ async def _handler(websocket):
                 elif msg_type == "dictation_preview/optimize":
                     _handle_dictation_preview_optimize(msg)
 
+                elif msg_type == "wizprompt/feedback":
+                    _handle_wizprompt_feedback(msg)
+
                 elif msg_type == "dictation_preview/cancel":
                     # No-op on Python side; pill just closes the preview
                     pass
 
-                elif msg_type == "learn_from_edit":
+                elif msg_type == "correction_capture/open":
                     try:
-                        from core.learning_agent import learn_from_edit
-                        original = msg.get("original", "")
-                        corrected = msg.get("corrected", "")
-                        learned = learn_from_edit(original, corrected)
-                        if learned:
-                            await websocket.send(json.dumps({
-                                "type": "learn_from_edit/result",
-                                "learned": learned,
-                            }))
+                        from core.dictation_correction import start_undo_hook
+                        start_undo_hook(
+                            msg.get("session_id", ""),
+                            msg.get("original_text", ""),
+                            msg.get("stt_text", ""),
+                        )
                     except Exception as e:
-                        print(f"[WsBridge] learn_from_edit error: {e}")
+                        print(f"[WsBridge] correction_capture/open error: {e}")
+
+                elif msg_type == "correction_capture/edit":
+                    try:
+                        from core.dictation_correction import on_preview_edit
+                        on_preview_edit(msg.get("session_id", ""), msg.get("new_text", ""))
+                    except Exception as e:
+                        print(f"[WsBridge] correction_capture/edit error: {e}")
+
+                elif msg_type == "correction_capture/undo":
+                    try:
+                        from core.dictation_correction import on_preview_undo
+                        on_preview_undo(msg.get("session_id", ""), msg.get("new_text", ""))
+                    except Exception as e:
+                        print(f"[WsBridge] correction_capture/undo error: {e}")
+
+                elif msg_type == "correction_capture/copy":
+                    try:
+                        from core.dictation_correction import on_preview_copy
+                        on_preview_copy(msg.get("session_id", ""))
+                    except Exception as e:
+                        print(f"[WsBridge] correction_capture/copy error: {e}")
+
+                elif msg_type == "correction_capture/close":
+                    try:
+                        from core.dictation_correction import on_preview_close
+                        on_preview_close(msg.get("session_id", ""))
+                    except Exception as e:
+                        print(f"[WsBridge] correction_capture/close error: {e}")
+
+                elif msg_type == "correction_capture/optimize":
+                    try:
+                        from core.dictation_correction import on_preview_optimize
+                        on_preview_optimize(msg.get("session_id", ""), msg.get("optimized", ""))
+                    except Exception as e:
+                        print(f"[WsBridge] correction_capture/optimize error: {e}")
+
+                elif msg_type == "reprompt_ready":
+                    evt = _reprompt_ready_event
+                    if evt:
+                        evt.set()
 
                 elif msg_type == "dictation_memories/edit":
                     try:
@@ -505,20 +543,9 @@ async def _handler(websocket):
         print(f"[WsBridge] Client disconnected ({len(_clients)} total)")
 
 
-def _handle_user_message(text: str):
-    """Route user message from overlay to the agent pipeline."""
-    def _run():
-        try:
-            from core.agent import ask_ai
-            ask_ai(text)
-        except Exception as e:
-            print(f"[WsBridge] Message dispatch error: {e}")
-
-    threading.Thread(target=_run, daemon=True).start()
-
-
 def _handle_agent_task(text: str):
     """Route an agent task from the overlay to the agent pipeline (force_agent=True)."""
+    print(f"[WsBridge] _handle_agent_task received: {text[:80]}")
     def _run():
         try:
             from core.agent import ask_ai
@@ -555,6 +582,7 @@ def _handle_save_session(msg: dict):
                 "payload": snapshot.get("tasks", []),
                 "history": snapshot.get("history", []),
                 "suggestion": snapshot.get("suggestion"),
+                "categories": snapshot.get("categories", []),
             })
         except Exception as e:
             print(f"[WsBridge] save_session error: {e}")
@@ -583,43 +611,22 @@ def has_overlay_clients() -> bool:
 
 def broadcast_sync(data: dict):
     """Thread-safe broadcast — callable from any thread."""
+    client_count = len(_clients)
+    loop_ok = _loop is not None
+    msg_type = data.get("type", "unknown")
+    print(f"[WsBridge] broadcast_sync: type={msg_type}, loop={loop_ok}, clients={client_count}")
     if _loop is None or not _clients:
+        print(f"[WsBridge] broadcast_sync SKIPPED (no loop or no clients)")
         return
     try:
         asyncio.run_coroutine_threadsafe(_broadcast(data), _loop)
-    except Exception:
-        pass
-
-
-def send_history_update():
-    """Push updated conversation history to all overlay clients."""
-    try:
-        import core as state
-        history = getattr(state, "conversation_history", [])
-        # If history was wiped by a module reload, attempt to restore from disk.
-        if not history:
-            try:
-                from core.agent import _load_conversation_history
-                restored = _load_conversation_history()
-                if restored:
-                    state.conversation_history = restored
-                    history = restored
-            except Exception:
-                pass
-        broadcast_sync({
-            "type": "history",
-            "messages": [
-                {"role": m.get("role", ""), "content": m.get("content", "")}
-                for m in history
-                if m.get("content", "").strip() and len(m.get("content", "")) < 5000
-            ]
-        })
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[WsBridge] broadcast_sync error: {e}")
 
 
 def send_wave_state(state_name: str):
     """Push wave/overlay state change."""
+    print(f"[WsBridge] send_wave_state: {state_name}")
     broadcast_sync({"type": "wave_state", "state": state_name})
 
 
@@ -650,6 +657,34 @@ def send_mic_level(level: float) -> None:
     broadcast_sync({"type": "mic_level", "level": lvl})
 
 
+def send_agent_phase_start(project_id: str, layer: Optional[str], phase: Optional[str], subphase: Optional[str]) -> None:
+    asyncio.run_coroutine_threadsafe(
+        _broadcast({"type": "agent.phase_start", "project_id": project_id, "layer": layer, "phase": phase, "subphase": subphase}),
+        _loop,
+    )
+
+
+def send_agent_step_complete(project_id: str, subphase_id: str) -> None:
+    asyncio.run_coroutine_threadsafe(
+        _broadcast({"type": "agent.step_complete", "project_id": project_id, "subphase_id": subphase_id}),
+        _loop,
+    )
+
+
+def send_agent_needs_approval(project_id: str, message: str) -> None:
+    asyncio.run_coroutine_threadsafe(
+        _broadcast({"type": "agent.needs_approval", "project_id": project_id, "message": message}),
+        _loop,
+    )
+
+
+def send_agent_limit_hit(project_id: str, reason: str) -> None:
+    asyncio.run_coroutine_threadsafe(
+        _broadcast({"type": "agent.limit_hit", "project_id": project_id, "reason": reason}),
+        _loop,
+    )
+
+
 # ------------------------------------------------------------------
 # Inbound message handlers (React → Python)
 # ------------------------------------------------------------------
@@ -668,10 +703,14 @@ def _handle_tasks_add(msg: dict):
                 if parsed_due:
                     text = cleaned or text
                     due_at = parsed_due
+            category = msg.get("category")
+            difficulty = msg.get("difficulty")
             saved = add_task(
                 text,
                 source=msg.get("source", "typed"),
                 due_at=due_at,
+                category=category,
+                difficulty=difficulty,
             )
             snapshot = get_task_snapshot()
             broadcast_sync({
@@ -679,6 +718,7 @@ def _handle_tasks_add(msg: dict):
                 "payload": snapshot.get("tasks", []),
                 "history": snapshot.get("history", []),
                 "suggestion": snapshot.get("suggestion"),
+                "categories": snapshot.get("categories", []),
             })
             if saved:
                 broadcast_sync({
@@ -702,6 +742,7 @@ def _handle_tasks_toggle(msg: dict):
                 "payload": snapshot.get("tasks", []),
                 "history": snapshot.get("history", []),
                 "suggestion": snapshot.get("suggestion"),
+                "categories": snapshot.get("categories", []),
             })
         except Exception as e:
             print(f"[WsBridge] tasks/toggle error: {e}")
@@ -719,6 +760,7 @@ def _handle_tasks_delete(msg: dict):
                 "payload": snapshot.get("tasks", []),
                 "history": snapshot.get("history", []),
                 "suggestion": snapshot.get("suggestion"),
+                "categories": snapshot.get("categories", []),
             })
         except Exception as e:
             print(f"[WsBridge] tasks/delete error: {e}")
@@ -739,6 +781,7 @@ def _handle_tasks_edit(msg: dict):
                 "payload": snapshot.get("tasks", []),
                 "history": snapshot.get("history", []),
                 "suggestion": snapshot.get("suggestion"),
+                "categories": snapshot.get("categories", []),
             })
         except Exception as e:
             print(f"[WsBridge] tasks/edit error: {e}")
@@ -758,6 +801,7 @@ def _handle_tasks_reschedule(msg: dict):
                 "payload": snapshot.get("tasks", []),
                 "history": snapshot.get("history", []),
                 "suggestion": snapshot.get("suggestion"),
+                "categories": snapshot.get("categories", []),
             })
         except Exception as e:
             print(f"[WsBridge] tasks/reschedule error: {e}")
@@ -774,6 +818,7 @@ def _handle_tasks_refresh(_msg: dict):
                 "payload": snapshot.get("tasks", []),
                 "history": snapshot.get("history", []),
                 "suggestion": snapshot.get("suggestion"),
+                "categories": snapshot.get("categories", []),
             })
         except Exception as e:
             print(f"[WsBridge] tasks/refresh error: {e}")
@@ -794,10 +839,72 @@ def _handle_tasks_snooze(msg: dict):
                     "payload": snapshot.get("tasks", []),
                     "history": snapshot.get("history", []),
                     "suggestion": snapshot.get("suggestion"),
+                    "categories": snapshot.get("categories", []),
                 })
         except Exception as e:
             print(f"[WsBridge] tasks/snooze error: {e}")
     threading.Thread(target=_run, daemon=True).start()
+
+
+def _handle_tasks_add_category(msg: dict):
+    def _run():
+        try:
+            from core.tasks import add_category, get_task_snapshot
+            name = msg.get("name", "").strip()
+            if name:
+                add_category(name)
+                snapshot = get_task_snapshot()
+                broadcast_sync({
+                    "type": "tasks/update",
+                    "payload": snapshot.get("tasks", []),
+                    "history": snapshot.get("history", []),
+                    "suggestion": snapshot.get("suggestion"),
+                    "categories": snapshot.get("categories", []),
+                })
+        except Exception as e:
+            print(f"[WsBridge] tasks/add_category error: {e}")
+    threading.Thread(target=_run, daemon=True).start()
+
+
+def _handle_tasks_remove_category(msg: dict):
+    def _run():
+        try:
+            from core.tasks import remove_category, get_task_snapshot
+            name = msg.get("name", "").strip()
+            if name:
+                remove_category(name)
+                snapshot = get_task_snapshot()
+                broadcast_sync({
+                    "type": "tasks/update",
+                    "payload": snapshot.get("tasks", []),
+                    "history": snapshot.get("history", []),
+                    "suggestion": snapshot.get("suggestion"),
+                    "categories": snapshot.get("categories", []),
+                })
+        except Exception as e:
+            print(f"[WsBridge] tasks/remove_category error: {e}")
+    threading.Thread(target=_run, daemon=True).start()
+
+
+def _handle_task_confirm_approve(msg: dict):
+    def _run():
+        try:
+            from core.hotkeys import _pending_task_confirmations, _handle_new_task
+            confirm_id = msg.get("confirm_id", "")
+            pending = _pending_task_confirmations.pop(confirm_id, None)
+            if pending:
+                _handle_new_task(pending["text"], pending["due_at"])
+        except Exception as e:
+            print(f"[WsBridge] task_confirm_approve error: {e}")
+    threading.Thread(target=_run, daemon=True).start()
+
+
+def _handle_task_confirm_reject(msg: dict):
+    try:
+        from core.hotkeys import _pending_task_confirmations
+        _pending_task_confirmations.pop(msg.get("confirm_id", ""), None)
+    except Exception as e:
+        print(f"[WsBridge] task_confirm_reject error: {e}")
 
 
 async def _handle_tasks_settings_set(websocket, msg: dict):
@@ -811,7 +918,7 @@ async def _handle_tasks_settings_set(websocket, msg: dict):
             with open(settings_path, "r", encoding="utf-8") as f:
                 data = _json.load(f)
         # Merge task-specific settings
-        for key in ("reminder_interval_min", "default_due_time", "snooze_presets", "pre_due_warning", "carry_over"):
+        for key in ("reminder_interval_min", "default_due_time", "snooze_presets", "pre_due_warning", "carry_over", "task_creation_mode"):
             if key in msg:
                 data[key] = msg[key]
         with open(settings_path, "w", encoding="utf-8") as f:
@@ -840,6 +947,7 @@ async def _handle_tasks_settings_get(websocket):
             "snooze_presets": data.get("snooze_presets", [15, 30, 60, 1440]),
             "pre_due_warning": data.get("pre_due_warning", True),
             "carry_over": data.get("carry_over", True),
+            "task_creation_mode": data.get("task_creation_mode", "smart"),
         }
         await websocket.send(_json.dumps({
             "type": "tasks/settings/update",
@@ -872,6 +980,38 @@ def _handle_dictation_preview_confirm(msg: dict):
             broadcast_sync({"type": "dictation_preview/dismiss"})
         except Exception as e:
             print(f"[WsBridge] dictation_preview/confirm error: {e}")
+    threading.Thread(target=_run, daemon=True).start()
+
+
+def _handle_wizprompt_feedback(msg: dict):
+    """Store wizprompt feedback and edited result from the UI."""
+    def _run():
+        try:
+            if msg.get("ephemeral"):
+                print("[WsBridge] wizprompt feedback skipped (ephemeral)")
+                return
+            import asyncio
+            import core.wizprompt_memory as mem
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(
+                    mem.remember_optimization(
+                        original_prompt=msg.get("original", ""),
+                        optimized_prompt=msg.get("optimized", ""),
+                        final_prompt=msg.get("final", ""),
+                        was_edited=msg.get("was_edited", False),
+                        feedback=msg.get("feedback"),
+                        preset=msg.get("preset"),
+                        model=msg.get("model"),
+                        emotion=msg.get("emotion"),
+                    )
+                )
+                print(f"[WsBridge] wizprompt feedback stored: id={result['example_id']} cluster={result['cluster_id']}")
+            finally:
+                loop.close()
+        except Exception as e:
+            print(f"[WsBridge] wizprompt/feedback error: {e}")
     threading.Thread(target=_run, daemon=True).start()
 
 
@@ -953,22 +1093,19 @@ def _handle_tunehub_learn(msg: dict):
             user_id = msg.get("user_id", _get_local_user_id())
             feature_name = msg.get("feature_name", "reprompt")
             task = msg.get("task", "")
-            tier = msg.get("tier", "free")
-            credits = msg.get("credits", 100)
             if hub and task:
                 from core.tune_hub.orchestrator import TuneRequest
                 result = hub.tune_feature(TuneRequest(
                     user_id=user_id,
                     feature_name=feature_name,
                     task=task,
-                    approved_credits=credits,
-                    tier=tier,
+                    budget_limit=msg.get("budget_limit", 100),
                 ))
                 broadcast_sync({
                     "type": "tunehub/learn_result",
                     "success": result.success,
-                    "credits_used": result.credits_used,
-                    "credits_remaining": result.credits_remaining,
+                    "iterations_used": result.iterations_used,
+                    "iterations_remaining": result.iterations_remaining,
                     "message": result.message,
                     "reusable": result.reusable,
                 })
@@ -1034,9 +1171,10 @@ def send_tasks_update(tasks: list):
             "payload": payload,
             "history": snapshot.get("history", []),
             "suggestion": snapshot.get("suggestion"),
+            "categories": snapshot.get("categories", []),
         })
     except Exception:
-        broadcast_sync({"type": "tasks/update", "payload": tasks})
+        broadcast_sync({"type": "tasks/update", "payload": tasks, "categories": []})
 
 
 def send_agent_step_v2(task_id: str, step: int, of: int, action: str, target: str = ""):
@@ -1069,6 +1207,30 @@ def send_vocab_correct(heard: str, context_before: str = "", context_after: str 
                     "context_before": context_before, "context_after": context_after})
 
 
+def send_credits_update(balance: int, tier: str = "free", allocation: int = 0):
+    """Push credit balance update to overlay."""
+    broadcast_sync({
+        "type": "credits/update",
+        "balance": balance,
+        "tier": tier,
+        "allocation": allocation,
+    })
+
+
+def send_credit_consumed(feature: str, amount: int, balance_after: int, model: str | None = None):
+    """Push a real-time credit consumption notification to the overlay.
+
+    Dictation is excluded from this broadcast at the call site.
+    """
+    broadcast_sync({
+        "type": "credits/consumed",
+        "feature": feature,
+        "amount": amount,
+        "balance_after": balance_after,
+        "model": model,
+    })
+
+
 def send_pill_notice(kind: str, title: str, summary: str = "", duration_ms: int = 2600):
     """Push a pill notice: green/amber/red flash with a title + grey summary.
 
@@ -1084,6 +1246,19 @@ def send_pill_notice(kind: str, title: str, summary: str = "", duration_ms: int 
         "summary": str(summary or ""),
         "duration_ms": int(duration_ms) if duration_ms else 2600,
     })
+
+
+def _attach_engine_listeners(engine):
+    def listener(event, payload):
+        if event == "agent.phase_start":
+            send_agent_phase_start(payload.get("plan_id"), payload.get("layer"), payload.get("phase"), payload.get("subphase"))
+        elif event == "agent.step_complete":
+            send_agent_step_complete(payload.get("plan_id"), payload.get("subphase_id"))
+        elif event == "agent.needs_approval":
+            send_agent_needs_approval(payload.get("plan_id"), payload.get("message"))
+        elif event == "agent.limit_hit":
+            send_agent_limit_hit(payload.get("plan_id"), payload.get("reason"))
+    engine.add_listener(listener)
 
 
 async def _run_server():
