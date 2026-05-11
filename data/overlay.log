@@ -15950,3 +15950,763 @@ Error sending from webFrameMain:  Error: Render frame was disposed before WebFra
 [182291:0503/041244.981324:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
 [182291:0503/041245.631813:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
 [182291:0503/041248.055559:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-03 23:40:38] [ReactOverlay] Running npm install...
+[2026-05-03 23:40:43] [ReactOverlay] npm install succeeded
+[2026-05-03 23:40:43] [ReactOverlay] Building overlay...
+[2026-05-03 23:40:46] [ReactOverlay] Overlay build succeeded
+[2026-05-03 23:40:46] [ReactOverlay] Electron overlay started (PID 47390)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[47412:0503/234047.123564:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=true
+[Overlay] WS connected to Python bridge
+[47412:0503/234050.991902:ERROR:command_buffer_proxy_impl.cc(324)] GPU state invalid after WaitForGetOffsetInRange.
+[47412:0503/234050.999078:ERROR:network_service_instance_impl.cc(613)] Network service crashed, restarting service.
+[47412:0503/234051.005844:ERROR:zygote_communication_linux.cc(297)] Failed to send GetTerminationStatus message to zygote
+[47412:0503/234051.009394:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[47412:0503/234051.011913:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[47412:0503/234051.012213:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[47412:0503/234051.012486:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[47412:0503/234051.012785:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[47412:0503/234051.013046:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[47412:0503/234051.013341:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[47412:0503/234051.013667:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[47412:0503/234051.013928:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[47412:0503/234051.013951:FATAL:gpu_data_manager_impl_private.cc(423)] GPU process isn't usable. Goodbye.
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron exited with signal SIGTRAP
+[2026-05-03 23:46:00] [ReactOverlay] Electron overlay started (PID 48977)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[48977:0503/234600.754232:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=true
+[Overlay] WS connected to Python bridge
+[49013:0503/234604.901741:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[49013:0503/234604.903004:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[49013:0503/234607.778912:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 00:23:49] [ReactOverlay] Electron overlay started (PID 55175)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[55175:0504/002349.588797:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=true
+[Overlay] WS connected to Python bridge
+[55212:0504/002353.735308:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[55212:0504/002355.519447:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[55212:0504/002534.138918:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 00:27:55] [ReactOverlay] Electron overlay started (PID 57085)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[57085:0504/002755.879520:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=true
+[Overlay] WS connected to Python bridge
+[57116:0504/002800.184308:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[57116:0504/002801.799633:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[2026-05-04 01:16:13] [ReactOverlay] SIGTERM stale Electron (PID 60274)
+[2026-05-04 01:16:13] [ReactOverlay] SIGKILL stale Electron (PID 60274)
+[2026-05-04 01:16:14] [ReactOverlay] Electron overlay started (PID 68638)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[68638:0504/011614.505783:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=true
+[Overlay] WS connected to Python bridge
+[68672:0504/011620.473583:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[68672:0504/011620.474634:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[68672:0504/011746.039905:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[68638:0504/032349.669083:ERROR:command_buffer_proxy_impl.cc(324)] GPU state invalid after WaitForGetOffsetInRange.
+[68638:0504/032349.699491:ERROR:zygote_communication_linux.cc(297)] Failed to send GetTerminationStatus message to zygote
+[68638:0504/032349.701694:ERROR:network_service_instance_impl.cc(613)] Network service crashed, restarting service.
+[68638:0504/032349.709949:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[68638:0504/032349.712924:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[68638:0504/032349.713424:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[68638:0504/032349.713776:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[68638:0504/032349.714254:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[2026-05-04 11:51:28] [ReactOverlay] Electron overlay started (PID 10281)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[10281:0504/115128.472403:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=true
+[Overlay] WS connected to Python bridge
+[10318:0504/115132.585746:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[10318:0504/115132.586472:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[10318:0504/124539.909977:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 14:20:08] [ReactOverlay] Electron overlay started (PID 53788)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[53788:0504/142008.371444:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[53820:0504/142011.028718:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[2026-05-04 14:20:14] [ReactOverlay] Electron overlay started (PID 53957)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[53957:0504/142014.963578:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[53988:0504/142016.807414:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[53988:0504/142016.808855:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[53988:0504/142016.813387:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 14:36:09] [ReactOverlay] Electron overlay started (PID 60524)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[60524:0504/143609.454483:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[2026-05-04 14:36:15] [ReactOverlay] Electron overlay started (PID 60709)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[60709:0504/143616.072617:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[2026-05-04 15:21:23] [ReactOverlay] Electron overlay started (PID 70975)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[70975:0504/152123.357899:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[71013:0504/152129.035858:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[71013:0504/152129.184682:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[71013:0504/152132.764401:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 15:30:45] [ReactOverlay] SIGTERM stale Electron (PID 70975)
+[2026-05-04 15:30:45] [ReactOverlay] SIGTERM stale Electron (PID 70978)
+[2026-05-04 15:30:45] [ReactOverlay] SIGTERM stale Electron (PID 70979)
+[2026-05-04 15:30:46] [ReactOverlay] Electron overlay started (PID 73797)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[73797:0504/153046.601458:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[2026-05-04 15:30:52] [ReactOverlay] Electron overlay started (PID 73956)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[73956:0504/153053.234817:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[2026-05-04 18:35:52] [ReactOverlay] Electron overlay started (PID 106571)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[106571:0504/183552.392593:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[106609:0504/183557.846224:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[106609:0504/183558.271681:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[106609:0504/183558.279198:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 18:52:40] [ReactOverlay] Electron overlay started (PID 111870)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[111870:0504/185241.162065:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[111900:0504/185244.925418:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[111900:0504/185245.559687:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[111900:0504/185254.950660:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 19:27:27] [ReactOverlay] SIGTERM stale Electron (PID 111870)
+[2026-05-04 19:27:27] [ReactOverlay] SIGTERM stale Electron (PID 111872)
+[2026-05-04 19:27:27] [ReactOverlay] SIGTERM stale Electron (PID 111873)
+[2026-05-04 19:27:28] [ReactOverlay] Electron overlay started (PID 121231)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[121231:0504/192728.586581:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[2026-05-04 19:27:34] [ReactOverlay] Electron overlay started (PID 121401)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[121401:0504/192735.214778:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[2026-05-04 19:31:46] [ReactOverlay] Electron overlay started (PID 122833)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[122833:0504/193147.243845:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[122868:0504/193151.358557:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[122868:0504/193152.276474:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[122868:0504/193152.277724:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 19:46:35] [ReactOverlay] Electron overlay started (PID 126473)
+[2026-05-04 19:46:35] [ReactOverlay] Building overlay...
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[126473:0504/194635.361151:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[2026-05-04 19:46:37] [ReactOverlay] Overlay build succeeded
+[126524:0504/194640.377139:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[126524:0504/194641.133501:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[126524:0504/194642.541121:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 19:50:53] [ReactOverlay] Electron overlay started (PID 128011)
+[2026-05-04 19:50:53] [ReactOverlay] Building overlay...
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[128011:0504/195053.426478:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[2026-05-04 19:50:55] [ReactOverlay] Overlay build succeeded
+[128060:0504/195056.446046:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[128060:0504/195056.449335:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[128060:0504/195057.692396:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 19:51:25] [ReactOverlay] Electron overlay started (PID 128499)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[128499:0504/195125.507633:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[128533:0504/195129.627341:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[128533:0504/195130.066998:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[128533:0504/195132.278327:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 20:08:12] [ReactOverlay] Electron overlay started (PID 134427)
+[2026-05-04 20:08:12] [ReactOverlay] Building overlay...
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[134427:0504/200812.846302:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[134478:0504/200813.398460:ERROR:display.cc(191)] Frame latency is negative: -1.822 ms
+[2026-05-04 20:08:16] [ReactOverlay] Overlay build succeeded
+[134478:0504/200816.309031:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[134478:0504/200817.285201:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[134478:0504/200819.742867:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 20:08:27] [ReactOverlay] Electron overlay started (PID 134861)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[134861:0504/200827.350543:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[134905:0504/200831.661013:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[134905:0504/200836.237764:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[134905:0504/200836.239832:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 20:09:14] [ReactOverlay] Electron overlay started (PID 135524)
+[2026-05-04 20:09:14] [ReactOverlay] Building overlay...
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[135524:0504/200915.213674:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[135574:0504/200917.348211:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[2026-05-04 20:09:18] [ReactOverlay] Overlay build succeeded
+[2026-05-04 20:09:25] [ReactOverlay] Electron overlay started (PID 135933)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[135933:0504/200925.676498:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[135972:0504/200928.878901:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[135972:0504/200930.027411:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[135972:0504/200932.342182:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 20:16:18] [ReactOverlay] SIGTERM stale Electron (PID 135933)
+[2026-05-04 20:16:18] [ReactOverlay] SIGTERM stale Electron (PID 135937)
+[2026-05-04 20:16:18] [ReactOverlay] SIGTERM stale Electron (PID 135939)
+[2026-05-04 20:16:19] [ReactOverlay] Electron overlay started (PID 139300)
+[2026-05-04 20:16:19] [ReactOverlay] Building overlay...
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[139300:0504/201619.446512:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task creation mode = smart — F10 hotkey disabled
+[Shortcuts] Registered: Ctrl+Space=true F9=true F10=false
+[Overlay] WS connected to Python bridge
+[2026-05-04 20:16:22] [ReactOverlay] Overlay build succeeded
+[2026-05-04 20:16:25] [ReactOverlay] Electron overlay started (PID 139523)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[139523:0504/201626.113398:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[139554:0504/201628.381532:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[139554:0504/201628.392894:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[2026-05-04 20:21:29] [ReactOverlay] Electron overlay started (PID 141414)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[141414:0504/202130.036954:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[141449:0504/202134.180830:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[141449:0504/202134.776210:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[141449:0504/202137.598870:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 20:22:16] [ReactOverlay] Electron overlay started (PID 141918)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[141918:0504/202216.549101:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[141953:0504/202219.292452:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[141953:0504/202220.804425:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[141953:0504/202220.806080:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 20:30:39] [ReactOverlay] Electron overlay started (PID 144880)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[144880:0504/203040.216711:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[144911:0504/203043.060244:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[144911:0504/203043.070026:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[144911:0504/203044.358472:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 20:31:25] [ReactOverlay] Electron overlay started (PID 145364)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[145364:0504/203125.489435:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[145398:0504/203129.746396:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[145398:0504/203129.751793:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[145398:0504/203139.888176:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 20:36:46] [ReactOverlay] Electron overlay started (PID 147237)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[147237:0504/203646.701596:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[147268:0504/203648.984988:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[147268:0504/203650.935846:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[147268:0504/203650.939163:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 21:02:11] [ReactOverlay] SIGTERM stale Electron (PID 147237)
+[2026-05-04 21:02:11] [ReactOverlay] SIGTERM stale Electron (PID 147239)
+[2026-05-04 21:02:11] [ReactOverlay] SIGTERM stale Electron (PID 147240)
+[2026-05-04 21:02:12] [ReactOverlay] Electron overlay started (PID 154904)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[154904:0504/210212.392737:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[2026-05-04 21:02:18] [ReactOverlay] Electron overlay started (PID 155080)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[155080:0504/210219.018968:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[2026-05-04 22:54:41] [ReactOverlay] Electron overlay started (PID 178039)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[178039:0504/225442.026988:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[178077:0504/225447.819441:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[178077:0504/225447.824393:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[178077:0504/225452.644575:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 23:10:16] [ReactOverlay] Electron overlay started (PID 182182)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[182182:0504/231016.379535:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[182220:0504/231022.146610:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[182220:0504/231022.147778:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[182220:0504/231022.153990:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 23:25:17] [ReactOverlay] Electron overlay started (PID 186164)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[186164:0504/232517.934594:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[186195:0504/232519.999916:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[186195:0504/232520.001304:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[186195:0504/232522.220520:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 23:25:36] [ReactOverlay] Electron overlay started (PID 186555)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[186555:0504/232536.462196:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[186586:0504/232539.301295:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[186586:0504/232539.316662:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[186586:0504/232540.759599:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 23:30:35] [ReactOverlay] Electron overlay started (PID 188062)
+[2026-05-04 23:30:35] [ReactOverlay] Building overlay...
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[188062:0504/233035.771051:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[2026-05-04 23:30:39] [ReactOverlay] Overlay build succeeded
+[188111:0504/233039.153463:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[188111:0504/233039.154831:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[188111:0504/233039.172108:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 23:31:20] [ReactOverlay] Electron overlay started (PID 188666)
+[2026-05-04 23:31:20] [ReactOverlay] Building overlay...
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[188666:0504/233121.029874:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[2026-05-04 23:31:24] [ReactOverlay] Overlay build succeeded
+[188717:0504/233125.234307:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[188717:0504/233125.236576:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[188717:0504/233125.416365:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-04 23:31:59] [ReactOverlay] Electron overlay started (PID 189232)
+[2026-05-04 23:31:59] [ReactOverlay] Building overlay...
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[189232:0504/233200.122036:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[2026-05-04 23:32:03] [ReactOverlay] Overlay build succeeded
+[189280:0504/233204.110615:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[189280:0504/233204.117960:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[189280:0504/233204.462052:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[189232:0505/023456.427634:ERROR:command_buffer_proxy_impl.cc(324)] GPU state invalid after WaitForGetOffsetInRange.
+[189232:0505/023456.685329:ERROR:zygote_communication_linux.cc(297)] Failed to send GetTerminationStatus message to zygote
+[189232:0505/023456.718643:ERROR:network_service_instance_impl.cc(613)] Network service crashed, restarting service.
+[189232:0505/023456.830515:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[189232:0505/023456.852535:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[189232:0505/023456.857068:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[189232:0505/023456.861088:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[189232:0505/023456.864551:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[189232:0505/023456.867516:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[189232:0505/023456.870713:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[189232:0505/023456.873789:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[189232:0505/023456.877417:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[189232:0505/023456.877593:FATAL:gpu_data_manager_impl_private.cc(423)] GPU process isn't usable. Goodbye.
+[2026-05-05 14:34:20] [ReactOverlay] Building overlay...
+[2026-05-05 14:34:20] [ReactOverlay] Electron overlay started (PID 29127)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[29127:0505/143420.744505:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[2026-05-05 14:34:23] [ReactOverlay] Overlay build succeeded
+[29182:0505/143424.900278:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[29182:0505/143424.904049:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[29182:0505/143428.669138:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-05 15:10:06] [ReactOverlay] Electron overlay started (PID 38783)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[38783:0505/151007.074306:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[38813:0505/151011.417140:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[38813:0505/151214.559289:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[38813:0505/151220.066475:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-05 15:27:26] [ReactOverlay] Electron overlay started (PID 44437)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[44437:0505/152726.635474:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[44469:0505/152730.465701:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[44469:0505/152730.937846:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[44469:0505/152732.277510:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-05 19:08:18] [ReactOverlay] Electron overlay started (PID 83224)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[83224:0505/190819.204765:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[83255:0505/190823.597593:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[83255:0505/190823.598550:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[83255:0505/190831.575263:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-05 23:06:30] [ReactOverlay] Electron overlay started (PID 112449)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[112449:0505/230631.122396:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[112483:0505/230636.957710:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[112483:0505/230636.960641:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[112483:0505/230636.971837:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-05 23:48:56] [ReactOverlay] SIGTERM stale Electron (PID 112449)
+[2026-05-05 23:48:56] [ReactOverlay] SIGTERM stale Electron (PID 112452)
+[2026-05-05 23:48:56] [ReactOverlay] SIGTERM stale Electron (PID 112453)
+[2026-05-05 23:48:57] [ReactOverlay] Electron overlay started (PID 123239)
+[2026-05-05 23:48:57] [ReactOverlay] Building overlay...
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[123239:0505/234857.519257:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[2026-05-05 23:49:01] [ReactOverlay] Overlay build succeeded
+[2026-05-05 23:49:03] [ReactOverlay] Electron overlay started (PID 123468)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[123468:0505/234904.107457:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[123498:0505/234906.374340:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[123498:0505/234906.386066:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[2026-05-05 23:56:48] [ReactOverlay] Electron overlay started (PID 125440)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[125440:0505/235648.915391:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Task hotkey disabled (mode=smart, shortcutsEnabled=false)
+[Shortcuts] Registered: Ctrl+Space=true F9=true Task=false(F10,1taps)
+[Overlay] WS connected to Python bridge
+[125481:0505/235653.949940:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[125481:0505/235653.951141:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[125481:0505/235654.714229:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+(node:125497) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 theme-changed listeners added to [IpcRenderer]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `exe --trace-warnings ...` to show where the warning was created)
+[2026-05-06 00:59:08] [ReactOverlay] SIGTERM stale Electron (PID 125440)
+[2026-05-06 00:59:08] [ReactOverlay] SIGTERM stale Electron (PID 125446)
+[2026-05-06 00:59:08] [ReactOverlay] SIGTERM stale Electron (PID 125447)
+[2026-05-06 00:59:09] [ReactOverlay] Electron overlay started (PID 141015)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[141015:0506/005909.616784:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[2026-05-06 00:59:15] [ReactOverlay] Electron overlay started (PID 141177)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/Documents/Projects/Wiztant/ui/.overlay_cmd
+[141177:0506/005916.259716:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[2026-05-07 16:35:07] [ReactOverlay] Electron overlay started (PID 39044)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[39044:0507/163507.588442:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[39082:0507/163509.839281:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[39082:0507/163511.726276:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[39082:0507/163744.638525:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-07 16:50:47] [ReactOverlay] Building overlay...
+[2026-05-07 16:50:47] [ReactOverlay] Electron overlay started (PID 41754)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[41754:0507/165047.972747:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[41795:0507/165050.291737:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[2026-05-07 16:50:51] [ReactOverlay] Overlay build succeeded
+[41795:0507/165051.263935:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[41795:0507/165051.271776:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-07 16:51:06] [ReactOverlay] Electron overlay started (PID 42178)
+[2026-05-07 16:51:06] [ReactOverlay] Building overlay...
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --no-sandbox
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --disable-setuid-sandbox
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --ozone-platform=x11
+[2026-05-07 16:51:07] [ReactOverlay] Electron exited immediately (code 9)
+[2026-05-07 16:51:07] [ReactOverlay] Last Electron log lines:
+[2026-05-07 16:51:07]   [2026-05-07 16:50:47] [ReactOverlay] Electron overlay started (PID 41754)
+[2026-05-07 16:51:07]   [Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[2026-05-07 16:51:07]   [41754:0507/165047.972747:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[2026-05-07 16:51:07]   [Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[2026-05-07 16:51:07]   [Overlay] WS connected to Python bridge
+[2026-05-07 16:51:07]   [41795:0507/165050.291737:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[2026-05-07 16:51:07]   [2026-05-07 16:50:51] [ReactOverlay] Overlay build succeeded
+[2026-05-07 16:51:07]   [41795:0507/165051.263935:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[2026-05-07 16:51:07]   [41795:0507/165051.271776:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-07 16:51:07]   [2026-05-07 16:51:06] [ReactOverlay] Electron overlay started (PID 42178)
+[2026-05-07 16:51:07]   [2026-05-07 16:51:06] [ReactOverlay] Building overlay...
+[2026-05-07 16:51:07]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --no-sandbox
+[2026-05-07 16:51:07]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --disable-setuid-sandbox
+[2026-05-07 16:51:07]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --ozone-platform=x11
+[2026-05-07 16:51:07]   [2026-05-07 16:51:07] [ReactOverlay] Electron exited immediately (code 9)
+[2026-05-07 16:51:07] [ReactOverlay] Electron failed to start, trying pywebview fallback
+[2026-05-07 16:51:09] [ReactOverlay] Overlay build succeeded
+[2026-05-07 16:51:11] [ReactOverlay] Electron overlay started (PID 42243)
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --no-sandbox
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --disable-setuid-sandbox
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --ozone-platform=x11
+[2026-05-07 16:51:12] [ReactOverlay] Electron exited immediately (code 9)
+[2026-05-07 16:51:12] [ReactOverlay] Last Electron log lines:
+[2026-05-07 16:51:12]   [2026-05-07 16:51:07]   [41795:0507/165051.263935:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[2026-05-07 16:51:12]   [2026-05-07 16:51:07]   [41795:0507/165051.271776:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-07 16:51:12]   [2026-05-07 16:51:07]   [2026-05-07 16:51:06] [ReactOverlay] Electron overlay started (PID 42178)
+[2026-05-07 16:51:12]   [2026-05-07 16:51:07]   [2026-05-07 16:51:06] [ReactOverlay] Building overlay...
+[2026-05-07 16:51:12]   [2026-05-07 16:51:07]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --no-sandbox
+[2026-05-07 16:51:12]   [2026-05-07 16:51:07]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --disable-setuid-sandbox
+[2026-05-07 16:51:12]   [2026-05-07 16:51:07]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --ozone-platform=x11
+[2026-05-07 16:51:12]   [2026-05-07 16:51:07]   [2026-05-07 16:51:07] [ReactOverlay] Electron exited immediately (code 9)
+[2026-05-07 16:51:12]   [2026-05-07 16:51:07] [ReactOverlay] Electron failed to start, trying pywebview fallback
+[2026-05-07 16:51:12]   [2026-05-07 16:51:09] [ReactOverlay] Overlay build succeeded
+[2026-05-07 16:51:12]   [2026-05-07 16:51:11] [ReactOverlay] Electron overlay started (PID 42243)
+[2026-05-07 16:51:12]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --no-sandbox
+[2026-05-07 16:51:12]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --disable-setuid-sandbox
+[2026-05-07 16:51:12]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --ozone-platform=x11
+[2026-05-07 16:51:12]   [2026-05-07 16:51:12] [ReactOverlay] Electron exited immediately (code 9)
+[2026-05-07 16:51:12] [ReactOverlay] Electron failed to start, trying pywebview fallback
+[2026-05-07 16:51:26] [ReactOverlay] Electron overlay started (PID 42535)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[42535:0507/165127.167780:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[42564:0507/165129.135971:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[42564:0507/165130.698451:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[42564:0507/165130.703269:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-07 16:59:23] [ReactOverlay] Electron overlay started (PID 44335)
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --no-sandbox
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --disable-setuid-sandbox
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --ozone-platform=x11
+[2026-05-07 16:59:23] [ReactOverlay] Electron exited immediately (code 9)
+[2026-05-07 16:59:23] [ReactOverlay] Last Electron log lines:
+[2026-05-07 16:59:23]   [2026-05-07 16:51:12]   [2026-05-07 16:51:12] [ReactOverlay] Electron exited immediately (code 9)
+[2026-05-07 16:59:23]   [2026-05-07 16:51:12] [ReactOverlay] Electron failed to start, trying pywebview fallback
+[2026-05-07 16:59:23]   [2026-05-07 16:51:26] [ReactOverlay] Electron overlay started (PID 42535)
+[2026-05-07 16:59:23]   [Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[2026-05-07 16:59:23]   [42535:0507/165127.167780:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[2026-05-07 16:59:23]   [Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[2026-05-07 16:59:23]   [Overlay] WS connected to Python bridge
+[2026-05-07 16:59:23]   [42564:0507/165129.135971:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[2026-05-07 16:59:23]   [42564:0507/165130.698451:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[2026-05-07 16:59:23]   [42564:0507/165130.703269:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-07 16:59:23]   [2026-05-07 16:59:23] [ReactOverlay] Electron overlay started (PID 44335)
+[2026-05-07 16:59:23]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --no-sandbox
+[2026-05-07 16:59:23]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --disable-setuid-sandbox
+[2026-05-07 16:59:23]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --ozone-platform=x11
+[2026-05-07 16:59:23]   [2026-05-07 16:59:23] [ReactOverlay] Electron exited immediately (code 9)
+[2026-05-07 16:59:23] [ReactOverlay] Electron failed to start, trying pywebview fallback
+[2026-05-07 16:59:28] [ReactOverlay] Electron overlay started (PID 44349)
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --no-sandbox
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --disable-setuid-sandbox
+/home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --ozone-platform=x11
+[2026-05-07 16:59:28] [ReactOverlay] Electron exited immediately (code 9)
+[2026-05-07 16:59:28] [ReactOverlay] Last Electron log lines:
+[2026-05-07 16:59:28]   [2026-05-07 16:59:23]   [Overlay] WS connected to Python bridge
+[2026-05-07 16:59:28]   [2026-05-07 16:59:23]   [42564:0507/165129.135971:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[2026-05-07 16:59:28]   [2026-05-07 16:59:23]   [42564:0507/165130.698451:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[2026-05-07 16:59:28]   [2026-05-07 16:59:23]   [42564:0507/165130.703269:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-07 16:59:28]   [2026-05-07 16:59:23]   [2026-05-07 16:59:23] [ReactOverlay] Electron overlay started (PID 44335)
+[2026-05-07 16:59:28]   [2026-05-07 16:59:23]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --no-sandbox
+[2026-05-07 16:59:28]   [2026-05-07 16:59:23]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --disable-setuid-sandbox
+[2026-05-07 16:59:28]   [2026-05-07 16:59:23]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --ozone-platform=x11
+[2026-05-07 16:59:28]   [2026-05-07 16:59:23]   [2026-05-07 16:59:23] [ReactOverlay] Electron exited immediately (code 9)
+[2026-05-07 16:59:28]   [2026-05-07 16:59:23] [ReactOverlay] Electron failed to start, trying pywebview fallback
+[2026-05-07 16:59:28]   [2026-05-07 16:59:28] [ReactOverlay] Electron overlay started (PID 44349)
+[2026-05-07 16:59:28]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --no-sandbox
+[2026-05-07 16:59:28]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --disable-setuid-sandbox
+[2026-05-07 16:59:28]   /home/pranavvv/Documents/Projects/Wiztant/ui/whiztant-overlay/node_modules/electron/dist/electron: bad option: --ozone-platform=x11
+[2026-05-07 16:59:28]   [2026-05-07 16:59:28] [ReactOverlay] Electron exited immediately (code 9)
+[2026-05-07 16:59:28] [ReactOverlay] Electron failed to start, trying pywebview fallback
+[2026-05-07 19:42:59] [ReactOverlay] Electron overlay started (PID 49283)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[49283:0507/194259.493424:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[49317:0507/194303.959674:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[49317:0507/194324.590588:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[49283:0507/195328.628325:FATAL:electron_browser_main_parts.cc(502)] Failed to shutdown.
+[2026-05-07 19:55:35] [ReactOverlay] Electron overlay started (PID 57993)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[57993:0507/195536.088462:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[58025:0507/195540.206557:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[58025:0507/195545.291506:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[58025:0507/195545.292482:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-07 20:17:05] [ReactOverlay] Electron overlay started (PID 64530)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[64530:0507/201706.066289:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[64560:0507/201708.760598:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[64560:0507/201710.402916:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[64560:0507/201721.130500:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 00:05:48] [ReactOverlay] Electron overlay started (PID 119400)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[119400:0508/000549.120916:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[119431:0508/000552.676160:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[119431:0508/000552.677426:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[119431:0508/000552.678116:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 00:06:45] [ReactOverlay] Electron overlay started (PID 120130)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[120130:0508/000645.431233:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[120162:0508/000649.545215:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[120162:0508/000649.558015:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[120162:0508/000649.788004:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 00:16:00] [ReactOverlay] Electron overlay started (PID 124511)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[124511:0508/001600.506919:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[124540:0508/001602.498575:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[124540:0508/001602.502852:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[124540:0508/001602.515341:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 00:19:24] [ReactOverlay] Electron overlay started (PID 126050)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[126050:0508/001925.141590:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[126081:0508/001928.374985:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[126081:0508/001928.378275:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[126081:0508/001929.440983:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 00:19:37] [ReactOverlay] Electron overlay started (PID 126419)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[126419:0508/001937.700262:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[126450:0508/001940.397975:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[126450:0508/001940.770287:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[126450:0508/001941.829863:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 01:04:37] [ReactOverlay] Electron overlay started (PID 139317)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[139317:0508/010438.012827:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[139348:0508/010441.071648:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[139348:0508/010442.348188:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[139348:0508/010442.349110:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 14:27:04] [ReactOverlay] Electron overlay started (PID 176417)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[176417:0508/142704.582077:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[176495:0508/142708.972412:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[176495:0508/142713.324167:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[176495:0508/142713.330048:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 15:29:29] [ReactOverlay] Electron overlay started (PID 198161)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[198161:0508/152929.726096:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[198192:0508/152932.863701:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[198192:0508/152932.879135:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[198192:0508/152934.340097:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 15:58:07] [ReactOverlay] Electron overlay started (PID 208777)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[208777:0508/155807.521191:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[208809:0508/155811.778432:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[208809:0508/184909.075211:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[208809:0508/184911.745429:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 19:14:28] [ReactOverlay] Electron overlay started (PID 262119)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[262119:0508/191428.578989:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[262152:0508/191433.180722:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[262152:0508/191433.182315:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[262152:0508/191433.188593:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 20:23:24] [ReactOverlay] Electron overlay started (PID 280375)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[280375:0508/202324.753763:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[280406:0508/202329.309136:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[280406:0508/202332.301800:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[280406:0508/202332.306438:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-08 22:40:30] [ReactOverlay] Electron overlay started (PID 317804)
+[2026-05-08 22:44:49] [ReactOverlay] Electron overlay started (PID 319493)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[319493:0508/224450.490328:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[319524:0508/224454.766709:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[319524:0508/224455.102094:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[319524:0508/224456.429774:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[319493:0508/233032.817729:ERROR:command_buffer_proxy_impl.cc(324)] GPU state invalid after WaitForGetOffsetInRange.
+[319493:0508/233032.849316:ERROR:zygote_communication_linux.cc(297)] Failed to send GetTerminationStatus message to zygote
+[319493:0508/233032.855269:ERROR:network_service_instance_impl.cc(613)] Network service crashed, restarting service.
+[319493:0508/233032.863265:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[319493:0508/233032.868229:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[319493:0508/233032.868823:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[319493:0508/233032.869157:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[319493:0508/233032.869476:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[319493:0508/233032.869734:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[319493:0508/233032.870115:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[319493:0508/233032.870356:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[319493:0508/233032.870613:ERROR:gpu_process_host.cc(976)] GPU process launch failed: error_code=1002
+[319493:0508/233032.870638:FATAL:gpu_data_manager_impl_private.cc(423)] GPU process isn't usable. Goodbye.
+[2026-05-09 19:47:22] [ReactOverlay] Electron overlay started (PID 11048)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[11048:0509/194722.793780:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[11086:0509/194726.918989:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[11086:0509/201603.598988:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[2026-05-09 20:23:08] [ReactOverlay] Electron overlay started (PID 21788)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[21788:0509/202308.725128:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[21818:0509/202311.506762:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[21818:0509/202312.436326:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[21818:0509/202321.461493:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!
+[2026-05-11 11:51:29] [ReactOverlay] Electron overlay started (PID 12464)
+[Overlay] COMMAND_FILE resolved to: /home/pranavvv/.config/whiztant-overlay/.overlay_cmd
+[12464:0511/115129.809503:ERROR:atom_cache.cc(229)] Add _NET_WM_WINDOW_TYPE_TOOLBAR to kAtomsToCache
+[Shortcuts] Registered: Overlay=true(CommandOrControl+Space) Dictation+Agent=true(F9) Task=true(F10) WizPrompt=true(CommandOrControl+Shift+Space) Dismiss=true(Escape)
+[Overlay] WS connected to Python bridge
+[12503:0511/115133.955094:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 1 times!
+[12503:0511/120023.090319:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 2 times!
+[12503:0511/121716.476335:ERROR:gl_surface_presentation_helper.cc(260)] GetVSyncParametersIfAvailable() failed for 3 times!

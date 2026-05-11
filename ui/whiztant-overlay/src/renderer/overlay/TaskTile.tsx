@@ -121,6 +121,11 @@ export default function TaskTile({
 
   return (
     <div
+      draggable={!readOnly}
+      onDragStart={(e) => {
+        e.dataTransfer.setData('text/plain', task.id);
+        e.dataTransfer.effectAllowed = 'move';
+      }}
       tabIndex={0}
       onFocus={onFocus}
       onClick={() => {
@@ -281,6 +286,34 @@ export default function TaskTile({
           {preview && preview !== task.text ? (
             <div style={{ fontSize: 11, color: theme.textMuted, lineHeight: 1.45, wordBreak: 'break-word' }}>
               {preview}
+            </div>
+          ) : null}
+          {(task.category || task.difficulty) ? (
+            <div style={{ display: 'flex', gap: 4, marginTop: 2, flexWrap: 'wrap' }}>
+              {task.category ? (
+                <span style={{
+                  padding: '2px 8px',
+                  borderRadius: 10,
+                  background: `${theme.aiAccent}18`,
+                  color: theme.aiAccent,
+                  fontSize: 10,
+                  fontWeight: 600,
+                }}>
+                  {task.category}
+                </span>
+              ) : null}
+              {task.difficulty ? (
+                <span style={{
+                  padding: '2px 8px',
+                  borderRadius: 10,
+                  background: task.difficulty === 'hard' ? '#ef444418' : task.difficulty === 'easy' ? '#22c55e18' : '#eab30818',
+                  color: task.difficulty === 'hard' ? '#ef4444' : task.difficulty === 'easy' ? '#22c55e' : '#eab308',
+                  fontSize: 10,
+                  fontWeight: 600,
+                }}>
+                  {task.difficulty.charAt(0).toUpperCase() + task.difficulty.slice(1)}
+                </span>
+              ) : null}
             </div>
           ) : null}
           {!readOnly ? (

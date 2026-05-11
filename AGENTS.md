@@ -1,4 +1,5 @@
-""
+<!-- AGENTS.md — Project context for AI coding agents. Read this first. -->
+
 # AGENTS.md
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
@@ -11,7 +12,7 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 
 Before implementing:
 - State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
+- If multiple interpretations exist, present them — don't pick silently.
 - If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop. Name what's confusing. Ask.
 
@@ -35,7 +36,7 @@ When editing existing code:
 - Don't "improve" adjacent code, comments, or formatting.
 - Don't refactor things that aren't broken.
 - Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
+- If you notice unrelated dead code, mention it — don't delete it.
 
 When your changes create orphans:
 - Remove imports/variables/functions that YOUR changes made unused.
@@ -71,32 +72,33 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Product Identity
 
-- **Product name:** Wiztant (never "Whiztant" — name was changed)
-- **What it is:** Cross-platform AI operating assistant (Windows primary, Linux supported), distributed as a portable executable, sold as SaaS
-- **Builder:** Solo project by Pranav (venkatesh is the same person)
-- **Root directory:** `C:\whis\` (Windows), `/home/user/whis/` or similar (Linux dev)
+- **Product name:** Wiztant (intended branding). Note: the codebase still contains many "Whiztant" references in strings, file names, and legacy docs — update to "Wiztant" when you touch those lines, but do not do a global rename unless asked.
+- **What it is:** Windows AI operating assistant (Linux supported for development), distributed as a portable executable, sold as SaaS.
+- **Builder:** Solo project by Pranav (venkatesh is the same person).
+- **Root directory:** `C:\whis\` (Windows), `/home/user/whis/` or similar (Linux dev).
+- **Distribution:** Single portable executable; no installer, no registry writes.
 
 ---
 
 ## Project Overview
 
-Wiztant is a voice-first AI desktop assistant with three distinct applications that must not be confused:
+Wiztant is a voice-first AI desktop assistant composed of **three separate applications** that must not be confused:
 
-1. **Python Backend** — headless backend + system tray. Handles voice STT/TTS, AI agent loop, hotkeys, tasks, memory, and serves two IPC channels (FastAPI REST on port 8765, WebSocket on port 9120).
-2. **Electron Overlay** — the active UI. React 18 + TypeScript + Tailwind + Framer Motion, built with `electron-vite`. Three windows (pill, overlay, settings) communicate with Python via WebSocket.
+1. **Python Backend** — headless backend + system tray. Handles voice STT, AI agent loop, hotkeys, tasks, memory, TuneHub tuning, and serves two IPC channels (FastAPI REST on port 8765, WebSocket on port 9120).
+2. **Electron Overlay** — the active desktop UI. React + TypeScript + Tailwind + Framer Motion, built with `electron-vite`. Three windows (pill, overlay, settings) communicate with Python via WebSocket.
 3. **Marketing Website** — static React + Vite + Tailwind CSS v3 SPA, deployed to Netlify.
 
 ---
 
-## Application Architecture
+## Architecture
 
 ### 1. Python Backend
 - **Entry point:** `main.py` → `app/main.py` → `run_app()`
-- **What it does:** Loads `.env`, runs health checks, initializes data directories, imports core subsystems (voice → agent → WS bridge), registers global hotkeys via the Platform Abstraction Layer (PAL), starts uvicorn on `localhost:8765`, starts WebSocket bridge on `localhost:9120`, spins up background threads (system context scanner, background agent, system tray, WizType, task reminders, overlay launcher).
-- **Core logic:** `core/` — 50+ modules (~17,700 lines)
-- **Agent rules:** `agent_rules/` — markdown specs for navigation, shortcuts, and apps consumed by the UI-TARS agent
+- **What it does:** Loads `.env`, runs health checks, initializes data directories (`data/`, `memory/`), imports core subsystems (voice → agent → WS bridge), registers global hotkeys via the Platform Abstraction Layer (PAL), starts uvicorn on `localhost:8765`, starts WebSocket bridge on `localhost:9120`, spins up background threads (system context scanner, background agent, system tray, task reminders, overlay launcher).
+- **Core logic:** `core/` — 50+ modules (~17,600 lines of Python).
+- **Agent rules:** `agent_rules/` — markdown specs for navigation, shortcuts, and apps consumed by the UI-TARS agent.
 - **Platform abstraction:** `platforms/` — isolates all OS-specific code (window management, input, screenshots, TTS, hotkeys) behind abstract base classes. Factory at `platforms/factory.py` performs lazy imports so Linux never loads `win32api` and vice versa.
-- **No PyQt6 main window** — the Python side is headless backend + tray icon only. The legacy tkinter overlay (`ui/chat_overlay.py`) still exists as a fallback but is not the primary UI.
+- **No PyQt6 main window** — the Python side is headless backend + tray icon only (`core/tray.py`). PyQt6 is used solely for the tray icon and minimal tkinter overlays (`ui/`).
 
 ### 2. Electron Overlay (Active UI)
 - **Location:** `ui/whiztant-overlay/`
@@ -104,11 +106,11 @@ Wiztant is a voice-first AI desktop assistant with three distinct applications t
 - **Build:** `npm run build` → outputs to `out/`
 - **Three BrowserWindows:**
   - **Pill** — bottom-center always-on-top wave indicator
-  - **Overlay** — 340×420 chat/tasks/agent panel (Ctrl+Space toggle)
-  - **Settings** — theme + WizType config
-- **On-demand:** TaskPanel windows (one per task id, 340×420 frameless, positioned right of overlay)
+  - **Overlay** — chat/tasks/agent panel (Ctrl+Space toggle)
+  - **Settings** — theme + feature toggle config
+- **On-demand:** TaskPanel windows (one per task id, frameless, positioned right of overlay)
 - **IPC:** Electron ↔ Python via WebSocket on `ws://localhost:9120` (`core/ws_bridge.py`). Electron main also reads/writes `memory/tasks.json` directly via Node fs.
-- **Performance rule:** Overlay uses `setOpacity(0/1)` — NEVER hide/show (causes DWM repaint lag on Windows).
+- **Performance rule:** Overlay uses `setOpacity(0/1)` — NEVER `hide()/show()` (causes DWM repaint lag on Windows).
 
 ### 3. Marketing Website
 - **Location:** `whiztant-website/`
@@ -121,10 +123,11 @@ Wiztant is a voice-first AI desktop assistant with three distinct applications t
 - `ui/wiztant-clui/` — archived, superseded by `whiztant-overlay`
 - `ui/wiztant-app/` — older React app, also superseded
 - `overlay/whiztant-overlay/` — legacy Electron overlay, superseded
+- `core/wiztype/` — entire subsystem removed
 
 ---
 
-## Languages & Runtimes
+## Technology Stack & Key Configuration Files
 
 | Layer | Language | Runtime / Framework |
 |---|---|---|
@@ -132,54 +135,83 @@ Wiztant is a voice-first AI desktop assistant with three distinct applications t
 | Electron overlay | TypeScript | React 18, Electron 33, Vite, Framer Motion |
 | Website | TypeScript / JSX | React 19, Vite 6, Tailwind CSS v3 |
 | STT | — | Groq Whisper Large v3 Turbo (cloud) + faster-whisper (local fallback) |
-| TTS | — | Kokoro (local, requires espeak-ng), 6 voices, `af_nova` default |
 | Agent planner | — | Qwen 3.6 Plus free via OpenRouter (text-only) |
 | Agent executor | — | UI-TARS 1.5 7B via OpenRouter (vision) |
 | Auth | — | Supabase |
 | Cost tracking | — | Helicone |
 | License validation | — | LemonSqueezy |
 
----
+### Key Config Files (verified to exist)
+- **`requirements.txt`** — Python dependencies (no `pyproject.toml`, `setup.py`, or `setup.cfg`).
+- **`ui/whiztant-overlay/package.json`** — Electron overlay dependencies and build scripts.
+- **`ui/whiztant-overlay/electron.vite.config.ts`** — electron-vite build configuration.
+- **`ui/whiztant-overlay/tailwind.config.js`** — Tailwind config for overlay (CJS).
+- **`whiztant-website/package.json`** — Website dependencies.
+- **`whiztant-website/tailwind.config.js`** — Website Tailwind config (ESM).
+- **`whiztant-website/netlify.toml`** — Netlify deploy config (SPA redirects + build command).
+- **`data/settings.json`** — Runtime settings including feature toggles, model selections, snooze presets.
+- **`.env`** — API keys and secrets (gitignored, never commit).
+- **`build.bat`** — Root-level Windows build script (pip install + PyInstaller).
 
-## Feature Modes (F9 Hotkey)
-
-| Trigger | Mode | What it does |
-|---|---|---|
-| F9 ×1 | Dictation | Whisper transcription → smart paste at cursor |
-| F9 ×2 | Conversation | Voice loop with GPT-5.4 + Kokoro TTS |
-| F9 ×3 | Agent | UI-TARS screen-to-action loop |
-| Ctrl+Space | Overlay toggle | Show/hide 340×420 chat+tasks+agent overlay |
-| F10 (planned) | Task voice | Voice-only task creation with "Add Task" pill state |
-
----
-
-## Design System (shared across all three apps)
-
-```
-Background:  #07070f
-Primary:     #c0c1ff  (indigo)
-Secondary:   #d0bcff  (purple)
-Tertiary:    #4cd7f6  (teal)
-```
-
-- **Wave states:** idle `#7B2241` (burgundy), recording (mic-reactive), thinking `#C4956A` (cappuccino), speaking `#1a3a6b` (dark blue), agent `#2d6e3e` (green)
-- **Overlay themes** (5): `onyx`, `graphite`, `porcelain`, `midnight`, `ember` — stored in `memory/theme.json`
-- **Python tokens:** defined in `ui/constants.py` and `ui/theme.py`
-- **Website tokens:** Tailwind config + CSS classes: `.glass`, `.gradient-text`, `.btn-primary`, `.btn-ghost`, `.card`, `.eyebrow`, `.kbd`, `.prose-dark`, `.page-wrap`, `.section`, `.section-alt`
-- **Logo:** `wiztantW.svg` (do NOT regenerate programmatically — always load from file)
+### Notable Absences
+- No `pyproject.toml`, `pytest.ini`, `conftest.py`, or `tox.ini` in the project root.
+- No `build/windows/` or `build/linux/` directories currently in the repo.
+- No PyInstaller `.spec` files currently tracked in git (`.gitignore` ignores `*.spec` and `build/`).
 
 ---
 
-## Pricing
+## Code Organization
 
-| Plan | Monthly | Annual | Limits |
-|---|---|---|---|
-| Free | $0 | — | 15 chats/mo |
-| Pro | $15 | $165/yr | 300 chats, 50 agent, 30 UI-TARS |
-| Power | $25 | $275/yr | 500 chats, 200 agent, 200 UI-TARS |
+### Python (`core/` — ~17,600 lines)
+| Module | Purpose |
+|---|---|
+| `app/main.py` | Application bootstrap, health checks, feature flags, background timers |
+| `core/agent.py` | Tool registry, prompts, `ask_ai()` routing loop (~1,305 lines) |
+| `core/agent_engine.py` | Shared agent orchestration constants, OpenRouter client, image encoding |
+| `core/agent_unified.py` | Unified agent runtime (~710 lines) |
+| `core/background_agent.py` | Ambient background task manager (~1,071 lines) |
+| `core/hotkeys.py` | F9 tap handler, dictation trigger, recording control (~1,440 lines) |
+| `core/voice.py` | Groq Whisper transcription + local fallback (~850 lines) |
+| `core/stt_engine.py` | Streaming STT pipeline, VAD, smart paste (~581 lines) |
+| `core/stt_refiner.py` | Post-transcription LLM polish |
+| `core/dictation_smart.py` | Smart formatting for dictation output |
+| `core/dictation_correction.py` | Dictation correction engine |
+| `core/dictation_memory.py` | Learns user dictation patterns |
+| `core/smart_paste.py` | Cross-platform paste at cursor with fallback |
+| `core/tasks.py` | Task CRUD, voice parsing, due-time extraction, reminders (~1,178 lines) |
+| `core/memory.py` | Persistent memory system |
+| `core/wizprompt.py` | RePrompt / WizPrompt optimization engine |
+| `core/wizprompt_memory.py` | Prompt optimization memory / feedback loop |
+| `core/presets.py` | 5 default presets for WizPrompt |
+| `core/tune_hub/` | Adaptive tuning subsystem (Phase 1: manual/seed tuning) |
+| `core/ws_bridge.py` | WebSocket server for Electron IPC (~1,149 lines) |
+| `core/server.py` | FastAPI REST server (port 8765) |
+| `core/guardrails.py` | Safety regex, coordinate validation, loop detection |
+| `core/system_context.py` | System context scanner and scheduler (~813 lines) |
+| `core/navigation_brain.py` | Agent navigation logic |
+| `core/vocab.py` | Vocab correction / phonetic matching |
+| `core/tray.py` | System tray icon |
+| `core/usage.py` | Usage tracking / Helicone integration |
+| `core/license.py` | LemonSqueezy license validation |
+| `core/supabase_client.py` | Supabase auth client |
 
-- Trial: 3 days, 30 msgs, 3 agent tasks, no credit card required
-- Annual saves 1 month vs monthly
+### Platform Abstraction (`platforms/` — ~5,300 lines)
+- `platforms/factory.py` — Lazy factory for OS-specific drivers (hotkeys, TTS, VLM, window mgmt, system access).
+- `platforms/abstract/` — Abstract base classes.
+- `platforms/linux/` — Linux implementations (`hotkeys.py`, `system_access.py`, `window_mgmt.py`, `tts.py`, `vlm.py`, `_vlm_impl.py`, `agent_runtime.py`).
+- `platforms/windows/` — Windows implementations (same interface).
+
+### UI Layer (`ui/` — ~1,500 lines Python)
+- `ui/react_overlay.py` — Legacy React overlay launcher (still used).
+- `ui/react_overlay_runner.py` — Overlay runner helper.
+- `ui/agent_confirmation_overlay.py` — tkinter confirmation dialog.
+- `ui/agent_results_panel.py` — tkinter results panel.
+- `ui/constants.py` / `ui/theme.py` — Python-side design tokens.
+
+### Tests (`tests/` — ~24 files)
+- `tests/test_*.py` — Core system tests (tasks, agent, guardrails, vocab, wizprompt, etc.).
+- `tests/stt_tests/test_*.py` — STT-specific tests (integration, refiner, smart paste, vocab, edge cases).
+- `core/tune_hub/tests/test_*.py` — TuneHub unit tests.
 
 ---
 
@@ -223,10 +255,9 @@ npm run build
 ```
 
 ### Full Desktop Build
-- **Windows:** `build/windows/build.bat` — installs deps, builds overlay, runs PyInstaller
-- **Linux:** `build/linux/build.sh` — same flow, optionally creates AppImage via `linuxdeploy`
-- **PyInstaller specs:** `build/windows/whiztant.spec` and `build/linux/whiztant_linux.spec`
-- **Packaging formats:** `.exe` (Windows), binary / AppImage / Snap (Linux)
+- **Windows:** `build.bat` at project root — installs deps, runs PyInstaller.
+- **Linux:** No dedicated build script currently in repo.
+- **Packaging formats:** `.exe` (Windows), binary / AppImage / Snap (Linux — planned).
 
 ---
 
@@ -235,7 +266,7 @@ npm run build
 ### Python
 - Use `from __future__ import annotations` at the top of every module.
 - Use type hints where practical.
-- Use snake_case for functions/variables, PascalCase for classes, UPPER_CASE for module-level constants.
+- Use `snake_case` for functions/variables, `PascalCase` for classes, `UPPER_CASE` for module-level constants.
 - Write module-level docstrings describing the file's purpose.
 - Use section headers for logical groups:
   ```python
@@ -260,8 +291,6 @@ npm run build
 
 **Framework:** `pytest` (with `pytest-asyncio` and `pytest-cov`).
 
-**Test inventory:** ~313 test cases across 24 Python files in `tests/`.
-
 **Run all tests:**
 ```bash
 pytest tests/
@@ -276,8 +305,7 @@ pytest tests/stt_tests/test_integration.py
 **Testing patterns observed:**
 - Use `unittest.mock.patch` and `pytest.monkeypatch` to isolate external APIs (OpenRouter, Groq, screenshots).
 - Use `tmp_path` fixtures for hermetic file I/O (tasks.json, agent memory).
-- Use `pytest.mark.asyncio` for async WizType tests.
-- Integration tests launch actual subprocesses (React overlay lifecycle, WebSocket bridge roundtrip).
+- Integration tests may launch actual subprocesses (React overlay lifecycle, WebSocket bridge roundtrip).
 - No `pytest.ini`, `pyproject.toml`, or `conftest.py` in the project root — tests rely on default pytest discovery and manual `sys.path.insert(0, ...)` at the top of test files.
 
 **Manual / stress test scripts:**
@@ -290,7 +318,7 @@ pytest tests/stt_tests/test_integration.py
 
 ## Security Considerations
 
-- **`.env` contains secrets** — API keys for OpenAI, OpenRouter, Groq, Supabase, Helicone, and LemonSqueezy. It is blocked from being read by tools to protect credentials. Never commit `.env` to git.
+- **`.env` contains secrets** — API keys for OpenAI, OpenRouter, Groq, Supabase, Helicone, and LemonSqueezy. Never commit `.env` to git.
 - **Agent guardrails** — `core/guardrails.py` blocks destructive actions via regex (delete files, format drives, drop tables, shutdown, etc.), validates screen coordinates, and detects no-progress loops via screenshot hashing. Always respect and update these rules when adding new agent capabilities.
 - **Isolated input** — background agent tasks use `AgentInputContext` (`core/agent_isolation.py`) to send input to background windows without stealing focus.
 - **No sandbox escape** — the agent runs with the user's permissions. Do not add elevation prompts or UAC bypasses.
@@ -298,79 +326,111 @@ pytest tests/stt_tests/test_integration.py
 
 ---
 
-## What's Been Built
+## Design System (shared across apps)
 
-### Python Backend
-- [x] F9 hotkey with 3-mode detection (debounced counter)
-- [x] Dictation: Groq Whisper STT → clipboard paste with aggressive cross-platform fallback
-- [x] Conversation: voice loop with GPT-5.4 + Kokoro TTS, 6 voices
-- [x] Agent: UI-TARS 1.5 7B screen-to-action loop with `agent_rules/` navigation spec
-- [x] System tray icon (winotify toasts on startup)
-- [x] Supabase auth (email/password)
-- [x] Usage guard via Helicone
-- [x] WebSocket bridge on port 9120 (`core/ws_bridge.py`) — Python ↔ Electron IPC
-- [x] FastAPI backend on port 8765 (`core/server.py`)
-- [x] Task system (`core/tasks.py`): full CRUD, voice parsing, due-time extraction, LLM task refiner, daily suggestion
-- [x] Task schema: id, text, status, source, created_at, due_at, completed_at, parent_id, content, task_type (large/small), carried_over, failed
-- [x] Session continuity: "save this for tomorrow" → `save_session_as_task()`
-- [x] Due-alert timers: `_due_check()` at 18:00 daily, `_due_reminder()` every 4h for carried-over tasks
-- [x] Startup nudge: 8s after boot, pill flashes yesterday's pending task summary
-- [x] WizType subsystem (`core/wiztype/`): keyboard hook, debounced inference, Ollama/custom model, Tab-to-accept suggestion overlay
-- [x] Background agent manager (`core/background_agent.py`)
-- [x] Memory system (`core/memory.py`)
-- [x] System context scanner (`core/system_context.py`)
-- [x] Vocab correction system (`core/vocab.py`)
-- [x] Agent confirmation overlay (`ui/agent_confirmation_overlay.py`)
+```
+Background:  #07070f
+Surface:     #0f0f1a
+Primary:     #c0c1ff  (indigo)
+Secondary:   #d0bcff  (purple)
+Tertiary:    #4cd7f6  (teal)
+Text:        #e2e2e2
+Muted:       #6b7280
+```
 
-### Electron Overlay (whiztant-overlay)
-- [x] Pill window — always-on-top, bottom-center, wave animation with state colors
-- [x] Overlay window — 3-tab layout (Chat / Tasks / Agent), Ctrl+Space toggle
-- [x] Settings window — theme picker, WizType config
-- [x] Theme system — 5 themes, persisted to `memory/theme.json`, synced to all windows
-- [x] WebSocket bridge client — connects to Python on port 9120
-- [x] Task system — full CRUD via IPC + fs direct
-- [x] TasksPanel — task list with add-form, due-time picker, Today section, Undone section, recent history
-- [x] TaskTile — LARGE/SMALL badge, due label, overdue highlighting, failed state, voice badge
-- [x] TaskPanel side window — 340×420 frameless, opens to the right of overlay
-- [x] Notification system — pill notifications with auto-save, due alerts, due reminders, duplicate warnings
-- [x] Agent panel — live step progress, blocked state with undo, done/result state
-- [x] VocabCorrectModal — prompt user to correct misheard words
-- [x] Warp entrance animation on every Ctrl+Space show
-- [x] Multiple chat conversations with tab strip, add/close tabs
-
-### Website
-- [x] All marketing pages (/, /features, /how-it-works, /pricing, /download, /login)
-- [x] Legal pages (/privacy-policy, /terms-of-service, /cookie-policy)
-- [x] /support, /docs (7 sections), /press
-- [x] Dark celestial design system throughout
-- [x] Supabase auth on /login (email + Google OAuth)
+- **Wave states:** idle `#7B2241` (burgundy), recording (mic-reactive), thinking `#C4956A` (cappuccino), speaking `#1a3a6b` (dark blue), agent `#2d6e3e` (green)
+- **Overlay themes** (5): `onyx`, `graphite`, `porcelain`, `midnight`, `ember` — stored in `memory/theme.json`
+- **Python tokens:** defined in `ui/constants.py` and `ui/theme.py`
+- **Website tokens:** Tailwind config + CSS classes: `.glass`, `.gradient-text`, `.btn-primary`, `.btn-ghost`, `.card`, `.eyebrow`, `.kbd`, `.prose-dark`, `.page-wrap`, `.section`, `.section-alt`
+- **Logo:** `wiztantW.svg` (do NOT regenerate programmatically — always load from file)
 
 ---
 
-## Known Issues / What Can Be Improved
+## Feature Modes (Hotkeys)
 
-- Overlay dropdown menus styling not fully polished (theme variable gaps)
-- Chat overlay tab switching between tkinter and Electron overlay not fully unified
-- File upload refs in attach menu are wired but not connected to a backend handler
-- No E2E tests for the overlay IPC protocol
-- Website deploy is manual — no CI/CD pipeline
-- F10 task hotkey is planned but not fully implemented
+| Trigger | Mode | What it does |
+|---|---|---|
+| **F9 ×1** | Dictation | STT engine transcribes → smart paste at cursor |
+| **F9 ×2+** | Agent toggle | Toggles Agent mode on/off (UI-TARS screen-to-action loop) |
+| **Ctrl+Space** | Overlay toggle | Show/hide chat+tasks+agent overlay |
+| **Ctrl+Shift+Space** | WizPrompt / RePrompt | Reads clipboard → optimizes via TuneHub persona weights + preset → writes back |
+| **Esc** | Dismiss overlay | Closes overlay |
+| **F10** | Task voice | PLANNED — voice-only task creation with "Add Task" pill state |
+
+**Note:** The old "Conversation" mode (F9×2 voice loop with GPT + TTS) was removed when `core/tts.py` was deleted. Platform-specific TTS lives in `platforms/*/tts.py`.
 
 ---
 
-## Definition of Done
+## Feature Toggles System
 
-A task is **complete** when:
+### 4 Features
+| Key | Description | Default |
+|---|---|---|
+| `agent` | Agent mode (F9 ×2+) | `true` |
+| `tunehub` | TuneHub adaptive tuning | `true` |
+| `tasks` | Task system | `true` |
+| `reprompt` | RePrompt / WizPrompt | `true` |
 
-1. **Code compiles / imports without errors** — Python: `python -c "import main"` passes; TypeScript: `npm run build` succeeds in `ui/whiztant-overlay/`
-2. **The specific behavior requested works** — verified manually or via test, not just "it looks right"
-3. **No regressions introduced** — the three F9 modes, Ctrl+Space overlay, pill notifications, and task system still function
-4. **No new files created unless necessary** — prefer editing existing files
-5. **Build artifact is up to date** — if `whiztant-overlay` was changed, `npm run build` was re-run
+### Storage
+- **Frontend:** `localStorage` keys `whiztant.feature.*` + JSON blob `whiztant.features`
+- **Backend:** `data/settings.json` under `"features"` key
 
-For UI changes in `whiztant-overlay`: task is NOT done until `npm run build` completes successfully.
+### Gating
+- **Frontend:** `Settings.tsx` toggles, `Overlay.tsx` conditional panel rendering, `TopTabBar.tsx` dynamic tab visibility
+- **Backend:** `app/main.py` wraps agent init, TuneHub init, task timer, background agent in conditional blocks
 
-For Python changes: task is NOT done until `python main.py` starts without errors in the terminal.
+### Tab Visibility (TopTabBar)
+- **Always visible:** `chat` (label: "Tune"), `memories` (label: "Memories")
+- **Feature-gated:**
+  - `tunehub` → label: "Chat"
+  - `reprompt` → label: "Prompt"
+  - `agent` → label: "Agent"
+  - `tasks` → label: "Today"
+
+---
+
+## Preset System (RePrompt)
+
+- **File:** `core/presets.py`
+- **Default presets:** `product_review`, `idea_review`, `code_review`, `code_creation`, `general`
+- **UI:** Dropdown selector in `WizPromptPanel.tsx`
+- **API:** `GET /presets` exposed in `core/server.py`
+- **Integration:** `core/wizprompt.py` consumes the selected preset's `system_prompt_addendum` + `agent_focus`
+
+---
+
+## Task System & Reminders (with Snooze)
+
+### Storage
+- **Canonical file:** `memory/tasks.json`
+- **Access:** Both Python (`core/tasks.py`) and Electron main process read/write this file
+
+### Schema
+```
+id, text, status, source, created_at, due_at, completed_at,
+parent_id, content, task_type (large/small), carried_over, failed,
+progress, reminder_sent, snoozed_until
+```
+
+### Reminders
+- **Check cycle:** Every 15 minutes
+- **30-minute pre-due warning:** Alerts before task is due
+- **Due alert:** Fires when `due_at` reached
+- **Overdue repeats:** Every 15 minutes after overdue
+
+### Snooze
+- **Presets:** Configurable in `data/settings.json` (default includes 15min, 60min, 1440min)
+- **Functions in `core/tasks.py`:**
+  - `snooze_task(task_id, minutes)`
+  - `is_snoozed(task)`
+  - `clear_snooze(task_id)`
+
+### WebSocket Broadcasts (from `ws_bridge.py`)
+- `due_alert` — first miss alert
+- `due_reminder` — periodic for carried-over tasks
+- `tasks_failed` — tasks marked `failed=true`
+- `task_saved` — task saved via voice or "save this for tomorrow"
+- `pill/notice` — generic pill flash
 
 ---
 
@@ -380,7 +440,6 @@ For Python changes: task is NOT done until `python main.py` starts without error
 |---|---|
 | App entry | `main.py` |
 | Core logic | `core/` |
-| WizType subsystem | `core/wiztype/` |
 | Agent navigation spec | `WHISrules.md` |
 | Agent rules folder | `agent_rules/` |
 | WebSocket bridge | `core/ws_bridge.py` |
@@ -389,315 +448,68 @@ For Python changes: task is NOT done until `python main.py` starts without error
 | Task storage | `memory/tasks.json` |
 | Theme storage | `memory/theme.json` |
 | Memory storage | `memory/memory.json` |
+| Overlay position | `memory/overlay_position.json` |
+| Settings + feature flags | `data/settings.json` |
+| TuneHub DB | `data/tune_hub.db` |
+| Tune models | `data/tune_models/` |
 | Electron overlay root | `ui/whiztant-overlay/` |
-| Electron main process | `ui/whiztant-overlay/src/main/` |
+| Electron main process | `ui/whiztant-overlay/src/main/index.ts` |
 | Electron preload | `ui/whiztant-overlay/src/preload/index.ts` |
-| Overlay renderer | `ui/whiztant-overlay/src/renderer/overlay/` |
-| Pill renderer | `ui/whiztant-overlay/src/renderer/pill/` |
-| Settings renderer | `ui/whiztant-overlay/src/renderer/settings/` |
+| Overlay renderer | `ui/whiztant-overlay/src/renderer/overlay/Overlay.tsx` |
+| Pill renderer | `ui/whiztant-overlay/src/renderer/pill/Pill.tsx` |
+| Settings renderer | `ui/whiztant-overlay/src/renderer/settings/Settings.tsx` |
 | Shared types/IPC | `ui/whiztant-overlay/src/renderer/shared/` |
 | Notification components | `ui/whiztant-overlay/src/renderer/shared/notifications/` |
+| Theme tokens | `ui/whiztant-overlay/src/renderer/shared/themes.ts` |
 | React overlay launcher | `ui/react_overlay.py` |
-| tkinter chat overlay fallback | `ui/chat_overlay.py` |
 | Design tokens (Python) | `ui/constants.py`, `ui/theme.py` |
 | Logo SVG | `wiztantW.svg` |
 | Website | `whiztant-website/` |
 | Implementation plans | `Plans_Implementation/` |
 | Python deps | `requirements.txt` |
-| Windows build script | `build/windows/build.bat` |
-| Linux build script | `build/linux/build.sh` |
-| Windows PyInstaller spec | `build/windows/whiztant.spec` |
-| Linux PyInstaller spec | `build/linux/whiztant_linux.spec` |
+| Windows build script | `build.bat` |
 | Tests | `tests/` |
 | STT tests | `tests/stt_tests/` |
-| WizType tests | `tests/test_wiztype_*.py` |
 | Tune Hub specs | `TuneHubSpecifications/` |
 
 ---
 
-# Tune Hub — Universal Meta-Learning System
+## Definition of Done
 
-## What is Tune Hub?
+A task is **complete** when:
 
-Tune Hub is wiztant's **universal meta-learning system** — a personalization engine that observes, learns, and optimizes configuration parameters across every wiztant feature. It transforms a generic AI assistant into a deeply personal productivity tool by learning the user's unique patterns, vocabulary, workflows, and preferences.
+1. **Code compiles / imports without errors** — Python: `python -c "import main"` passes; TypeScript: `npm run build` succeeds in `ui/whiztant-overlay/`
+2. **The specific behavior requested works** — verified manually or via test, not just "it looks right"
+3. **No regressions introduced** — the F9 modes (dictation + agent toggle), Ctrl+Space overlay, pill notifications, and task system still function
+4. **No new files created unless necessary** — prefer editing existing files
+5. **Build artifact is up to date** — if `whiztant-overlay` was changed, `npm run build` was re-run
 
-**Core principle:** Every feature tuner is a self-contained plugin implementing `TuneBase`. Adding a new tuner (e.g., BrowserAgentTuner) requires zero changes to TuneHub core.
+For UI changes in `whiztant-overlay`: task is NOT done until `npm run build` completes successfully.
 
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    DESKTOP 1 (Production)                    │
-│   RePrompt / Dictation / Agent / FutureFeature              │
-│          └──────────────┬─────────────────┘                 │
-│              Tune Application Middleware (Event Router)      │
-│              TuneHub Core (Desktop 1 Node)                   │
-│              Local Cache (SQLite + JSON)                     │
-└─────────────────────────────────────────────────────────────┘
-                              │ Async Message Queue (NATS / RabbitMQ / WebSocket)
-┌─────────────────────────────────────────────────────────────┐
-│                  DESKTOP 2 (Experimentation)                 │
-│              TuneHub Core (Desktop 2 Node)                   │
-│   RePromptTuner │ DictationTuner │ AgentTuner (Plugins)      │
-│   Experimentation Engine & ML Pipeline                      │
-│   Remote Storage Layer (Postgres + Redis / Encrypted S3)    │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Key architectural decisions:**
-- **Desktop 1 ↔ Desktop 2 separation:** Learning (expensive, experimental) runs on Desktop 2. Deployment (fast, deterministic) runs on Desktop 1. Communication via async message queue.
-- **Event-driven tune application:** Feature triggers emit events; Tune Hub asynchronously resolves the best tune and injects it before the feature executes.
-- **Credit-gated experimentation:** Every learning phase consumes credits. Credit tracking is first-class, not bolted-on.
-
-## Core Abstractions
-
-### Data Classes
-
-| Class | Purpose |
-|-------|---------|
-| `ComplexityLevel` | `LOW` (Free), `MEDIUM` (Pro), `HIGH` (Power) — maps to pricing tier |
-| `TuneStatus` | `DRAFT` → `PENDING_VALIDATION` → `VALIDATED` → `DEPLOYED` → `ARCHIVED` / `FAILED` |
-| `CreditBudget` | Immutable credit allocation with `can_spend()` and `spend()` methods |
-| `LearnedModel` | Generic container: `tune_id`, `feature_name`, `task_signature`, `payload`, `quality_score`, `complexity`, `status`, `version`, `parent_version` |
-| `ExperimentResult` | Single experiment iteration: `config`, `output`, `score`, `credits_used`, `iteration` |
-
-### TuneBase Abstract Class
-
-Every tuner plugin MUST implement these methods (stateless — state flows through `LearnedModel` instances):
-
-| Phase | Method | Runs On | Latency Requirement |
-|-------|--------|---------|---------------------|
-| Static Analysis | `estimate_complexity(task, context)` | Desktop 1 | < 100ms synchronous |
-| Learning | `learn(task, budget, context, judge)` | Desktop 2 | Minutes to hours |
-| Validation | `validate(model, hold_out_tasks, judge)` | Desktop 2 | Deterministic pass/fail |
-| Deployment | `deploy(model)` | Desktop 2 → D1 | Async via message queue |
-| Runtime | `apply(model, feature_input)` | Desktop 1 | < 50ms hot path |
-| Fallback | `get_default_config(task)` | Desktop 1 | < 50ms deterministic |
-
-**Plugin registration:** Subclasses auto-register via `class MyTuner(TuneBase, feature_name="my_feature")`.
-
-### TuneHub Orchestrator
-
-Thin orchestrator that delegates ALL feature-specific logic to TuneBase plugins. Never needs modification when adding features.
-
-Key methods:
-- `tune_feature(request: TuneRequest) → TuneResult` — full pipeline: tier check → complexity estimate → credit budget → learn → validate → deploy → persist → sync
-- `resolve_tune(user_id, feature_name, task, feature_input) → Dict` — **synchronous hot path**, < 50ms, called on every feature trigger
-- `rollback_tune(user_id, tune_id, to_version)` — Power tier only
-
-## Feature-Specific Tuners
-
-### RePromptTuner (`feature_name="reprompt"`)
-**Learns:** Optimal persona blend weights for different task categories.
-- **Personas:** `debug`, `build`, `research`, `write`, `plan`
-- **Algorithm:** Multi-Task Bayesian Optimization with Thompson Sampling
-  - Surrogate: Gaussian Process (Matern-5/2 kernel)
-  - Acquisition: Expected Improvement (EI) with ξ=0.01
-  - Task classifier: keyword + embedding ensemble
-- **Convergence:** Quality plateau (std < 0.05, mean > 0.85) OR acquisition flat OR weight stability OR budget exhausted (max 12 iterations)
-- **Credit target:** ~1,200 credits per task (optimized from ~2,346)
-
-### DictationTuner (`feature_name="dictation"`)
-**Learns:** Domain-specific vocabulary corrections.
-- **Algorithm:** Context-Aware Active Learning with Confidence-Weighted Correction Map
-  - Base: Trie-based prefix correction map with frequency weighting
-  - Context classifier: Small transformer (DistilBERT-level) for 8 domains
-  - Update rule: Exponential weighted moving average (α=0.7 favors recent)
-- **Domains:** `general`, `software`, `crypto`, `medical`, `legal`, `creative_writing`, `business`, `custom`
-- **Event-driven:** Each user interaction (transcription + possible edit) is one learning iteration
-- **Credit target:** ~800 credits per domain
-
-### AgentTuner (`feature_name="agent"`)
-**Learns:** App behavior and automation sequences (recipes).
-- **Algorithm:** Causal Reinforcement Learning with Program Synthesis (CRL-PS)
-  - Exploration: Hierarchical task planner with macro-action library
-  - Causal model: Structural Causal Model (SCM) with do-calculus
-  - Policy: PPO with safety constraints
-  - Program synthesis: DSL for action sequences → reusable recipes
-- **Macro actions:** `click`, `double_click`, `right_click`, `type`, `hotkey`, `drag`, `scroll`, `wait`, `menu_select`, `dialog_click`, `slider_set`, `layer_select`, `adjustment_apply`
-- **Credit target:** ~250 credits per recipe (optimized)
-
-## Data Layer
-
-### Tier-Aware Storage
-
-| Capability | Free | Pro ($20/mo) | Power ($30/mo) |
-|------------|------|--------------|----------------|
-| Backend | Local SQLite | PostgreSQL + Redis | Encrypted PostgreSQL + Encrypted S3 |
-| Tune limit | 1 total | Unlimited (soft cap 50/mo, hard 100) | Unlimited (soft cap 200/mo, hard 500) |
-| Complexity | LOW only | LOW + MEDIUM | LOW + MEDIUM + HIGH |
-| Versioning | No | Last 5 versions | Full history + rollback |
-| Cross-machine sync | No | Yes (real-time, <30s) | Yes + selective sync + manual force |
-| Sharing | No | Direct link (read-only import) | Marketplace publishing + selling |
-| Encryption | None | TLS in transit | AES-256-GCM at rest + TLS |
-
-### Schema (Pro/Power — PostgreSQL)
-
-Core tables: `users`, `user_tunes`, `tune_versions`, `credit_ledger`, `sync_queue`, `tune_shares`, `marketplace_listings`
-
-Free tier uses a single `local_tunes` SQLite table with `UNIQUE(feature_name, task_signature)`.
-
-### Power Tier Encryption
-
-Per-user AES-256-GCM encryption. Plaintext NEVER enters cloud DB. Keys managed by user-controlled provider. Associated data includes `user_id:tune_id` for binding.
-
-## API Contracts
-
-### Public REST API (FastAPI)
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/tune` | POST | Initiate learning for a feature |
-| `/resolve` | POST | Hot-path tune resolution at feature trigger (< 50ms) |
-| `/tunes/{user_id}` | GET | List user's tunes |
-| `/tunes/{user_id}/{tune_id}` | DELETE | Delete a tune |
-| `/tunes/{user_id}/{tune_id}/rollback` | POST | Rollback to version (Power only) |
-| `/tunes/{user_id}/{tune_id}/share` | POST | Share tune (Pro/Power) |
-| `/sync/pending` | GET | Pull pending syncs (Desktop 1 startup) |
-| `/credits/{user_id}/balance` | GET | Check credit balance |
-
-### Internal Protocols
-
-- `ITunerPlugin` — Protocol that all tuners must satisfy
-- `CreditTracker` — Abstract: `get_balance`, `reserve`, `consume`, `refund`, `grant`
-- `DesktopBridge` — Async: `connect`, `publish`, `subscribe`, `unsubscribe`, `disconnect`
-
-## System Flows
-
-### Learning Phase (Desktop 2)
-```
-User Request → Parse feature → Check tier → Estimate complexity →
-Credit budget setup → Experimentation loop → Aggregation →
-Validation (hold-out tests) → [PASS: Deploy+Sync / FAIL: Refund 50%]
-```
-
-### Runtime Hot Path (Desktop 1)
-```
-Feature trigger → In-memory LRU cache lookup (< 5ms) →
-SQLite lookup → Tune application (< 10ms) → Feature execution →
-Optional: Quality feedback loop (thumbs-down queues re-tuning)
-```
-
-**Latency budget:** Total overhead < 60ms added to base feature latency.
-
-### Deployment (D2 → D1)
-```
-Desktop 2: Tuner.deploy() → PUBLISH to message broker →
-Message broker: ROUTE to D1 subscriber →
-Desktop 1: Decrypt (Power) → Deserialize → Write SQLite → Update LRU cache →
-ACK back to D2 → Status: DEPLOYED on both
-```
-
-## Tune Marketplace (Power Tier)
-
-- **Browse:** All tiers can view; Pro/Power can import; Power can publish and sell
-- **Pricing models:** Free, Credit Purchase (creator earns 70%, platform 30%), Freemium, Tip Jar
-- **Discovery:** Featured (curated), Trending (7-day imports), Recommended (ML-driven), New Arrivals, Staff Picks
-- **Trust & Safety:** PII auto-scanner, sandboxed testing before import, quality gate (>60 to publish), verified creator badges, review moderation pipeline
-- **Creator revenue:** 70% of credit price as "Creator Credits" (convertible to cash at $0.0001/credit after $50 minimum)
-
-## UX / Screen Flow
-
-1. **Tune Hub Entry Screen** — "What do you want to optimize?" + feature selection grid (2×2 cards)
-2. **Cost Estimate Screen** — Complexity badge + step-by-step plan + credit breakdown + time estimate
-3. **Learning Progress Modal** — Animated progress steps + live metrics + "What's Happening" accordion + cancel/background options
-4. **Tune Results Screen** — Before/After comparison + learned parameters visualization + quality score gauge
-5. **Tune Management Dashboard** — Filter/sort by feature, status, quality; smart folders; sync status
-6. **Tune Detail Panel** — Overview | Parameters | History | Advanced (Power) tabs
-7. **Share to Marketplace Modal** — Visibility, pricing, tags, PII scanner
-8. **Marketplace Browse Screen** — Category tabs, search, sort, tune cards
-9. **"Tune Active" Micro-UI** — 4px colored ghost dot on feature icon (blue=RePrompt, green=Dictation, purple=Agent)
-
-### Override Mechanisms
-- **Temporary Override:** "Use Default This Time" — current session only
-- **Session Override:** "Pause Tune for 1 Hour" — auto-resumes
-- **Full Disable:** "Disable This Tune" — moves to Inactive
-- **Global Override:** Settings → "Use Defaults for All Features"
-
-## File Structure (Target)
-
-```
-tune_hub/
-├── __init__.py
-├── base.py                    # Core dataclasses, enums, exceptions
-├── tune_base.py              # TuneBase abstract class
-├── orchestrator.py           # TuneHub orchestrator
-├── storage/
-│   ├── abstract.py           # TuneStorage interface
-│   ├── sqlite_store.py       # Free tier
-│   ├── postgres_store.py     # Pro/Power
-│   └── encryption.py         # Power tier crypto
-├── credit_system/
-│   ├── abstract.py
-│   ├── free_tracker.py
-│   ├── pro_tracker.py
-│   └── power_tracker.py
-├── tuners/
-│   ├── __init__.py           # Plugin registration
-│   ├── reprompt_tuner.py
-│   ├── dictation_tuner.py
-│   ├── agent_tuner.py
-│   └── browser_agent_tuner.py  # Future
-├── transport/
-│   ├── abstract.py           # DesktopBridge
-│   ├── nats_bridge.py
-│   └── websocket_bridge.py
-├── api/
-│   ├── public.py             # FastAPI endpoints
-│   └── internal.py
-├── sync/
-│   └── sync_manager.py
-├── quality/
-│   ├── judge.py
-│   └── claude_judge.py
-└── tests/
-    ├── test_orchestrator.py
-    ├── test_reprompt_tuner.py
-    ├── test_credit_system.py
-    └── test_encryption.py
-```
-
-## Rollout Plan
-
-| Phase | Timeline | Scope |
-|-------|----------|-------|
-| Phase 0: Foundation | Weeks 1-4 | Internal dogfooding, stress testing, credit validation, UI polish |
-| Phase 1: Controlled Beta | Weeks 5-8 | 500 invited users (200 Free, 200 Pro, 100 Power), RePrompt + Dictation only |
-| Phase 2: Public Beta | Weeks 9-12 | Opt-in early access, all users can try, limited to RePrompt + Dictation |
-| Phase 3: General Availability | Weeks 13-16 | All 4 features enabled, marketplace opens (Power publishing) |
-| Phase 4: Expansion | Months 5-6 | Marketplace growth, enterprise pilot, international |
-
-## Success Metrics
-
-| Metric | Target |
-|--------|--------|
-| Tune creation rate (Month 1) | >30% of active users |
-| Tune success rate | >85% |
-| Learning success rate | >90% |
-| Tune application latency | <100ms median |
-| Sync success rate | >99% |
-| Free → Pro conversion lift | +5pp vs pre-Tune Hub |
-| Tune-Driven Engagement (12mo) | 60% of sessions involve active tune |
-
-## Glossary
-
-| Term | Definition |
-|------|-----------|
-| **Tune** | A learned configuration optimized for a specific user, feature, and task |
-| **Task Signature** | Normalized task identifier (e.g., `coding_tasks`) used for tune lookup |
-| **Credit** | Unit of experimentation cost. 1 credit ≈ 1 experiment iteration |
-| **Desktop 1** | Production environment where features run and tunes are applied |
-| **Desktop 2** | Experimentation environment where learning and validation occur |
-| **Persona Blend** | Weighted combination of personas (debug, build, research, write, plan) for RePrompt |
-| **Recipe** | Automation sequence for Agent tuner (list of actions in DSL) |
-| **TuneHub** | The orchestrator that routes tuning requests to the correct tuner plugin |
-| **Tuner Plugin** | Feature-specific implementation of TuneBase |
-| **Ghost Indicator** | Subtle 4px dot showing a tune is active on a feature |
-| **Complexity** | LOW (1-3 variations, ~100-800 credits) / MEDIUM (5-15, ~500-3,000) / HIGH (15-50+, ~2,000-10,000) |
+For Python changes: task is NOT done until `python main.py` starts without errors in the terminal.
 
 ---
 
-*Tune Hub specifications sourced from:*
-- `TuneHubSpecifications/tune_hub_architecture.md` — Technical architecture, class hierarchy, data layer, APIs
-- `TuneHubSpecifications/tune_hub_product_strategy.md` — UX specification, pricing tiers, marketplace design, rollout plan
-- `TuneHubSpecifications/tuner_implementation_plans.md` — Algorithm design, experimentation protocols, implementation phases for RePrompt, Dictation, and Agent tuners
+## Appendix: Known Issues / What Can Be Improved
+
+- Overlay dropdown menus styling not fully polished (theme variable gaps).
+- File upload refs in attach menu are wired but not connected to a backend handler.
+- No E2E tests for the overlay IPC protocol.
+- Website deploy is manual — no CI/CD pipeline.
+- F10 task hotkey is planned but not fully implemented.
+- Build verification (TypeScript `tsc --noEmit`) not yet automated.
+- Python import test (`python -c "import main"`) not yet automated.
+- TuneHub Phase 2 (actual model training) not yet implemented — currently Phase 1 manual/seed only.
+
+---
+
+## Appendix: Legacy Features — DO NOT USE in New Code
+
+The following were removed and must not be referenced in new code or documentation:
+
+- `core/wiztype/` (entire subsystem)
+- `core/action_optimizer.py`, `core/agent_s3_wrapper.py`, `core/app_detector.py`, `core/intent_compiler.py`, `core/learning_agent.py`, `core/system_task_executor.py`, `core/workflow_recorder.py`
+- `tests/test_wiztype_*.py`
+- `ui/chat_overlay.py`
+- `main_old.py`, root `package-lock.json`, `docs/WIZTYPE.md`, `data/wiztype_config.json`
+- Conversation mode (F9×2 voice loop with TTS) — removed with `core/tts.py`

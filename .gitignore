@@ -2,12 +2,14 @@
 venv/
 __pycache__/
 *.pyc
+*.pyo
 .env
+.env.local
+.env.*.local
 data/session.json
 data/usage.json
 data/license.json
 data/screenshots/
-__pycache__/
 dist/
 build/
 _waste_archive/
@@ -15,5 +17,6 @@ node_modules/
 electron-dist/
 models/
 *.spec
-*.pyc
-*.pyo
+*.log
+.pytest_cache/
+coverage/

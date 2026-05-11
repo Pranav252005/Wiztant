@@ -185,7 +185,7 @@ from core import voice
 _dbg("[Voice] module imported (Groq cloud STT)")
 
 # ─── Feature flags ───────────────────────────────────────────
-_FEATURE_FLAGS = {"agent": True, "tunehub": True, "tasks": True, "reprompt": True}
+_FEATURE_FLAGS = {"agent": True, "tasks": True, "reprompt": True, "tunehub": True}
 
 def _load_feature_flags():
     """Read feature flags from data/settings.json. All features default to enabled."""
@@ -314,10 +314,24 @@ def _due_check():
                 tid = task.get("id", "")
                 tracker = _reminder_tracker.setdefault(tid, {})
                 if not tracker.get("pre_due_warned", False):
+                    due_at = task.get("due_at", "")
+                    minutes_remaining = 0
+                    try:
+                        from datetime import datetime as _dt
+                        dt = _dt.fromisoformat(str(due_at).replace("Z", "+00:00"))
+                        now = _dt.now(timezone.utc)
+                        minutes_remaining = max(0, int((dt - now).total_seconds() / 60))
+                    except Exception:
+                        pass
                     broadcast_sync({
-                        "type": "due_soon",
-                        "task": {"id": tid, "title": task.get("text", "")},
-                        "due_at": task.get("due_at"),
+                        "type": "pill_notification",
+                        "payload": {
+                            "task_id": tid,
+                            "title": task.get("text", ""),
+                            "due_datetime": due_at,
+                            "notification_type": "pre_due",
+                            "minutes_remaining": minutes_remaining,
+                        },
                     })
                     tracker["pre_due_warned"] = True
 
@@ -366,6 +380,17 @@ def _due_check():
                         "count": len(newly_due),
                         "tasks": [{"id": t.get("id"), "title": t.get("text", "")} for t in newly_due],
                     })
+                    for task in newly_due:
+                        broadcast_sync({
+                            "type": "pill_notification",
+                            "payload": {
+                                "task_id": task.get("id"),
+                                "title": task.get("text", ""),
+                                "due_datetime": task.get("due_at"),
+                                "notification_type": "due_now",
+                                "minutes_remaining": 0,
+                            },
+                        })
 
                 # Aggressive overdue reminders: every 15 minutes while overdue
                 for task in first_miss:
@@ -379,6 +404,16 @@ def _due_check():
                             "type": "overdue_reminder",
                             "task": {"id": tid, "title": task.get("text", "")},
                             "reminder_count": tracker["overdue_reminder_count"],
+                        })
+                        broadcast_sync({
+                            "type": "pill_notification",
+                            "payload": {
+                                "task_id": tid,
+                                "title": task.get("text", ""),
+                                "due_datetime": task.get("due_at"),
+                                "notification_type": "overdue",
+                                "minutes_remaining": 0,
+                            },
                         })
 
         # ── 3. Carried-over undone tasks ──
@@ -445,17 +480,30 @@ platform_config.setup()
 _hotkeys.register_hotkeys()
 _dbg("[Hotkeys] registered")
 
-# Linux fallback: register F9/F10/Escape via pynput in case Electron globalShortcut fails
-# (common on Wayland). Debounce in toggle_agent_mode prevents double-toggle on X11.
+# Linux fallback: register F9/F10/Escape via pynput ONLY on Wayland where
+# Electron globalShortcut fails. On X11 Electron handles these fine; registering
+# both causes a double-fire race (Electron starts recording, pynput stops it
+# 400 ms later from the same physical keypress).
 if PLATFORM == "linux":
-    try:
-        from core.hotkeys import f9_handler, task_hotkey_handler, hide_chat_overlay_if_visible
-        _hotkeys.register("f9", f9_handler)
-        _hotkeys.register("f10", task_hotkey_handler)
-        _hotkeys.register("escape", hide_chat_overlay_if_visible)
-        print("[Hotkeys/Linux] pynput fallback registered for F9, F10, Escape")
-    except Exception as e:
-        print(f"[Hotkeys/Linux] pynput fallback registration failed: {e}")
+    _is_wayland = (
+        os.environ.get("XDG_SESSION_TYPE") == "wayland"
+        or bool(os.environ.get("WAYLAND_DISPLAY"))
+    )
+    if _is_wayland:
+        try:
+            from core.hotkeys import f9_handler, task_hotkey_handler, hide_chat_overlay_if_visible
+            from core.hotkeys import _load_task_creation_mode, _load_shortcuts_enabled
+            _hotkeys.register("f9", f9_handler)
+            _hotkeys.register("escape", hide_chat_overlay_if_visible)
+            if _load_task_creation_mode() == "hotkey" or _load_shortcuts_enabled():
+                _hotkeys.register("f10", task_hotkey_handler)
+                print("[Hotkeys/Linux/Wayland] pynput fallback registered for F9, F10, Escape")
+            else:
+                print("[Hotkeys/Linux/Wayland] pynput fallback registered for F9, Escape (F10 disabled — smart mode)")
+        except Exception as e:
+            print(f"[Hotkeys/Linux/Wayland] pynput fallback registration failed: {e}")
+    else:
+        print("[Hotkeys/Linux/X11] Skipping pynput fallback — Electron globalShortcut active")
 
 # Start WS bridge for Electron overlay IPC
 try:
@@ -484,36 +532,31 @@ except Exception as _e:
     print(f"[Tray] Could not start tray: {_e}")
 
 # Tune Hub middleware — wires learned parameters into feature hot paths
-if _FEATURE_FLAGS.get("tunehub", True):
-    try:
-        from core.tune_hub.factory import create_tune_hub
-        from core.tune_hub.middleware import TuneApplicationMiddleware
-        from core.tune_hub.quality.judge import LLMJudge
+try:
+    from core.tune_hub.factory import create_tune_hub
+    from core.tune_hub.middleware import TuneApplicationMiddleware
+    from core.tune_hub.quality.judge import LLMJudge
 
-        # Load persisted Tune Hub settings
-        _tunehub_settings_path = _ROOT / "data" / "tunehub_settings.json"
-        if _tunehub_settings_path.exists():
-            try:
-                core.tune_hub_settings = json.loads(_tunehub_settings_path.read_text(encoding="utf-8"))
-            except Exception:
-                core.tune_hub_settings = {}
+    # Load persisted Tune Hub settings
+    _tunehub_settings_path = _ROOT / "data" / "tunehub_settings.json"
+    if _tunehub_settings_path.exists():
+        try:
+            core.tune_hub_settings = json.loads(_tunehub_settings_path.read_text(encoding="utf-8"))
+        except Exception:
+            core.tune_hub_settings = {}
 
-        def _judge_factory():
-            """Create LLMJudge with user-selected model from settings."""
-            model = core.tune_hub_settings.get("model", "")
-            return LLMJudge(model=model) if model else LLMJudge()
+    def _judge_factory():
+        """Create LLMJudge with user-selected model from settings."""
+        model = core.tune_hub_settings.get("model", "")
+        return LLMJudge(model=model) if model else LLMJudge()
 
-        _tune_hub_tier = os.getenv("CURRENT_TIER", "free")
-        _tune_hub = create_tune_hub(tier=_tune_hub_tier, judge_factory=_judge_factory)
-        core.tune_hub = _tune_hub
-        core.tune_middleware = TuneApplicationMiddleware(_tune_hub)
-        _dbg("[TuneHub] middleware initialized")
-    except Exception as _e:
-        print(f"[TuneHub] Could not initialize: {_e}")
-        core.tune_hub = None
-        core.tune_middleware = None
-else:
-    _dbg("[TuneHub] Skipped (tunehub feature disabled)")
+    _tune_hub_tier = os.getenv("CURRENT_TIER", "free")
+    _tune_hub = create_tune_hub(tier=_tune_hub_tier, judge_factory=_judge_factory)
+    core.tune_hub = _tune_hub
+    core.tune_middleware = TuneApplicationMiddleware(_tune_hub)
+    _dbg("[TuneHub] middleware initialized")
+except Exception as _e:
+    print(f"[TuneHub] Could not initialize: {_e}")
     core.tune_hub = None
     core.tune_middleware = None
 

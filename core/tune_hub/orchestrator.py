@@ -13,10 +13,13 @@ from typing import Any, Callable, Dict, List, Optional
 
 from .base import (
     ComplexityLevel,
+    CreditBudget,
     LearnedModel,
     TuneStatus,
     ValidationError,
 )
+from .credit_system.credit_tracker import CreditTracker
+from .guardrails import TuneBoundaryGuard, TuneBoundaryViolation
 from .storage.abstract import TuneStorage
 from .tune_base import TuneBase
 
@@ -76,6 +79,7 @@ class TuneHub:
         self.sync_manager = sync_manager
         self.quality_judge_factory = quality_judge_factory
         self.desktop_mode = desktop_mode
+        self.credit_tracker = CreditTracker()
 
 
     def tune_feature(self, request: TuneRequest) -> TuneResult:
@@ -83,13 +87,26 @@ class TuneHub:
         Meta-interface: Initiate tuning for any feature.
 
         Orchestrates the full pipeline:
-        1. Check tier eligibility
-        2. Estimate complexity
-        3. Get credit approval
-        4. Phase 1: Learn (Desktop 2)
-        5. Phase 2: Validate (Desktop 2)
-        6. Phase 3: Deploy + Sync (Desktop 2 → Desktop 1)
+        1. Validate feature boundary
+        2. Resolve tuner
+        3. Estimate complexity
+        4. Get credit approval
+        5. Phase 1: Learn (Desktop 2)
+        6. Phase 2: Validate (Desktop 2)
+        7. Phase 3: Deploy + Sync (Desktop 2 → Desktop 1)
         """
+        # Boundary check: unknown features are rejected immediately
+        ok, reason = TuneBoundaryGuard.validate_feature_name(request.feature_name)
+        if not ok:
+            return TuneResult(
+                success=False,
+                model=None,
+                iterations_used=0,
+                iterations_remaining=request.budget_limit,
+                message=reason,
+                reusable=False,
+            )
+
         try:
             # Step 1: Resolve tuner
             tuner = TuneBase.create(request.feature_name)
@@ -97,10 +114,35 @@ class TuneHub:
             # Step 2: Estimate complexity
             complexity = tuner.estimate_complexity(request.task, request.context)
 
-            # Step 3: Budget initialization
+            # Step 3: Calculate and deduct credits
+            try:
+                from core.credit_system import (
+                    calculate_tunehub_credits,
+                    deduct,
+                    get_current_user_id,
+                )
+                user_id = get_current_user_id()
+                credit_cost = calculate_tunehub_credits(
+                    complexity=complexity.name,
+                    feature_model=request.context.get("feature_model"),
+                    judge_model=request.context.get("judge_model"),
+                )
+                if not deduct(user_id, "tunehub", credit_cost):
+                    return TuneResult(
+                        success=False,
+                        model=None,
+                        iterations_used=0,
+                        iterations_remaining=request.budget_limit,
+                        message=f"Insufficient credits for TuneHub {complexity.name}. Need {credit_cost} credits.",
+                        reusable=False,
+                    )
+            except Exception as e:
+                print(f"[CreditSystem] TuneHub credit deduction failed: {e}")
+
+            # Step 4: Budget initialization
             budget = CreditBudget(approved=request.budget_limit)
 
-            # Step 4: LEARN (expensive, Desktop 2 only)
+            # Step 5: LEARN (expensive, Desktop 2 only)
             if self.desktop_mode != "desktop2":
                 return TuneResult(
                     success=False,
@@ -124,11 +166,19 @@ class TuneHub:
             )
 
             if learned_model.status == TuneStatus.FAILED:
+                # Refund 70% of upfront cost on failure
+                try:
+                    from core.credit_system import refill, get_current_user_id
+                    refund = int(credit_cost * 0.7)
+                    if refund > 0:
+                        refill(get_current_user_id(), refund, source="tunehub_failure_refund")
+                except Exception:
+                    pass
                 return TuneResult(
                     success=False,
                     model=learned_model,
-                    credits_used=budget["consumed"],
-                    iterations_remaining=budget["approved"] - budget["consumed"],
+                    credits_used=budget.consumed,
+                    iterations_remaining=budget.approved - budget.consumed,
                     message="Learning failed — could not find viable configuration",
                     reusable=False,
                 )
@@ -138,11 +188,19 @@ class TuneHub:
             if not validated:
                 learned_model.status = TuneStatus.FAILED
                 self.storage.store_tune(request.user_id, learned_model)
+                # Refund 70% of upfront cost on validation failure
+                try:
+                    from core.credit_system import refill, get_current_user_id
+                    refund = int(credit_cost * 0.7)
+                    if refund > 0:
+                        refill(get_current_user_id(), refund, source="tunehub_validation_refund")
+                except Exception:
+                    pass
                 return TuneResult(
                     success=False,
                     model=learned_model,
-                    credits_used=budget["consumed"],
-                    iterations_remaining=budget["approved"] - budget["consumed"],
+                    credits_used=budget.consumed,
+                    iterations_remaining=budget.approved - budget.consumed,
                     message="Validation failed — learned model did not generalize",
                     reusable=False,
                 )
@@ -203,6 +261,10 @@ class TuneHub:
         SYNCHRONOUS hot-path method. Called every time a feature triggers.
         Must complete in < 50ms for UX smoothness.
         """
+        ok, reason = TuneBoundaryGuard.validate_feature_name(feature_name)
+        if not ok:
+            raise TuneBoundaryViolation(reason)
+
         tuner = TuneBase.create(feature_name)
         task_signature = self._normalize_task(task)
 
@@ -210,7 +272,7 @@ class TuneHub:
         model = self.storage.get_tune(user_id, feature_name, task_signature)
 
         if model and model.status == TuneStatus.DEPLOYED:
-            return tuner.apply(model, feature_input)
+            return tuner.safe_apply(model, feature_input)
 
         # Fallback: default config
         return tuner.get_default_config(task)

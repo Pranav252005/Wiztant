@@ -26,7 +26,21 @@ from core.tune_prompts import TUNE_CLARIFY_FALLBACK, TUNE_SYSTEM_PROMPT
 
 # gpt-5-nano is OpenAI's newest cheapest model but currently has API issues with
 # structured JSON output. gpt-4.1-nano is the cheapest stable alternative.
-TUNE_MODEL = os.getenv("TUNE_MODEL", "gpt-4.1-nano")
+def _load_model_setting(key: str, default: str) -> str:
+    try:
+        import json
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            val = data.get(key)
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+    except Exception:
+        pass
+    return os.getenv(key, default)
+
+TUNE_MODEL = _load_model_setting("TUNE_MODEL", "anthropic/claude-sonnet-4")
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _TUNE_KEYWORDS_PATH = _PROJECT_ROOT / "data" / "tune_keywords.json"
 

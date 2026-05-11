@@ -9,7 +9,7 @@ export interface EdgePosition {
   offset: number;
 }
 
-let currentPosition: EdgePosition = { edge: 'bottom', offset: 0 };
+let currentPosition: EdgePosition = { edge: 'bottom', offset: 0.5 };
 
 const POSITION_FILE = (() => {
   try {
@@ -68,12 +68,12 @@ export function latchToNearestEdge(
 
   let offset: number;
   if (nearestEdge === 'top' || nearestEdge === 'bottom') {
-    offset = Math.max(pad, Math.min(work.width - pad, cx - work.x));
+    offset = (cx - work.x) / work.width;
   } else {
-    offset = Math.max(pad, Math.min(work.height - pad, cy - work.y));
+    offset = (cy - work.y) / work.height;
   }
 
-  return { edge: nearestEdge, offset };
+  return { edge: nearestEdge, offset: Math.max(0, Math.min(1, offset)) };
 }
 
 /** Compute pill bounds from an edge position. */
@@ -85,17 +85,18 @@ export function getPillBoundsFromEdge(
   pad: number,
 ): Rectangle {
   const work = disp.workArea;
+  const bounds = disp.bounds;
   switch (pos.edge) {
     case 'bottom':
       return {
-        x: work.x + pos.offset - Math.round(width / 2),
+        x: work.x + Math.round(pos.offset * work.width) - Math.round(width / 2),
         y: work.y + work.height - height - pad,
         width,
         height,
       };
     case 'top':
       return {
-        x: work.x + pos.offset - Math.round(width / 2),
+        x: work.x + Math.round(pos.offset * work.width) - Math.round(width / 2),
         y: work.y + pad,
         width,
         height,
@@ -103,14 +104,14 @@ export function getPillBoundsFromEdge(
     case 'left':
       return {
         x: work.x + pad,
-        y: work.y + pos.offset - Math.round(height / 2),
+        y: work.y + Math.round(pos.offset * work.height) - Math.round(height / 2),
         width,
         height,
       };
     case 'right':
       return {
         x: work.x + work.width - width - pad,
-        y: work.y + pos.offset - Math.round(height / 2),
+        y: work.y + Math.round(pos.offset * work.height) - Math.round(height / 2),
         width,
         height,
       };
@@ -167,21 +168,26 @@ function ensurePositionDir(): void {
 export function loadSavedPosition(): EdgePosition {
   try {
     if (!existsSync(POSITION_FILE)) {
-      return { edge: 'bottom', offset: 0 };
+      return { edge: 'bottom', offset: 0.5 };
     }
     const data = JSON.parse(readFileSync(POSITION_FILE, 'utf8'));
     const edge = data?.edge;
-    const offset = Number(data?.offset);
+    let offset = Number(data?.offset);
     const validEdges: OrbitalEdge[] = ['top', 'bottom', 'left', 'right'];
     if (!validEdges.includes(edge)) {
-      return { edge: 'bottom', offset: 0 };
+      return { edge: 'bottom', offset: 0.5 };
     }
     if (!Number.isFinite(offset)) {
-      return { edge: 'bottom', offset: 0 };
+      return { edge: 'bottom', offset: 0.5 };
     }
-    return { edge, offset };
+    // Backward-compat: old format stored offset in absolute pixels (>1).
+    // Reset to center (0.5) so the user can re-drag if needed.
+    if (offset > 1) {
+      offset = 0.5;
+    }
+    return { edge, offset: Math.max(0, Math.min(1, offset)) };
   } catch {
-    return { edge: 'bottom', offset: 0 };
+    return { edge: 'bottom', offset: 0.5 };
   }
 }
 

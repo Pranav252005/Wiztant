@@ -9,8 +9,10 @@ import type {
   Task,
 } from '../shared/ipc';
 import { useBridgeMessage, sendBridgeMessage } from '../shared/useBridge';
-import { usePillNotifications } from '../shared/usePillNotifications';
+import { usePillNotifications, type TaskConfirmPayload, type PillNotificationPayload } from '../shared/usePillNotifications';
 import NotificationRenderer, { pillSizeFor } from '../shared/notifications/NotificationRenderer';
+import SnoozeOptions from '../shared/notifications/SnoozeOptions';
+import DictationPreviewInline from './DictationPreviewInline';
 
 // Number of waveform bars shown while recording.
 const BANDS = 5;
@@ -203,6 +205,22 @@ export default function Pill() {
   agentStatusRef.current = agentStatus;
   const agentTimeoutRef = useRef<number | null>(null);
 
+  // Agent mode toggle tracking (F9×2) — drives dark-blue pill theme
+  const [agentModeEnabled, setAgentModeEnabled] = useState(false);
+  const agentModeRef = useRef(agentModeEnabled);
+  agentModeRef.current = agentModeEnabled;
+
+  // Snooze view state: when user clicks a notification body, show snooze options
+  const [snoozePayload, setSnoozePayload] = useState<PillNotificationPayload | null>(null);
+
+  // Inline dictation preview state
+  const [dictationPreview, setDictationPreview] = useState<{
+    id: string;
+    text: string;
+    originalText: string;
+    sessionId: string;
+  } | null>(null);
+
   const pillNotifications = usePillNotifications();
   const activeNotification = pillNotifications.active;
   const dismissNotification = pillNotifications.dismiss;
@@ -210,10 +228,11 @@ export default function Pill() {
   const prevStateRef = useRef<AppState>(state);
 
   const theme = themes[themeName];
-  const color = theme.pill[state];
+  const isAgentVisual = agentModeEnabled && (state === 'recording' || state === 'thinking' || state === 'agent');
+  const color = isAgentVisual ? theme.pill.recording : theme.pill[state];
   const glow = theme.pill.glow;
-  const capsuleBg = theme.pill.bg;
-  const capsuleBorder = theme.pill.border;
+  const capsuleBg = isAgentVisual ? 'rgba(26, 58, 107, 0.96)' : theme.pill.bg;
+  const capsuleBorder = isAgentVisual ? 'rgba(96, 165, 250, 0.35)' : theme.pill.border;
 
   const levels = useMicLevels(state === 'recording', BANDS);
   const simulatedLevels = useSimulatedBars(state === 'agent', BANDS);
@@ -249,12 +268,24 @@ export default function Pill() {
       window.api.requestPillNotice(payload);
     }
 
+    // ── Agent mode toggle ──
+    if (msg?.type === 'agent_mode') {
+      const enabled = Boolean(msg.enabled);
+      console.log('[Pill] agent_mode message:', enabled);
+      setAgentModeEnabled(enabled);
+    }
+
     // ── Wave state (Python-driven state machine) ──
     if (msg?.type === 'wave_state') {
       const ws = String(msg.state ?? '');
+      console.log('[Pill] wave_state message:', ws);
       if (['idle', 'recording', 'thinking', 'speaking', 'agent'].includes(ws)) {
         setState(ws as AppState);
         window.api.syncState(ws as AppState);
+        // Also infer agent mode from wave_state so we never miss the toggle
+        if (ws === 'agent') {
+          setAgentModeEnabled(true);
+        }
         // Reset agent status when leaving agent mode
         if (ws !== 'agent' && agentStatusRef.current !== 'idle') {
           setAgentStatus('idle');
@@ -323,18 +354,60 @@ export default function Pill() {
         window.api.syncState('idle');
       }
     }
-  }, [clearAgentTimeout]);
+
+    // ── Dictation preview — open MemoryPanel AND show inline preview in pill ──
+    if (msg?.type === 'dictation_preview') {
+      const previewText = String(msg.text ?? '');
+      const originalText = String(msg.original_text ?? '');
+      const previewSessionId = String(msg.session_id ?? '');
+      const previewId = String(msg.id ?? `preview-${Date.now()}`);
+      if (previewText) {
+        setDictationPreview({
+          id: previewId,
+          text: previewText,
+          originalText,
+          sessionId: previewSessionId,
+        });
+        const syntheticMemory = {
+          id: previewId,
+          timestamp: new Date().toISOString(),
+          mode: 'dictation' as const,
+          original_text: originalText,
+          final_text: previewText,
+          session_id: previewSessionId,
+        };
+        void window.api.openMemoryPanel(syntheticMemory);
+      }
+    }
+
+    // ── Dictation preview optimized — update inline preview text ──
+    if (msg?.type === 'dictation_preview/optimized' && dictationPreview) {
+      const optimized = String(msg.text ?? '');
+      if (optimized) {
+        setDictationPreview((prev) =>
+          prev ? { ...prev, text: optimized } : null
+        );
+        sendBridgeMessage({
+          type: 'correction_capture/optimize',
+          session_id: dictationPreview.sessionId,
+          optimized,
+        });
+      }
+    }
+  }, [clearAgentTimeout, dictationPreview]);
 
   useBridgeMessage(handleBridge);
 
   // Resize the pill window whenever a persistent notification mounts/unmounts.
   useEffect(() => {
-    if (activeNotification) {
+    if (dictationPreview) {
+      window.api.expandPill({ width: 460, height: 220 });
+    } else if (activeNotification) {
       window.api.expandPill(pillSizeFor(activeNotification));
     } else {
       window.api.expandPill(null);
     }
-  }, [activeNotification]);
+  }, [activeNotification, dictationPreview]);
 
   // F9 auto-dismiss + glow on state transitions.
   useEffect(() => {
@@ -387,9 +460,28 @@ export default function Pill() {
     return () => clearTimeout(t);
   }, [agentStatus]);
 
+  // Auto-dismiss pill notifications after 10s.
+  // Skip auto-dismiss for kinds that require explicit user action.
+  useEffect(() => {
+    if (!activeNotification) {
+      setSnoozePayload(null);
+      return;
+    }
+    const skipAutoDismiss: PillNotificationKind[] = ['task_confirm', 'due_alert'];
+    if (skipAutoDismiss.includes(activeNotification.kind)) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      dismissNotification();
+      setSnoozePayload(null);
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [activeNotification, dismissNotification]);
+
   const isNotificationActive = Boolean(activeNotification);
   const isNoticeExpanded = Boolean(notice) && !isNotificationActive;
-  const isExpanded = isNotificationActive || isNoticeExpanded;
+  const isDictationPreviewActive = Boolean(dictationPreview);
+  const isExpanded = isNotificationActive || isNoticeExpanded || isDictationPreviewActive;
   const isFlashing = Boolean(flashState) && !isExpanded;
 
   const flashColor = flashState === 'success' ? GREEN : RED;
@@ -403,7 +495,7 @@ export default function Pill() {
     window.api.showPillMenu();
   };
 
-  // ── Double-click drag handling ─────────────────────────────────
+  // ── Click / double-click drag handling ─────────────────────────
   const pillRef = useRef<HTMLDivElement>(null);
   const lastMouseDownRef = useRef(0);
   const isDraggingRef = useRef(false);
@@ -412,6 +504,15 @@ export default function Pill() {
   expandedRef.current = isExpanded;
   const DOUBLE_CLICK_MS = 400;
   const CLICK_DELAY_MS = 180;
+  const DRAG_THRESHOLD_PX = 4;
+
+  // Track single-click-and-hold-to-drag state
+  const pointerDownRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+
+  // RAF-throttle drag IPC so fast mouse motion doesn't flood the main process
+  const pendingDragRef = useRef<{ x: number; y: number } | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   useLayoutEffect(() => {
     if (typeof window.api?.pillDragStart !== 'function') {
@@ -422,35 +523,82 @@ export default function Pill() {
     const el = pillRef.current;
     if (!el) return;
 
+    const flushDrag = () => {
+      rafRef.current = null;
+      if (pendingDragRef.current && isDraggingRef.current) {
+        window.api.pillDragMove(pendingDragRef.current.x, pendingDragRef.current.y);
+        pendingDragRef.current = null;
+      }
+    };
+
+    const scheduleDragMove = (screenX: number, screenY: number) => {
+      pendingDragRef.current = { x: screenX, y: screenY };
+      if (!rafRef.current) {
+        rafRef.current = requestAnimationFrame(flushDrag);
+      }
+    };
+
+    const startDrag = (e: PointerEvent) => {
+      isDraggingRef.current = true;
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+      el.setPointerCapture(e.pointerId);
+      e.preventDefault();
+      window.api.pillDragStart();
+    };
+
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       if ((e.target as HTMLElement).closest('button')) return;
 
       const now = Date.now();
+      pointerDownRef.current = true;
+      dragStartRef.current = { x: e.screenX, y: e.screenY };
+
       if (now - lastMouseDownRef.current < DOUBLE_CLICK_MS && !isDraggingRef.current) {
-        // Double-click / double-tap detected — start drag
-        isDraggingRef.current = true;
-        if (clickTimerRef.current) {
-          clearTimeout(clickTimerRef.current);
-          clickTimerRef.current = null;
-        }
-        el.setPointerCapture(e.pointerId);
-        e.preventDefault();
-        window.api.pillDragStart();
+        // Double-click / double-tap detected — start drag immediately
+        startDrag(e);
       }
       lastMouseDownRef.current = now;
     };
 
     const onPointerMove = (e: PointerEvent) => {
-      if (!isDraggingRef.current) return;
-      e.preventDefault();
-      window.api.pillDragMove(e.screenX, e.screenY);
+      if (isDraggingRef.current) {
+        e.preventDefault();
+        scheduleDragMove(e.screenX, e.screenY);
+        return;
+      }
+
+      // If pointer is down and we've moved past the threshold, start dragging
+      // (supports single-click-and-hold to drag)
+      if (pointerDownRef.current && !isDraggingRef.current) {
+        const dx = Math.abs(e.screenX - dragStartRef.current.x);
+        const dy = Math.abs(e.screenY - dragStartRef.current.y);
+        if (dx > DRAG_THRESHOLD_PX || dy > DRAG_THRESHOLD_PX) {
+          startDrag(e);
+          scheduleDragMove(e.screenX, e.screenY);
+        }
+      }
     };
 
     const onPointerUp = (e: PointerEvent) => {
       if (e.button !== 0) return;
+      pointerDownRef.current = false;
+
+      // Flush any pending drag coordinate before ending so the pill doesn't snap back
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      if (pendingDragRef.current && isDraggingRef.current) {
+        window.api.pillDragMove(pendingDragRef.current.x, pendingDragRef.current.y);
+        pendingDragRef.current = null;
+      }
+
       if (!isDraggingRef.current) {
-        // Queue a single-click toggle
+        // Queue a single-click toggle (only if we didn't start dragging)
         if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
         clickTimerRef.current = window.setTimeout(() => {
           if (!expandedRef.current) window.api.toggleOverlay();
@@ -470,6 +618,7 @@ export default function Pill() {
       el.removeEventListener('pointermove', onPointerMove);
       el.removeEventListener('pointerup', onPointerUp);
       if (clickTimerRef.current) clearTimeout(clickTimerRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
 
@@ -545,7 +694,36 @@ export default function Pill() {
         dismissNotification();
       },
       dismissReminder: () => dismissNotification(),
+      dismissOverdueReminder: () => dismissNotification(),
       dismissDuplicate: () => dismissNotification(),
+      approveTaskConfirm: (payload: TaskConfirmPayload) => {
+        sendBridgeMessage({
+          type: 'task_confirm_approve',
+          confirm_id: payload.id,
+        });
+        setFlashState('success');
+        dismissNotification();
+      },
+      rejectTaskConfirm: () => {
+        dismissNotification();
+      },
+      editTaskConfirm: (payload: TaskConfirmPayload) => {
+        dismissNotification();
+        window.api.openOverlayToTasksEdit({
+          prefillTitle: payload.parsed_title,
+          prefillDue: payload.due_datetime,
+          tempId: payload.id,
+        });
+      },
+      openTaskNotification: (payload: PillNotificationPayload) => {
+        dismissNotification();
+        window.api.showOverlay();
+        window.api.openOverlayToTasksEdit({
+          prefillTitle: payload.title,
+          taskId: payload.task_id,
+          scrollToTask: true,
+        });
+      },
     }),
     [activeNotification, dismissNotification, updateActiveNotification],
   );
@@ -573,7 +751,7 @@ export default function Pill() {
             : (glowActive && !isExpanded
               ? `0 0 8px 3px ${glow}`
               : 'none'),
-          background: isNotificationActive
+          background: isDictationPreviewActive || isNotificationActive
             ? 'rgba(18,18,24,0.96)'
             : isNoticeExpanded
               ? noticeBg(notice!.kind)
@@ -604,17 +782,36 @@ export default function Pill() {
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           display: 'flex',
-          alignItems: isNotificationActive ? 'stretch' : 'center',
+          alignItems: isDictationPreviewActive || isNotificationActive ? 'stretch' : 'center',
           justifyContent: isExpanded ? 'flex-start' : 'center',
           cursor: isExpanded ? 'default' : 'pointer',
           overflow: isVertical ? 'visible' : 'hidden',
-          padding: isNotificationActive ? 0 : isNoticeExpanded ? '6px 12px' : 0,
+          padding: isDictationPreviewActive || isNotificationActive ? 0 : isNoticeExpanded ? '6px 12px' : 0,
           pointerEvents: 'auto',
           touchAction: 'none',
         }}
       >
         <AnimatePresence mode="wait" initial={false}>
-          {isNotificationActive ? (
+          {isDictationPreviewActive ? (
+            <motion.div
+              key="dictation-preview"
+              initial={{ opacity: 0, scale: 0.92, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+              onClick={(event) => event.stopPropagation()}
+              style={{ width: '100%', height: '100%', display: 'flex' }}
+            >
+              <DictationPreviewInline
+                id={dictationPreview!.id}
+                originalText={dictationPreview!.originalText}
+                initialText={dictationPreview!.text}
+                sessionId={dictationPreview!.sessionId}
+                onClose={() => setDictationPreview(null)}
+                onSave={() => setDictationPreview(null)}
+              />
+            </motion.div>
+          ) : isNotificationActive ? (
             <motion.div
               key="pill-notification"
               initial={{ opacity: 0, scale: 0.92, x: -10 }}
@@ -624,11 +821,27 @@ export default function Pill() {
               onClick={(event) => event.stopPropagation()}
               style={{ width: '100%', height: '100%', display: 'flex' }}
             >
-              <NotificationRenderer
-                notification={activeNotification!}
-                compact
-                handlers={handlers}
-              />
+              {snoozePayload ? (
+                <SnoozeOptions
+                  onSnooze={(minutes) => {
+                    sendBridgeMessage({ type: 'tasks/snooze', task_id: snoozePayload.task_id, minutes });
+                    dismissNotification();
+                    setSnoozePayload(null);
+                  }}
+                  onCancel={() => setSnoozePayload(null)}
+                />
+              ) : (
+                <NotificationRenderer
+                  notification={activeNotification!}
+                  compact
+                  handlers={handlers}
+                  onNotificationBodyClick={() => {
+                    if (activeNotification?.kind === 'pill_notification') {
+                      setSnoozePayload(activeNotification.payload);
+                    }
+                  }}
+                />
+              )}
             </motion.div>
           ) : isNoticeExpanded ? (
             <motion.div

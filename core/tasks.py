@@ -36,6 +36,8 @@ def _normalize_task_schema(task: dict) -> dict:
     task.setdefault("carried_over", False)
     task.setdefault("failed", False)
     task.setdefault("snoozed_until", None)
+    task.setdefault("category", None)
+    task.setdefault("difficulty", None)
     return task
 
 # Legacy path — migrated on first load if a newer memory/tasks.json is absent.
@@ -45,7 +47,35 @@ if _LEGACY_APPDATA:
     _LEGACY_TASKS_PATH = Path(_LEGACY_APPDATA) / "Wiztant" / "tasks.json"
 else:
     _LEGACY_TASKS_PATH = Path("/dev/null")  # never exists on Linux
-_TASK_REFINER_MODEL = os.getenv("TASK_REFINER_MODEL", os.getenv("AGENT_PLANNER_MODEL", "qwen/qwen3-vl-30b-a3b-instruct"))
+def _load_model_setting(key: str, default: str) -> str:
+    try:
+        import json
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            val = data.get(key)
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+    except Exception:
+        pass
+    return os.getenv(key, default)
+
+
+def _load_task_ai_enabled() -> bool:
+    """Read the TaskStack AI refinement toggle from settings.json."""
+    try:
+        import json
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return bool(data.get("task_ai_enabled", True))
+    except Exception:
+        pass
+    return True
+
+_TASK_REFINER_MODEL = _load_model_setting("TASK_REFINER_MODEL", _load_model_setting("AGENT_PLANNER_MODEL", "anthropic/claude-haiku-4.5"))
 _OR_KEY = os.getenv("OPENROUTER_API_KEY", "")
 _OR_BASE_URL = (os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1") or "https://openrouter.ai/api/v1").rstrip("/")
 _OR_URL = _OR_BASE_URL if _OR_BASE_URL.endswith("/chat/completions") else f"{_OR_BASE_URL}/chat/completions"
@@ -59,6 +89,9 @@ _SUGGESTION_CACHE = {"key": "", "text": None}
 
 # Content length threshold to classify a task as 'large' for dedicated panel
 _TASK_LARGE_THRESHOLD = 400
+
+
+DEFAULT_CATEGORIES = ["College", "Home", "Solopreneur", "Solo Project", "Group Project", "Other"]
 
 
 def _tasks_path() -> Path:
@@ -91,12 +124,24 @@ def _load() -> dict:
                             if normalized != before:
                                 changed = True
                     data["tasks"] = normalized_tasks
+                    # One-time backfill: auto-categorize legacy tasks missing category/difficulty
+                    try:
+                        from core.task_categorizer import auto_categorize
+                        cats = data.get("categories", DEFAULT_CATEGORIES)
+                        for task in normalized_tasks:
+                            if task.get("category") is None:
+                                cat, diff = auto_categorize(task.get("text", ""), categories=cats)
+                                task["category"] = cat
+                                task["difficulty"] = diff
+                                changed = True
+                    except Exception:
+                        pass
                     if changed:
                         _save(data)
                     return data
         except Exception:
             pass
-    return {"tasks": [], "history": []}
+    return {"tasks": [], "history": [], "categories": DEFAULT_CATEGORIES.copy()}
 
 
 def _save(data: dict) -> None:
@@ -200,6 +245,9 @@ def refine_task_text(task_text: str) -> str:
     cleaned = _normalize_space(task_text).strip(" .,-")
     if not cleaned:
         return ""
+    # Respect user opt-out: skip LLM refinement when AI is disabled for TaskStack
+    if not _load_task_ai_enabled():
+        return cleaned
     refined = _request_openrouter_text(
         "You lightly refine a spoken task fragment for a task list. Preserve meaning, scope, and urgency. Remove filler words only. Do not add new details. Return only the refined task text.",
         cleaned,
@@ -251,12 +299,47 @@ def get_task_snapshot(history_limit: int = 40) -> dict:
         "tasks": get_tasks(),
         "history": get_task_history(limit=history_limit),
         "suggestion": get_daily_task_suggestion(),
+        "categories": get_categories(),
     }
 
 
-def add_task(text: str, source: str = "typed", due_at: Optional[str] = None,
-             parent_id: Optional[str] = None) -> dict:
+def get_categories() -> list[str]:
+    return _load().get("categories", DEFAULT_CATEGORIES.copy())
+
+
+def add_category(name: str) -> bool:
     data = _load()
+    cats = data.setdefault("categories", DEFAULT_CATEGORIES.copy())
+    cleaned = name.strip()
+    if cleaned and cleaned not in cats:
+        cats.append(cleaned)
+        _save(data)
+        _notify_overlay()
+        return True
+    return False
+
+
+def remove_category(name: str) -> bool:
+    data = _load()
+    cats = data.get("categories", [])
+    if name in cats and name != "Other":
+        cats.remove(name)
+        for task in data.get("tasks", []):
+            if task.get("category") == name:
+                task["category"] = "Other"
+        _save(data)
+        _notify_overlay()
+        return True
+    return False
+
+
+def add_task(text: str, source: str = "typed", due_at: Optional[str] = None,
+             parent_id: Optional[str] = None, category: Optional[str] = None,
+             difficulty: Optional[str] = None) -> dict:
+    from core.task_categorizer import auto_categorize
+    data = _load()
+    cats = data.get("categories", DEFAULT_CATEGORIES)
+    auto_cat, auto_diff = auto_categorize(text, categories=cats)
     task = _normalize_task_schema({
         "id": _new_id(),
         "text": text.strip(),
@@ -266,6 +349,8 @@ def add_task(text: str, source: str = "typed", due_at: Optional[str] = None,
         "due_at": due_at,
         "completed_at": None,
         "parent_id": parent_id,
+        "category": category if category is not None else auto_cat,
+        "difficulty": difficulty if difficulty is not None else auto_diff,
     })
     data.setdefault("tasks", []).append(task)
     _save(data)
@@ -427,6 +512,12 @@ def edit_task_fields(task_id: str, fields: dict) -> Optional[dict]:
                 task["status"] = fields["status"] if fields["status"] in ("pending", "done") else task.get("status", "pending")
             if "completed_at" in fields:
                 task["completed_at"] = fields["completed_at"]
+            if "category" in fields:
+                val = fields["category"]
+                task["category"] = str(val).strip() if val is not None else None
+            if "difficulty" in fields:
+                val = fields["difficulty"]
+                task["difficulty"] = val if val in ("easy", "medium", "hard", None) else task.get("difficulty")
             _normalize_task_schema(task)
             _save(data)
             _notify_overlay()
@@ -442,11 +533,14 @@ def save_session_as_task(title: str, prompt_content: str) -> dict:
     - content: full prompt/session body
     - task_type: 'large' if content length > threshold, else 'small'
     """
+    from core.task_categorizer import auto_categorize
     title = _normalize_space(title).strip(" .,-") or "Session continuation"
     content = str(prompt_content or "").strip()
     task_type = "large" if len(content) > _TASK_LARGE_THRESHOLD else "small"
 
     data = _load()
+    cats = data.get("categories", DEFAULT_CATEGORIES)
+    category, difficulty = auto_categorize(title + " " + content, categories=cats)
     task = _normalize_task_schema({
         "id": _new_id(),
         "text": title,
@@ -458,6 +552,8 @@ def save_session_as_task(title: str, prompt_content: str) -> dict:
         "parent_id": None,
         "content": content,
         "task_type": task_type,
+        "category": category,
+        "difficulty": difficulty,
     })
     data.setdefault("tasks", []).append(task)
     _save(data)
@@ -614,18 +710,38 @@ def mark_failed(task_id: str) -> bool:
 _ADD_PATTERNS = [
     # Explicit prefix: "this is a task ..." / "this is task ..."
     re.compile(r"^(?:this\s+is\s+(?:a\s+|an\s+|the\s+)?task)\s*[:\-,]?\s+(.+)$", re.IGNORECASE),
-    # "add/create/new/make/set up (a/an/the) task (to|for|:|-)? X"
-    re.compile(r"^(?:add|create|new|make|set\s+up)\s+(?:a\s+|an\s+|the\s+)?task(?:\s*[:\-,]|\s+for|\s+to)?\s+(.+)$", re.IGNORECASE),
+    # "add/create/new/make/set up/store (a/an/the) task (to|for|:|-)? X"
+    re.compile(r"^(?:add|create|new|make|set\s+up|store)\s+(?:a\s+|an\s+|the\s+)?task(?:\s*[:\-,]|\s+for|\s+to)?\s+(.+)$", re.IGNORECASE),
     # "add X as a task"
-    re.compile(r"^(?:add|create|new|make|set\s+up)\s+(.+?)\s+(?:as|to)\s+(?:a\s+)?task$", re.IGNORECASE),
+    re.compile(r"^(?:add|create|new|make|set\s+up|store)\s+(.+?)\s+(?:as|to)\s+(?:a\s+)?task$", re.IGNORECASE),
     # "task: X" / "task - X" / "todo: X" — requires explicit separator to avoid false positives
     re.compile(r"^(?:task|todo|to\s+do)\s*[:\-]\s*(.+)$", re.IGNORECASE),
 ]
 
-# Implicit phrasing ("I need to ...", "remind me to ...") is intentionally
-# NOT treated as a task command — those should paste normally. The user must
-# prefix with "task ..." / "this is a task ..." / "add task ..." explicitly.
-_IMPLICIT_ADD_PATTERNS: list[re.Pattern] = []
+# Trailing / general "mentions task" patterns for smart dictation detection.
+# These are checked AFTER explicit prefixes so we don't double-match.
+_MENTION_PATTERNS = [
+    # Trailing keyword: "... this is a task" / "... that is a task"
+    re.compile(r"^(.+?)\s+(?:this|that)\s+is\s+(?:a\s+|an\s+|the\s+)?task$", re.IGNORECASE),
+    # Trailing: "... add that as a task" / "... make that a task" / "... set this as a task" / "... store this as a task"
+    re.compile(r"^(.+?)\s+(?:add|make|set|store)\s+(?:that|this|it)\s+(?:as\s+|a\s+)?task$", re.IGNORECASE),
+    # General trailing mention: "... task" / "... todo" (content must be ≥ 2 real words)
+    re.compile(r"^(.+?)\s+(?:task|todo)$", re.IGNORECASE),
+]
+
+# Natural-language implicit task phrasing (no "task" keyword required).
+# These fire only when the utterance also contains a time marker or the word
+# "task" / "todo" — this prevents normal dictation from being captured.
+_IMPLICIT_PATTERNS = [
+    re.compile(r"\b(?:i\s+)?(?:need|have|want|should|must|got)\s+(?:to|ta)\s+(.+)", re.IGNORECASE),
+    re.compile(r"\bremind\s+me\s+(?:to|ta)\s+(.+)", re.IGNORECASE),
+    re.compile(r"\bdon['']t\s+forget\s+(?:to|ta)\s+(.+)", re.IGNORECASE),
+    re.compile(r"\b(?:i['']?ll|i\s+will|i\s+am\s+going\s+to|i['']?m\s+going\s+to)\s+(.+)", re.IGNORECASE),
+    re.compile(r"\b((?:please\s+)?(?:complete|finish|do|handle|take\s+care\s+of)\s+.+)", re.IGNORECASE),
+    re.compile(r"\b(?:can|could)\s+(?:you\s+)?(?:please\s+)?(.+)", re.IGNORECASE),
+    re.compile(r"\bmake\s+sure\s+(?:to|ta)\s+(.+)", re.IGNORECASE),
+    re.compile(r"\bremember\s+(?:to|ta)\s+(.+)", re.IGNORECASE),
+]
 
 _DONE_PATTERNS = [
     re.compile(r"^(?:done|complete|finish|mark\s+done)\s+(.+)$", re.IGNORECASE),
@@ -964,6 +1080,123 @@ def _extract_task_candidate(transcript: str) -> Optional[str]:
             if candidate:
                 return candidate
     return None
+
+
+def extract_task_mention(transcript: str) -> Optional[str]:
+    """Extract a task candidate from an utterance.
+
+    Two-layer behavior:
+      1. Explicit prefix patterns ("add task ...", "this is a task: ...",
+         "task: ...") → return the stripped candidate immediately.
+      2. Borderline mentions → if the text contains "task" or "todo" but
+         does NOT match an explicit prefix, return the RAW text so the
+         caller can run LLM intent verification.  This prevents casual
+         mentions from silently becoming tasks.
+
+    Returns None if the text has nothing to do with tasks.
+    """
+    text = _normalize_space(transcript).strip(" ,.-:;")
+    if not text:
+        return None
+
+    # 1. Explicit prefixes — fast path, extracted candidate returned
+    candidate = _extract_task_candidate(text)
+    if candidate:
+        return candidate
+
+    # 2. Borderline: text mentions 'task'/'tasks' or 'todo' but no explicit
+    # prefix matched. Return raw text so the caller can run LLM intent
+    # verification.
+    if re.search(r"\b(task|tasks|todo|to\s+do)\b", text, re.IGNORECASE):
+        return text
+
+    return None
+
+
+_TASK_INTENT_SYSTEM_PROMPT = (
+    "You are a strict task-intent classifier for a voice dictation assistant. "
+    "Your ONLY job is to decide whether the user is EXPLICITLY asking to create a new task, "
+    "or just talking ABOUT tasks casually.\n\n"
+    "EXPLICIT_TASK_REQUEST indicators (must create):\n"
+    '- Direct imperatives with "task"/"todo": "add task X", "create a task for X", "set up a task for X"\n'
+    '- Declarations with separator: "this is a task: X", "task: X", "todo: X"\n'
+    '- Transformative imperatives: "make that a task", "add that as a task"\n'
+    '- Natural language ONLY when "task"/"todo" is also present: "remind me to call mom task", "I need to finish the report by 3pm todo"\n\n'
+    "CASUAL_MENTION indicators (must NOT create):\n"
+    '- Describing state: "I have a lot of tasks today", "my task list is long"\n'
+    '- Commentary: "that sounds like a task", "tasks are important"\n'
+    '- Past tense / reflection: "I was thinking about tasks earlier"\n'
+    '- Questions: "what tasks do I have?"\n'
+    '- Meta-talk: "remind me to think about tasks"\n'
+    '- Natural language WITHOUT "task"/"todo": "I need to call John", "remind me to call mom"\n\n'
+    "RULES:\n"
+    "1. Presence of the word 'task'/'tasks'/'todo' ALONE is NOT enough.\n"
+    "2. Natural language without 'task'/'todo' is NEVER a task request.\n"
+    "3. Past tense, questions, and meta-commentary about tasks are NEVER task requests.\n"
+    "4. If uncertain, classify as casual_mention.\n"
+    "5. Respond with a single-line JSON object ONLY: "
+    '{"intent": "explicit_task_request" | "casual_mention", "confidence": 0.0-1.0, "reason": "<one sentence>"}\n'
+    "No markdown, no backticks, no extra text."
+)
+
+
+def verify_task_intent(transcript: str) -> Optional[str]:
+    """Use a lightweight LLM to verify whether a transcript is an explicit
+    task-creation request or a casual mention of tasks.
+
+    Returns the original transcript if the LLM classifies it as an
+    explicit_task_request with confidence >= 0.8.
+    Returns None for anything else (fail-closed).
+    """
+    text = _normalize_space(transcript).strip(" ,.-:;")
+    if not text:
+        return None
+
+    if not _OR_KEY:
+        return None
+
+    raw = _request_openrouter_text(
+        _TASK_INTENT_SYSTEM_PROMPT,
+        f'USER SAID: "{text}"\nClassify intent.',
+        max_tokens=80,
+    )
+    if not raw:
+        return None
+
+    # Strip markdown fences if the model ignored instructions
+    cleaned = raw.strip()
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```\w*\n?", "", cleaned)
+        cleaned = re.sub(r"\n?```$", "", cleaned)
+
+    # Extract the first JSON object
+    match = re.search(r"\{.*?\}", cleaned, re.DOTALL)
+    if not match:
+        return None
+
+    try:
+        obj = json.loads(match.group(0))
+    except Exception:
+        return None
+
+    intent = str(obj.get("intent", "")).strip().lower()
+    confidence = float(obj.get("confidence", 0.0))
+
+    if intent == "explicit_task_request" and confidence >= 0.8:
+        return text
+    return None
+
+
+def is_explicit_task_command(transcript: str) -> bool:
+    """Return True if the transcript matches an explicit task-creation prefix.
+
+    Explicit prefixes include: "add task ...", "create a task for ...",
+    "this is a task: ...", "task: ...", "todo: ...", etc.
+    """
+    text = _normalize_space(transcript).strip(" ,.-:;")
+    if not text:
+        return False
+    return _extract_task_candidate(text) is not None
 
 
 def parse_task_command(transcript: str) -> Optional[dict]:

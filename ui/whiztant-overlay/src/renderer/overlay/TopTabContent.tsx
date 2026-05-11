@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'framer-motion';
 import type { ReactNode } from 'react';
 import type { TopTabId } from './useTopTabNav';
 
@@ -7,26 +6,37 @@ type Props = {
   chat: ReactNode;
   wizprompt: ReactNode;
   agent: ReactNode;
+  builder: ReactNode;
   tasks: ReactNode;
   memories: ReactNode;
-  tunehub: ReactNode;
 };
 
-export default function TopTabContent({ activeTab, chat, wizprompt, agent, tasks, memories, tunehub }: Props) {
-  const content = { chat, wizprompt, agent, tasks, memories, tunehub }[activeTab];
+export default function TopTabContent({ activeTab, chat, wizprompt, agent, builder, tasks, memories }: Props) {
+  const tabs: [TopTabId, ReactNode][] = [
+    ['chat', chat],
+    ['wizprompt', wizprompt],
+    ['agent', agent],
+    ['builder', builder],
+    ['tasks', tasks],
+    ['memories', memories],
+  ];
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -6 }}
-        transition={{ duration: 0.15 }}
-        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
-      >
-        {content}
-      </motion.div>
-    </AnimatePresence>
+    <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+      {tabs.map(([id, content]) => (
+        <div
+          key={id}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: activeTab === id ? 'flex' : 'none',
+            flexDirection: 'column',
+            overflowY: 'auto',
+          }}
+        >
+          {content}
+        </div>
+      ))}
+    </div>
   );
 }

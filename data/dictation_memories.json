@@ -1,6 +1,986 @@
 {
   "memories": [
     {
+      "id": "b3ca9d21",
+      "timestamp": "2026-05-09T14:53:58.300129+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and I want you to explain the whole idea to me perfectly how the idea would be and even the revised prizes for the plans and stuff and starter builder pro which is what you are telling me so just go ahead and make me a whole revised summary of what we talked about talked about and how I can implement this.",
+      "final_text": "I want you to go ahead and I want you to explain the whole idea to me perfectly how the idea would be and even the revised prizes for the plans and stuff and starter builder pro which is what you are telling me so just go ahead and make me a whole revised summary of what we talked about talked about and how I can implement this."
+    },
+    {
+      "id": "600d4fed",
+      "timestamp": "2026-05-09T14:53:57.721956+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and I want you to explain the whole idea to me perfectly how the idea would be and even the revised prizes for the plans and stuff and starter builder pro which is what you are telling me so just go ahead and make me a whole revised summary of what we talked about talked about and how I can implement this.",
+      "final_text": "I want you to go ahead and I want you to explain the whole idea to me perfectly how the idea would be and even the revised prizes for the plans and stuff and starter builder pro which is what you are telling me so just go ahead and make me a whole revised summary of what we talked about talked about and how I can implement this."
+    },
+    {
+      "id": "5b9193c5",
+      "timestamp": "2026-05-09T14:46:32.296734+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and fix this. There is an error whenever I go into the admin page. I have entered the Superbase URL inside the environment variables of Netlify. Something else, the Anon key or the publishable key should be put but then it is showing this so I wanted to fix that first.",
+      "final_text": "I want you to go ahead and fix this. There is an error whenever I go into the admin page. I have entered the Superbase URL inside the environment variables of Netlify. Something else, the Anon key or the publishable key should be put but then it is showing this so I wanted to fix that first."
+    },
+    {
+      "id": "dba2aa9c",
+      "timestamp": "2026-05-09T14:46:31.680510+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and fix this. There is an error whenever I go into the admin page. I have entered the Superbase URL inside the environment variables of Netlify. Something else, the Anon key or the publishable key should be put but then it is showing this so I wanted to fix that first.",
+      "final_text": "I want you to go ahead and fix this. There is an error whenever I go into the admin page. I have entered the Superbase URL inside the environment variables of Netlify. Something else, the Anon key or the publishable key should be put but then it is showing this so I wanted to fix that first."
+    },
+    {
+      "id": "3579d9d9",
+      "timestamp": "2026-05-08T15:05:59.767578+00:00",
+      "mode": "dictation",
+      "original_text": "Remove the desktop usage panel inside the dictation tab in settings.",
+      "final_text": "Remove the desktop usage panel inside the dictation tab in settings."
+    },
+    {
+      "id": "75bbe4f7",
+      "timestamp": "2026-05-08T15:05:59.178440+00:00",
+      "mode": "dictation",
+      "original_text": "Remove the desktop usage panel inside the dictation tab in settings.",
+      "final_text": "Remove the desktop usage panel inside the dictation tab in settings."
+    },
+    {
+      "id": "6f25dcfb",
+      "timestamp": "2026-05-08T15:05:16.428794+00:00",
+      "mode": "dictation",
+      "original_text": "The credit usage history is being shown inside the credits tab The credit usage history of whatever was used, how much was used That should be a drop down thing Like if they want to see it, they can scroll on that place And 1 more thing would be that each time I end the app and open it up again The credits is still staying as 5000 itself, it is not updating properly It should be updated properly and made to be updated real time.",
+      "final_text": "The credit usage history is being shown inside the credits tab The credit usage history of whatever was used, how much was used That should be a drop down thing Like if they want to see it, they can scroll on that place And 1 more thing would be that each time I end the app and open it up again The credits is still staying as 5000 itself, it is not updating properly It should be updated properly and made to be updated real time."
+    },
+    {
+      "id": "04e44745",
+      "timestamp": "2026-05-08T15:05:15.841821+00:00",
+      "mode": "dictation",
+      "original_text": "The credit usage history is being shown inside the credits tab The credit usage history of whatever was used, how much was used That should be a drop down thing Like if they want to see it, they can scroll on that place And 1 more thing would be that each time I end the app and open it up again The credits is still staying as 5000 itself, it is not updating properly It should be updated properly and made to be updated real time.",
+      "final_text": "The credit usage history is being shown inside the credits tab The credit usage history of whatever was used, how much was used That should be a drop down thing Like if they want to see it, they can scroll on that place And 1 more thing would be that each time I end the app and open it up again The credits is still staying as 5000 itself, it is not updating properly It should be updated properly and made to be updated real time."
+    },
+    {
+      "id": "4fefa1d9",
+      "timestamp": "2026-05-08T15:04:00.930128+00:00",
+      "mode": "dictation",
+      "original_text": "The credit usage isn't being shown real time It's not even updating. It's still at 5000 even if I'm using The prompt or do you know about dictation all that it is not updating property just check through what is the Why is the credit usage not being updated and is it connected to the models token? Token specific usage or not?",
+      "final_text": "The credit usage isn't being shown real time It's not even updating. It's still at 5000 even if I'm using The prompt or do you know about dictation all that it is not updating property just check through what is the Why is the credit usage not being updated and is it connected to the models token? Token specific usage or not?"
+    },
+    {
+      "id": "567e57d5",
+      "timestamp": "2026-05-08T15:04:00.339487+00:00",
+      "mode": "dictation",
+      "original_text": "The credit usage isn't being shown real time It's not even updating. It's still at 5000 even if I'm using The prompt or do you know about dictation all that it is not updating property just check through what is the Why is the credit usage not being updated and is it connected to the models token? Token specific usage or not?",
+      "final_text": "The credit usage isn't being shown real time It's not even updating. It's still at 5000 even if I'm using The prompt or do you know about dictation all that it is not updating property just check through what is the Why is the credit usage not being updated and is it connected to the models token? Token specific usage or not?"
+    },
+    {
+      "id": "4bcd23f6",
+      "timestamp": "2026-05-08T15:03:13.870147+00:00",
+      "mode": "dictation",
+      "original_text": "The reprompt memories aren't being stored, that should be fixed.",
+      "final_text": "The reprompt memories aren't being stored, that should be fixed."
+    },
+    {
+      "id": "4a9cf0f0",
+      "timestamp": "2026-05-08T15:03:13.281071+00:00",
+      "mode": "dictation",
+      "original_text": "The reprompt memories aren't being stored, that should be fixed.",
+      "final_text": "The reprompt memories aren't being stored, that should be fixed."
+    },
+    {
+      "id": "fdbd8c99",
+      "timestamp": "2026-05-08T15:02:52.956756+00:00",
+      "mode": "dictation",
+      "original_text": "For the tasks thing, the AI on should be a toggle to make it AI on and AI off.",
+      "final_text": "For the tasks thing, the AI on should be a toggle to make it AI on and AI off."
+    },
+    {
+      "id": "31f994b2",
+      "timestamp": "2026-05-08T15:02:52.328102+00:00",
+      "mode": "dictation",
+      "original_text": "For the tasks thing, the AI on should be a toggle to make it AI on and AI off.",
+      "final_text": "For the tasks thing, the AI on should be a toggle to make it AI on and AI off."
+    },
+    {
+      "id": "c804bf08",
+      "timestamp": "2026-05-08T14:55:03.091485+00:00",
+      "mode": "dictation",
+      "original_text": "For the reprompt, make it so that there is no remember or don't remember button. It should always remember whatever reprompting was done. But then the final output, which would be after the person has edited and then copied the thing. And 1 more thing would be in the UI, I want you to go ahead and make it so that The output is coming just in like 4 lines visible, like 3 lines visible. I want you to make it much larger, at least 15 lines of space should be seen. And yeah, it should be scrollable inside and outside if I scroll it should show the whole text. At least 15 lines of it.",
+      "final_text": "For the reprompt, make it so that there is no remember or don't remember button. It should always remember whatever reprompting was done. But then the final output, which would be after the person has edited and then copied the thing. And 1 more thing would be in the UI, I want you to go ahead and make it so that The output is coming just in like 4 lines visible, like 3 lines visible. I want you to make it much larger, at least 15 lines of space should be seen. And yeah, it should be scrollable inside and outside if I scroll it should show the whole text. At least 15 lines of it."
+    },
+    {
+      "id": "70a3d3ab",
+      "timestamp": "2026-05-08T14:55:02.504196+00:00",
+      "mode": "dictation",
+      "original_text": "For the reprompt, make it so that there is no remember or don't remember button. It should always remember whatever reprompting was done. But then the final output, which would be after the person has edited and then copied the thing. And 1 more thing would be in the UI, I want you to go ahead and make it so that The output is coming just in like 4 lines visible, like 3 lines visible. I want you to make it much larger, at least 15 lines of space should be seen. And yeah, it should be scrollable inside and outside if I scroll it should show the whole text. At least 15 lines of it.",
+      "final_text": "For the reprompt, make it so that there is no remember or don't remember button. It should always remember whatever reprompting was done. But then the final output, which would be after the person has edited and then copied the thing. And 1 more thing would be in the UI, I want you to go ahead and make it so that The output is coming just in like 4 lines visible, like 3 lines visible. I want you to make it much larger, at least 15 lines of space should be seen. And yeah, it should be scrollable inside and outside if I scroll it should show the whole text. At least 15 lines of it."
+    },
+    {
+      "id": "3b300a3b",
+      "timestamp": "2026-05-08T13:52:07.365852+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, things which, like imagine I select just general optimization or even idea refinement or something like that which don't need a role and stuff for it to identify what should like what the prompt is for the AI. I don't want it to change it up very much because some of the details which I have in have asked in that aren't staying up to what I asked. So if I ask like chemical law, it is not mentioning that properly. So just let me know how, sorry make this proper and come back to me.",
+      "final_text": "Hey, things which, like imagine I select just general optimization or even idea refinement or something like that which don't need a role and stuff for it to identify what should like what the prompt is for the AI. I don't want it to change it up very much because some of the details which I have in have asked in that aren't staying up to what I asked. so if I ask like chemical law, it is not mentioning that properly. so just let me know how, sorry make this proper and come back to me."
+    },
+    {
+      "id": "1874589d",
+      "timestamp": "2026-05-08T13:52:06.779184+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, things which, like imagine I select just general optimization or even idea refinement or something like that which don't need a role and stuff for it to identify what should like what the prompt is for the AI. I don't want it to change it up very much because some of the details which I have in have asked in that aren't staying up to what I asked. So if I ask like chemical law, it is not mentioning that properly. So just let me know how, sorry make this proper and come back to me.",
+      "final_text": "Hey, things which, like imagine I select just general optimization or even idea refinement or something like that which don't need a role and stuff for it to identify what should like what the prompt is for the AI. I don't want it to change it up very much because some of the details which I have in have asked in that aren't staying up to what I asked. so if I ask like chemical law, it is not mentioning that properly. so just let me know how, sorry make this proper and come back to me."
+    },
+    {
+      "id": "349795af",
+      "timestamp": "2026-05-08T13:48:08.699149+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, what do you recommend me to do? Like through chemical law, what can I do? Can I get clients for making websites for and can I make it go ahead and send emails to people, connect it through WhatsApp and make it send messages through WhatsApp to the clients and follow up them and get me the clients. Like can it get me real proper perfect clients who actually want to website if it's a new business and can it identify which businesses don't have a website and they need a website for this and what would be a good thing to add up on their thing to make them more revenue through the website and all that.",
+      "final_text": "Hey, what do you recommend me to do? Like through chemical law, what can I do? Can I get clients for making websites for and can I make it go ahead and send emails to people, connect it through WhatsApp and make it send messages through WhatsApp to the clients and follow up them and get me the clients. Like can it get me real proper perfect clients who actually want to website if it's a new business and can it identify which businesses don't have a website and they need a website for this and what would be a good thing to add up on their thing to make them more revenue through the website and all that."
+    },
+    {
+      "id": "49f3e7d2",
+      "timestamp": "2026-05-08T13:48:08.085135+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, what do you recommend me to do? Like through chemical law, what can I do? Can I get clients for making websites for and can I make it go ahead and send emails to people, connect it through WhatsApp and make it send messages through WhatsApp to the clients and follow up them and get me the clients. Like can it get me real proper perfect clients who actually want to website if it's a new business and can it identify which businesses don't have a website and they need a website for this and what would be a good thing to add up on their thing to make them more revenue through the website and all that.",
+      "final_text": "Hey, what do you recommend me to do? Like through chemical law, what can I do? Can I get clients for making websites for and can I make it go ahead and send emails to people, connect it through WhatsApp and make it send messages through WhatsApp to the clients and follow up them and get me the clients. Like can it get me real proper perfect clients who actually want to website if it's a new business and can it identify which businesses don't have a website and they need a website for this and what would be a good thing to add up on their thing to make them more revenue through the website and all that."
+    },
+    {
+      "id": "d4fe56eb",
+      "timestamp": "2026-05-08T13:46:05.668842+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, this thing, can you change the whole overlay, like the look of this? Make it more clean.",
+      "final_text": "Hey, this thing, can you change the whole overlay, like the look of this? Make it more clean."
+    },
+    {
+      "id": "f602565e",
+      "timestamp": "2026-05-08T13:46:05.070223+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, this thing, can you change the whole overlay, like the look of this? Make it more clean.",
+      "final_text": "Hey, this thing, can you change the whole overlay, like the look of this? Make it more clean."
+    },
+    {
+      "id": "b77856e2",
+      "timestamp": "2026-05-08T13:30:00.172974+00:00",
+      "mode": "dictation",
+      "original_text": "Hey the credit usage isn't happening I want each of the feature whenever used to be showing credit usage info like not for the dictation except the dictation for the tasks stack and for the reprompt and even for the tune hub I wanted to show up the credit usage for the what they do like imagine they do a reprompt it should show how much credit was used from it and tune hub the same thing task also the same thing if they use if they use the AI on task if they don't want it they can even deselected make that also happen for the tasks not for the tune hub and other ones.",
+      "final_text": "Hey the credit usage isn't happening I want each of the feature whenever used to be showing credit usage info like not for the dictation except the dictation for the tasks stack and for the reprompt and even for the tune hub I wanted to show up the credit usage for the what they do like imagine they do a reprompt it should show how much credit was used from it and tune hub the same thing task also the same thing if they use if they use the AI on task if they don't want it they can even deselected make that also happen for the tasks not for the tune hub and other ones."
+    },
+    {
+      "id": "118dacb9",
+      "timestamp": "2026-05-08T13:26:05.806445+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, none of the memories of the reprompt, like imagine I did a reprompt right now and it is not getting stored inside the memories and 1 more thing would be that the models, like if I select a model it should stay in that model itself for the next time I use it also even close the app and open the app again and it should also remember what this filter I use so like imagine last time I used prompt engineer. So the prompt engineer should be selected, pre-selected. So I want you to implement this.",
+      "final_text": "Hey, none of the memories of the reprompt, like imagine I did a reprompt right now and it is not getting stored inside the memories and 1 more thing would be that the models, like if I select a model it should stay in that model itself for the next time I use it also even close the app and open the app again and it should also remember what this filter I use so like imagine last time I used prompt engineer. so the prompt engineer should be selected, pre-selected. so I want you to implement this."
+    },
+    {
+      "id": "914e516c",
+      "timestamp": "2026-05-08T13:21:32.579549+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, any tab it might be, imagine there is a process going on in it, imagine it's reprompt or tune up or even the task tab, if it is closed or I go into the settings and come back or do something like that, it should still stay there.",
+      "final_text": "Hey, any tab it might be, imagine there is a process going on in it, imagine it's reprompt or tune up or even the task tab, if it is closed or I go into the settings and come back or do something like that, it should still stay there."
+    },
+    {
+      "id": "a1af0a50",
+      "timestamp": "2026-05-08T10:27:34.218656+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, the pill is in making none of the animations which I told you to make. Which would be the pill should expand and show the task if the overlay app is not open. And it should show this is a reminder or as a reminder or whenever they make a task. Or even when they switch on the dictation view whenever like whenever they do a dictation and they end it it should show a preview of what they told and if they edit in that yeah as I told you if they edit in that it should be stored in the database saying they have edited these things and they have copied this so the final copy what they do would be the final result so whatever words which they have changed should be stored in the database saying this is what it is and this is not what it is. So whenever they say this it should not be that it should be this kind of thing. And yeah make this proper work please. Just plan on it for now. Plan on how you can make fix this thing use systematic debugging from. Windsurf/rules/superpowers and go ahead and execute this use the writing plans for writing the plans and executing plans for executing the plan.",
+      "final_text": "Hey, the pill is in making none of the animations which I told you to make. Which would be the pill should expand and show the task if the overlay app is not open. And it should show this is a reminder or as a reminder or whenever they make a task. Or even when they switch on the dictation view whenever like whenever they do a dictation and they end it it should show a preview of what they told and if they edit in that yeah as I told you if they edit in that it should be stored in the database saying they have edited these things and they have copied this so the final copy what they do would be the final result so whatever words which they have changed should be stored in the database saying this is what it is and this is not what it is. so whenever they say this it should not be that it should be this kind of thing. And yeah make this proper work please. Just plan on it for now. Plan on how you can make fix this thing use systematic debugging from. Windsurf/rules/superpowers and go ahead and execute this use the writing plans for writing the plans and executing plans for executing the plan."
+    },
+    {
+      "id": "cfdc5b88",
+      "timestamp": "2026-05-08T10:25:32.214334+00:00",
+      "mode": "dictation",
+      "original_text": "Okay, it's perfect now. 1 more thing I want you to do is, I want you to make it so that, let's see, imagine they have pressed F9, they are dictating something, and by mistake, instead of pressing F9, they pressed F10. It should work normally, and it should be smart, knowing that it was dictation that they turned on at the starting, so it should be only the the dictation which should end and the task should not get on again. So yeah, do this the same way around. If they press F10 and press F9 by mistake, it should do the same thing.",
+      "final_text": "Okay, it's perfect now. 1 more thing I want you to do is, I want you to make it so that, let's see, imagine they have pressed F9, they are dictating something, and by mistake, instead of pressing F9, they pressed F10. It should work normally, and it should be smart, knowing that it was dictation that they turned on at the starting, so it should be only the the dictation which should end and the task should not get on again. so yeah, do this the same way around. If they press F10 and press F9 by mistake, it should do the same thing."
+    },
+    {
+      "id": "96b36065",
+      "timestamp": "2026-05-08T10:24:18.503855+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, fix this overlay problem. Like I just told a task and it came up like this on the app. So make this proper.",
+      "final_text": "Hey, fix this overlay problem. Like I just told a task and it came up like this on the app. so make this proper."
+    },
+    {
+      "id": "490a695b",
+      "timestamp": "2026-05-08T10:23:40.697445+00:00",
+      "mode": "task",
+      "original_text": "Hey I want to complete the API integrations today night by 10 p. m.",
+      "final_text": "Complete API integrations tonight"
+    },
+    {
+      "id": "a5edccb1",
+      "timestamp": "2026-05-08T10:22:28.578744+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, for the tasks, I want you to go ahead and plan on how you can implement a kind of a sort feature where the tasks are sorted based on the difficulties and based on what it belongs to, what category it belongs to. Imagine they are doing a project which is by themselves a solo project another with another with their like classmates for a project and another would be some homework which they have to do in for the college all those things like it should sort by itself and some would be home based tasks or anything like that it should sort based on what the task is and it should be sorted into tabs so the tabs on the tasks under the create task under the create task add a task thing and the task stack smart filter under that I wanted to add tabs wherein it shows college 1 more would be home 1 more would be like solopreneur or the app name what whatever they are mentioned on the tasks it should be updated based on that and it should be placed right there saying this task is there for you and you had told you do this kind of thing okay so yeah go ahead and plan on how you can implement this and come back to me when you're done with it I want you to plan on the UI and even the back end of this so plan perfectly use. Windsurf/rules/superpowers writing dash plans Brainstorming, systematic debugging and after you are done writing the plan use the executing dash plans.",
+      "final_text": "Hey, for the tasks, I want you to go ahead and plan on how you can implement a kind of a sort feature where the tasks are sorted based on the difficulties and based on what it belongs to, what category it belongs to. Imagine they are doing a project which is by themselves a solo project another with another with their like classmates for a project and another would be some homework which they have to do in for the college all those things like it should sort by itself and some would be home based tasks or anything like that it should sort based on what the task is and it should be sorted into tabs so the tabs on the tasks under the create task under the create task add a task thing and the task stack smart filter under that I wanted to add tabs wherein it shows college 1 more would be home 1 more would be like solopreneur or the app name what whatever they are mentioned on the tasks it should be updated based on that and it should be placed right there saying this task is there for you and you had told you do this kind of thing okay so yeah go ahead and plan on how you can implement this and come back to me when you're done with it I want you to plan on the UI and even the back end of this so plan perfectly use. Windsurf/rules/superpowers writing dash plans Brainstorming, systematic debugging and after you are done writing the plan use the executing dash plans."
+    },
+    {
+      "id": "dcf16091",
+      "timestamp": "2026-05-08T10:05:05.613007+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, I want you to go ahead and check whether everything stays under the credits thing itself. Right now it's showing 0 credits for me. That's wrong but yeah, it's showing 0 credits for me. And if 0 credits is there, it shouldn't be able to do the dictation. The dictation shouldn't work but it is still working for some reason. So I want you to plan on edge cases for each feature which it should follow perfectly wherein if the credits is done it should not work if the credits is getting over while it's doing the task it should stop right there and do only sorry just stop for there itself and yeah all those things I want you to implement all these and come back to me when you're done so just plan on how you can implement edge cases for all the features that I have on my app which would be the agent the reprompt the dictation and tune hub so all 4 of these should have edge cases which it should follow at any cost make it professional make it perfectly as how other AI platforms use their things and make it so that it follows the perfect edge cases for it so yeah just do this for me.",
+      "final_text": "Hey, I want you to go ahead and check whether everything stays under the credits thing itself. Right now it's showing 0 credits for me. That's wrong but yeah, it's showing 0 credits for me. And if 0 credits is there, it shouldn't be able to do the dictation. The dictation shouldn't work but it is still working for some reason. so I want you to plan on edge cases for each feature which it should follow perfectly wherein if the credits is done it should not work if the credits is getting over while it's doing the task it should stop right there and do only sorry just stop for there itself and yeah all those things I want you to implement all these and come back to me when you're done so just plan on how you can implement edge cases for all the features that I have on my app which would be the agent the reprompt the dictation and tune hub so all 4 of these should have edge cases which it should follow at any cost make it professional make it perfectly as how other AI platforms use their things and make it so that it follows the perfect edge cases for it so yeah just do this for me."
+    },
+    {
+      "id": "020ef059",
+      "timestamp": "2026-05-08T10:01:54.358328+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, the thing is not still working. Whenever I record something and I tell something, it is not pasting the text on another desktop which I am using right now. So I want you to make this proper, make it so that it pastes properly. If I am trying to paste it in the second desktop, it should paste in the second desktop itself. And it is asking for approval many many many times for no reason if approved once it should be approved always okay and yeah just make that happen for me now.",
+      "final_text": "Hey, the thing is not still working. Whenever I record something and I tell something, it is not pasting the text on another desktop which I am using right now. so I want you to make this proper, make it so that it pastes properly. If I am trying to paste it in the second desktop, it should paste in the second desktop itself. And it is asking for approval many many many times for no reason if approved once it should be approved always okay and yeah just make that happen for me now."
+    },
+    {
+      "id": "59de0526",
+      "timestamp": "2026-05-08T10:00:44.139540+00:00",
+      "mode": "dictation",
+      "original_text": "When pressing on the credits card on the top of the app, it is going just to the settings page. I want it to go to the credits tab on the settings. And 1 more thing, I want you to put an indicator in the settings tab for showing that it is scrollable sideways. Just as a scroll bar on the top of that tabs menu. So yeah, do that for me. And 1 more thing would be, I am in the power plant right now, so it should have 5000 credits. But it's not showing up there.",
+      "final_text": "When pressing on the credits card on the top of the app, it is going just to the settings page. I want it to go to the credits tab on the settings. And 1 more thing, I want you to put an indicator in the settings tab for showing that it is scrollable sideways. Just as a scroll bar on the top of that tabs menu. so yeah, do that for me. And 1 more thing would be, I am in the power plant right now, so it should have 5000 credits. But it's not showing up there."
+    },
+    {
+      "id": "6c9be675",
+      "timestamp": "2026-05-08T09:56:19.800056+00:00",
+      "mode": "dictation",
+      "original_text": "I want the content only inside the Wishtrend website to be put on GitHub. For now I'll just make a new project on GitHub and I'll send you the link. I want you to make the push to the new project. But then this project it should be only the website okay. This is for the website deployment. So yeah according to that I want you to do properly. And I want it to be proper in accordance of like just the website content should be pasted not the whole folder.",
+      "final_text": "I want the content only inside the Wishtrend website to be put on GitHub. For now I'll just make a new project on GitHub and I'll send you the link. I want you to make the push to the new project. But then this project it should be only the website okay. This is for the website deployment. so yeah according to that I want you to do properly. And I want it to be proper in accordance of like just the website content should be pasted not the whole folder."
+    },
+    {
+      "id": "05ddee93",
+      "timestamp": "2026-05-08T09:46:26.162033+00:00",
+      "mode": "dictation",
+      "original_text": "In the credits tab itself, I want you to add upgrade plan or sign in, all those things. Sign in is not needed but yeah, add the upgrade plan. If they press upgrade plan it should navigate to the website which would be Wisstent/wisdom. Com/Rising.",
+      "final_text": "In the credits tab itself, I want you to add upgrade plan or sign in, all those things. Sign in is not needed but yeah, add the upgrade plan. If they press upgrade plan it should navigate to the website which would be Wisstent/wisdom. Com/Rising."
+    },
+    {
+      "id": "c01d1f2d",
+      "timestamp": "2026-05-08T09:33:15.806613+00:00",
+      "mode": "dictation",
+      "original_text": "See, I had told you to put the credits inside the settings, right? The credits thing isn't showing up inside the settings. I want you to make it come showing how much balance credits are there. And it should be real time updated whenever a user uses something. It should be updated on the credits also. And just. ..",
+      "final_text": "See, I had told you to put the credits inside the settings, right? The credits thing isn't showing up inside the settings. I want you to make it come showing how much balance credits are there. And it should be real time updated whenever a user uses something. It should be updated on the credits also. And just. .."
+    },
+    {
+      "id": "85ab5fa1",
+      "timestamp": "2026-05-08T09:03:17.806853+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and make a thing on the navbar where they can sign in through like a circle thing where if they sign in their profile picture of that account will be shown over there. They should be signing in to Google and they should be signing in to normal thing also and a sign up too on the account itself or sign up through Google too. Okay.",
+      "final_text": "I want you to go ahead and make a thing on the navbar where they can sign in through like a circle thing where if they sign in their profile picture of that account will be shown over there. They should be signing in to Google and they should be signing in to normal thing also and a sign up too on the account itself or sign up through Google too. Okay."
+    },
+    {
+      "id": "266fff00",
+      "timestamp": "2026-05-07T19:33:42.717696+00:00",
+      "mode": "dictation",
+      "original_text": "I'm alright, I'm crazy, I'm in no time, I think, think that I, the fault that I get, I'm out of your mind, the shit is red, he ain't a sign, ain't a good sign, change my mind, good conversation and some rosy wine, unless there's some other things you got on mine, The night, hey, hey, hey.",
+      "final_text": "I'm alright, I'm crazy, I'm in no time, I think, think that I, the fault that I get, I'm out of your mind, the shit is red, he ain't a sign, ain't a good sign, change my mind, good conversation and some rosy wine, unless there's some other things you got on mine, The night, hey, hey, hey."
+    },
+    {
+      "id": "3d000dff",
+      "timestamp": "2026-05-07T19:32:43.284334+00:00",
+      "mode": "dictation",
+      "original_text": "Ahem.",
+      "final_text": "Ahem."
+    },
+    {
+      "id": "6152d156",
+      "timestamp": "2026-05-07T19:08:08.682349+00:00",
+      "mode": "dictation",
+      "original_text": "I want the starting approach to be something very professional which a professional youtuber or a professional poster might post and then it should transition into my thing.",
+      "final_text": "I want the starting approach to be something very professional which a professional youtuber or a professional poster might post and then it should transition into my thing."
+    },
+    {
+      "id": "37893f39",
+      "timestamp": "2026-05-07T19:06:23.752412+00:00",
+      "mode": "dictation",
+      "original_text": "I want something like a kind of a transition from like a normal post, imagine like tech reviews or something like this is the 5A8 that you should use and all that. Something interesting like that which would make people scroll but then it would be about my app at the end you know like after like 2 scrolls they get to know why is it glitching in the background or something and all is appearing in the background example my logo might appear in the background and example like something else would add up in the background then suddenly it will change up the whole mood of it but then stay in the same way and explain about how reprompto works.",
+      "final_text": "I want something like a kind of a transition from like a normal post, imagine like tech reviews or something like this is the 5A8 that you should use and all that. Something interesting like that which would make people scroll but then it would be about my app at the end you know like after like 2 scrolls they get to know why is it glitching in the background or something and all is appearing in the background example my logo might appear in the background and example like something else would add up in the background then suddenly it will change up the whole mood of it but then stay in the same way and explain about how reprompto works."
+    },
+    {
+      "id": "128e43c4",
+      "timestamp": "2026-05-07T18:54:10.651647+00:00",
+      "mode": "dictation",
+      "original_text": "See I want you to go ahead and make a set of post prompts for making the best posts that could advertise this 1 by 1 evolutionizing from how it was and how it is like left and right as if there is a clash being shown I wanted something viral and something that can be comparable to others and will be even will be even like grabbable by people like even people will look at it and be like oh my god I need to scroll to the next 1 and they do scroll it so I want something like that I will send you a reference I have sent you a reference with this so I want you to make things like that for the reprompt and this is the specification of reprompt what it is and how it works.",
+      "final_text": "See I want you to go ahead and make a set of post prompts for making the best posts that could advertise this 1 by 1 evolutionizing from how it was and how it is like left and right as if there is a clash being shown I wanted something viral and something that can be comparable to others and will be even will be even like grabbable by people like even people will look at it and be like oh my god I need to scroll to the next 1 and they do scroll it so I want something like that I will send you a reference I have sent you a reference with this so I want you to make things like that for the reprompt and this is the specification of reprompt what it is and how it works."
+    },
+    {
+      "id": "7b609aac",
+      "timestamp": "2026-05-07T18:50:33.454324+00:00",
+      "mode": "dictation",
+      "original_text": "Hey the problem now is I'm still not able to open up the settings bro because I don't know what is the fucking problem but then the settings whenever I press the settings toggle to go to that page it is closing the overlay app and whenever I press it back again or even press control space the whole overlay itself isn't opening up bro so just go ahead and fix this for me okay.",
+      "final_text": "Hey the problem now is I'm still not able to open up the settings bro because I don't know what is the fucking problem but then the settings whenever I press the settings toggle to go to that page it is closing the overlay app and whenever I press it back again or even press control space the whole overlay itself isn't opening up bro so just go ahead and fix this for me okay."
+    },
+    {
+      "id": "7f217e1f",
+      "timestamp": "2026-05-07T18:47:57.072101+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to implement all of these okay.",
+      "final_text": "I want you to implement all of these okay."
+    },
+    {
+      "id": "cdca2e41",
+      "timestamp": "2026-05-07T18:45:31.732814+00:00",
+      "mode": "dictation",
+      "original_text": "So now for the re-prompt, I want you to make presets for me which as a prompt for the AI to implement those as the presets. So I want you to make some presets which actually make sense. For now there is general optimization, elegant creation, elegant review, idea review and product review. So, I want you to make other optimization presets that the model could make which would be a lot more sensible based on how it works on top of what they want to do and even kind of a prompt where it even tells to make the drop down menu better for all the drop down menus that are there on the app and even makes it so that in the presets itself imagine it is idea review which is the optimization that should be done if they select idea review when the drop down closes below that on like grey text it should show what is this recommended for. Yeah like that and I want you to give some better presets than these. So yeah just make some better presets for reprompt and come back to me when you are done with it.",
+      "final_text": "so now for the re-prompt, I want you to make presets for me which as a prompt for the AI to implement those as the presets. so I want you to make some presets which actually make sense. For now there is general optimization, elegant creation, elegant review, idea review and product review. so, I want you to make other optimization presets that the model could make which would be a lot more sensible based on how it works on top of what they want to do and even kind of a prompt where it even tells to make the drop down menu better for all the drop down menus that are there on the app and even makes it so that in the presets itself imagine it is idea review which is the optimization that should be done if they select idea review when the drop down closes below that on like grey text it should show what is this recommended for. Yeah like that and I want you to give some better presets than these. so yeah just make some better presets for reprompt and come back to me when you are done with it."
+    },
+    {
+      "id": "48334330",
+      "timestamp": "2026-05-07T18:40:58.322297+00:00",
+      "mode": "dictation",
+      "original_text": "Hey what is happening is imagine there is a text space on the desktop 1 which is the normal laptop desktop like and I'm trying to like talk on a text input place on the second tab or second desktop okay so what is happening is I'm talking on the second desktop right now and the input place is also active on on the second desktop, it is inactivating the desktop 2 and it is going to the desktop 1 and because the previous selected text input place was in desktop 1, it is pasting there. So there is some error, I want you to fix this, make this proper.",
+      "final_text": "Hey what is happening is imagine there is a text space on the desktop 1 which is the normal laptop desktop like and I'm trying to like talk on a text input place on the second tab or second desktop okay so what is happening is I'm talking on the second desktop right now and the input place is also active on on the second desktop, it is inactivating the desktop 2 and it is going to the desktop 1 and because the previous selected text input place was in desktop 1, it is pasting there. so there is some error, I want you to fix this, make this proper."
+    },
+    {
+      "id": "72e9ce5e",
+      "timestamp": "2026-05-07T18:39:42.653337+00:00",
+      "mode": "dictation",
+      "original_text": "Will it be updated in the same way as the website is updated with the credits usage how much is used because see on the app it should be like imagine it's 100 and I use it 30 credits goes off so it's 70 on the app and when I go to the website Will it be still updated with 70 itself or 100? Just Let me know.",
+      "final_text": "Will it be updated in the same way as the website is updated with the credits usage how much is used because see on the app it should be like imagine it's 100 and I use it 30 credits goes off so it's 70 on the app and when I go to the website Will it be still updated with 70 itself or 100? Just Let me know."
+    },
+    {
+      "id": "aa3fdf1c",
+      "timestamp": "2026-05-07T18:36:22.703185+00:00",
+      "mode": "dictation",
+      "original_text": "Whenever I press the credits button on the overlay app, it is closing and never opening up again. The same way it happened for the settings. So I just want you to go ahead and fix this.",
+      "final_text": "Whenever I press the credits button on the overlay app, it is closing and never opening up again. The same way it happened for the settings. so I just want you to go ahead and fix this."
+    },
+    {
+      "id": "360d9a98",
+      "timestamp": "2026-05-07T18:35:24.668743+00:00",
+      "mode": "dictation",
+      "original_text": "So for the implementation of all these credits things and all that, what should I enter inside the apps database? Is there anything that I should enter inside the apps database? So just let me know about that.",
+      "final_text": "so for the implementation of all these credits things and all that, what should I enter inside the apps database? Is there anything that I should enter inside the apps database? so just let me know about that."
+    },
+    {
+      "id": "a00f516c",
+      "timestamp": "2026-05-07T18:30:10.018154+00:00",
+      "mode": "dictation",
+      "original_text": "See what I want you to go ahead and do is I want you to implement like what is that I want you to implement the free plan as 50 credits not 200 credits right now it's set to 200 credits so just give me the optimization line of elegant as you for the SQL editor and also make the edits on the website and later after you're done with all these just you provide me a prompt that I can give it to the app to make the changes on the app too.",
+      "final_text": "See what I want you to go ahead and do is I want you to implement like what is that I want you to implement the free plan as 50 credits not 200 credits right now it's set to 200 credits so just give me the optimization line of elegant as you for the SQL editor and also make the edits on the website and later after you're done with all these just you provide me a prompt that I can give it to the app to make the changes on the app too."
+    },
+    {
+      "id": "c6d53fb9",
+      "timestamp": "2026-05-07T18:24:57.468211+00:00",
+      "mode": "dictation",
+      "original_text": "Hey whenever I try to open the settings of the app it is ending the overlay app it is closing the overlay app and never opening up even if I press on the overlay pill so just go through and check what is the error and just fix that okay.",
+      "final_text": "Hey whenever I try to open the settings of the app it is ending the overlay app it is closing the overlay app and never opening up even if I press on the overlay pill so just go through and check what is the error and just fix that okay."
+    },
+    {
+      "id": "cc4be438",
+      "timestamp": "2026-05-07T18:23:17.022188+00:00",
+      "mode": "dictation",
+      "original_text": "For all the features which have a model selected, I want you to make it so that the model which is selected at the starting itself, like when a guy downloads the app newly. So the default value should be Sonnet 4. 6, Claude Sonnet 4. 6. But then if they decide to change the model for that specific feature, it should be stored as the model which should be shown later on too. Okay this would be feature specific and the model should be like remembered based on what feature it is belonging to and it should remember only that and the model should shouldn't like it's case would be the model shouldn't Just have the same model which you selected on reprompt to be there on tunehub 2. Just because you selected it on reprompt doesn't mean it should be there in tunehub 2. So if they would have selected something else in tunehub and selected something else in reprompt, it should be different and it should be stored as that itself. But all the default models should be Sonnet 4. 6, Claude Sonnet 4. 6. Okay, so make this happen.",
+      "final_text": "For all the features which have a model selected, I want you to make it so that the model which is selected at the starting itself, like when a guy downloads the app newly. so the default value should be Sonnet 4. 6, Claude Sonnet 4. 6. But then if they decide to change the model for that specific feature, it should be stored as the model which should be shown later on too. Okay this would be feature specific and the model should be like remembered based on what feature it is belonging to and it should remember only that and the model should shouldn't like it's case would be the model shouldn't Just have the same model which you selected on reprompt to be there on tunehub 2. Just because you selected it on reprompt doesn't mean it should be there in tunehub 2. so if they would have selected something else in tunehub and selected something else in reprompt, it should be different and it should be stored as that itself. But all the default models should be Sonnet 4. 6, Claude Sonnet 4. 6. Okay, so make this happen."
+    },
+    {
+      "id": "527e571f",
+      "timestamp": "2026-05-07T18:21:02.662544+00:00",
+      "mode": "dictation",
+      "original_text": "Hey I don't know why but then if I dictate something and I'm on the monitor too it is asking for approving again and again for no reason when I had approved it at the starting itself and 1 more thing would be like whenever it is going to paste it is not pasting but just inactivating that tab which I'm in and trying to paste at so I want you to fix this okay.",
+      "final_text": "Hey I don't know why but then if I dictate something and I'm on the monitor too it is asking for approving again and again for no reason when I had approved it at the starting itself and 1 more thing would be like whenever it is going to paste it is not pasting but just inactivating that tab which I'm in and trying to paste at so I want you to fix this okay."
+    },
+    {
+      "id": "b6cd56d2",
+      "timestamp": "2026-05-07T18:19:58.476431+00:00",
+      "mode": "dictation",
+      "original_text": "From the tunehub tab inside the real app, I want you to remove the credits thing. And 1 more thing would be the text space should be expanded to how much text is fitting inside it. So imagine they put 20 lines of elegant, sorry 20 lines of text onto that space. It should expand downwards and the page should be scrollable. Okay. So the limit should be 15 lines and above that it should be scrollable inside too. But then until the 15 lines, it should be scrollable. The whole page should be scrollable. Okay. The whole tab should be scrollable. So make this happen for all text spaces which are there and come back to me when you are done. Every text space which is there which would require things to fit inside like many likes of prompts would fit inside. All those kind of things which are actually having a tech space where people can put a lot of things inside There I want you to implement this thing. Okay, and even as I told remove the Credits thing on the TuneHub tab.",
+      "final_text": "From the tunehub tab inside the real app, I want you to remove the credits thing. And 1 more thing would be the text space should be expanded to how much text is fitting inside it. so imagine they put 20 lines of elegant, sorry 20 lines of text onto that space. It should expand downwards and the page should be scrollable. Okay. so the limit should be 15 lines and above that it should be scrollable inside too. But then until the 15 lines, it should be scrollable. The whole page should be scrollable. Okay. The whole tab should be scrollable. so make this happen for all text spaces which are there and come back to me when you are done. Every text space which is there which would require things to fit inside like many likes of prompts would fit inside. All those kind of things which are actually having a tech space where people can put a lot of things inside There I want you to implement this thing. Okay, and even as I told remove the Credits thing on the TuneHub tab."
+    },
+    {
+      "id": "b0f5f9f2",
+      "timestamp": "2026-05-07T17:39:27.359067+00:00",
+      "mode": "dictation",
+      "original_text": "Now, even if the speaker is connected through bluetooth, it's happening. There is still a buzzing sound coming whenever I connect it on bluetooth. And even if I change the output audio to my laptop, switch it to the laptop even if it is connected through bluetooth, the speaker is still making that noise. So please fix it.",
+      "final_text": "Now, even if the speaker is connected through bluetooth, it's happening. There is still a buzzing sound coming whenever I connect it on bluetooth. And even if I change the output audio to my laptop, switch it to the laptop even if it is connected through bluetooth, the speaker is still making that noise. so please fix it."
+    },
+    {
+      "id": "1350112d",
+      "timestamp": "2026-05-07T16:27:31.655404+00:00",
+      "mode": "dictation",
+      "original_text": "Hey also, what should I do for the integration of the payment for the website? If they want to do the payment, which is the best way? Razorpay is good I feel because I have already configured it. Sorry, I am familiar with configuring it. So just tell me which would be the best way. Some way where there is a UPI to pay which would be for the Indians and also card payment for all credit cards and stuff and other outside of India payments too.",
+      "final_text": "Hey also, what should I do for the integration of the payment for the website? If they want to do the payment, which is the best way? Razorpay is good I feel because I have already configured it. Sorry, I am familiar with configuring it. so just tell me which would be the best way. Some way where there is a UPI to pay which would be for the Indians and also card payment for all credit cards and stuff and other outside of India payments too."
+    },
+    {
+      "id": "defc7c2f",
+      "timestamp": "2026-05-07T16:10:40.053448+00:00",
+      "mode": "dictation",
+      "original_text": "According to all these, I want you to go ahead and update the website with all the required credit system for the pro, power and free users and what should be included and what should be not included. And for all the plans, every feature is included. And yeah, I want you to update it with the credits for each plan. And also apply the credit system the same as the app. So whenever they log in inside an account on the website and buy a plan, purchase a plan, it should reflect the amount of credits they have as a usage limit on the settings page. Or even if they, yeah on the settings page there should be the usage credits, how much credits is left out and even on the and I want you to make it so that it's both the same credits usage data as the app so whenever they use the app and they want to check the credits they can check it in the app it's not still applied but I want you to focus on the other website right now so I want you to go ahead and apply all these things for the website too But don tell what models we feature and stuff Just the top model should be mentioned saying these are the models we feature too. So yeah, I want you to go ahead and update the whole website based on this. And make it so that it's attractive and things which are not needed aren't included. And things which are needed example the credits and all those are included okay so yeah go ahead and do this for me and come back to me when you're done and even this the credit limits like how much credits they have should be updated in the Supabase I have not done it for the app still but yeah now you can do it for the website and list down the files and a prompt for the app integration too for the credits the credit system is already applied for the app but then I want you to make it so that the people can see the credits on the settings too and yeah according to all those I want you to make a prompt for the app implementation for now you I want you to focus on the website and and make the whole integration for the website right now and then give me a prompt and all the files which it should refer, how it should implement the whole app implementation for the credits usage data concurrency.",
+      "final_text": "According to all these, I want you to go ahead and update the website with all the required credit system for the pro, power and free users and what should be included and what should be not included. And for all the plans, every feature is included. And yeah, I want you to update it with the credits for each plan. And also apply the credit system the same as the app. so whenever they log in inside an account on the website and buy a plan, purchase a plan, it should reflect the amount of credits they have as a usage limit on the settings page. Or even if they, yeah on the settings page there should be the usage credits, how much credits is left out and even on the and I want you to make it so that it's both the same credits usage data as the app so whenever they use the app and they want to check the credits they can check it in the app it's not still applied but I want you to focus on the other website right now so I want you to go ahead and apply all these things for the website too But don tell what models we feature and stuff Just the top model should be mentioned saying these are the models we feature too. so yeah, I want you to go ahead and update the whole website based on this. And make it so that it's attractive and things which are not needed aren't included. And things which are needed example the credits and all those are included okay so yeah go ahead and do this for me and come back to me when you're done and even this the credit limits like how much credits they have should be updated in the Supabase I have not done it for the app still but yeah now you can do it for the website and list down the files and a prompt for the app integration too for the credits the credit system is already applied for the app but then I want you to make it so that the people can see the credits on the settings too and yeah according to all those I want you to make a prompt for the app implementation for now you I want you to focus on the website and and make the whole integration for the website right now and then give me a prompt and all the files which it should refer, how it should implement the whole app implementation for the credits usage data concurrency."
+    },
+    {
+      "id": "c8f3feef",
+      "timestamp": "2026-05-07T16:01:42.235402+00:00",
+      "mode": "dictation",
+      "original_text": "Hey for some reason whenever I connect it to my speaker like not my headphones but my speaker there is a whirring sound coming and whatever I play on the laptop isn't being played on the speaker and it's getting like it's getting louder when it's when it's connected and when disconnecting it's Less louder so I want you to make this proper just go ahead and install whatever as needed for making this problem.",
+      "final_text": "Hey for some reason whenever I connect it to my speaker like not my headphones but my speaker there is a whirring sound coming and whatever I play on the laptop isn't being played on the speaker and it's getting like it's getting louder when it's when it's connected and when disconnecting it's Less louder so I want you to make this proper just go ahead and install whatever as needed for making this problem."
+    },
+    {
+      "id": "cb02844a",
+      "timestamp": "2026-05-07T15:57:10.092586+00:00",
+      "mode": "dictation",
+      "original_text": "Wait, is it set for each and every model properly? Like this model should have this much credit usage, this model should have this much credit usage for token used kind of thing. Is it there or not? Please implement that too if it's not there.",
+      "final_text": "Wait, is it set for each and every model properly? Like this model should have this much credit usage, this model should have this much credit usage for token used kind of thing. Is it there or not? Please implement that too if it's not there."
+    },
+    {
+      "id": "2fa375c7",
+      "timestamp": "2026-05-07T15:56:27.925909+00:00",
+      "mode": "dictation",
+      "original_text": "Wait, for the power plan it should be 60% margin not 50%.",
+      "final_text": "Wait, for the power plan it should be 60% margin not 50%."
+    },
+    {
+      "id": "0aebbb7a",
+      "timestamp": "2026-05-07T14:42:57.139573+00:00",
+      "mode": "dictation",
+      "original_text": "And after you have calculated everything I want you to make a file credits. Md where everything about how the credit should work and all that and 1 more thing for the pro and power plan and also for the free plan the credit usage but what they do should be equivalent across okay just the usage limit should be more okay not the credit calculation.",
+      "final_text": "And after you have calculated everything I want you to make a file credits. md where everything about how the credit should work and all that and 1 more thing for the pro and power plan and also for the free plan the credit usage but what they do should be equivalent across okay just the usage limit should be more okay not the credit calculation."
+    },
+    {
+      "id": "88811fd5",
+      "timestamp": "2026-05-07T14:41:03.642013+00:00",
+      "mode": "dictation",
+      "original_text": "See, I want you to go ahead and read the whole project, the whole app, how it works, all that. And I want you to calculate a specialized credit thing for my whole project, which would be Bistent. I want you to make it credit based meaning if they buy a $20 plan roughly there would be 1000 credits for them and if they buy the power plan which would be $50 it would be 5x the program credits okay so I want you to make I want you to make calculations on how you can implement this for the project for the whole app and how it would be calculated in the backend for each user how much he uses on this account and all that And yeah I want you to come back to me with a specialized perfect credit plan for pro which would be 1000 and for power which would be a prox 5 times more than pro and for free it would be around 100 to 200 credits I want you to decide on that and yeah come back to me when you have all the data on how you can implement this and how it would be fair to all the users of the app and how would the credit system work and how much uses would the users get the $20 plan should be something as if like the guy should not be like it should be able to complete in a day if he works or like if he uses it a lot of times in a day and the power should be 5 times of that usage and yeah it should be according to how much profit I make to a 60 70 percent margin of each plan like pro and power 70% margin of pro plan and approximately 50-55% margin of power plan like in basis of this thing profit so yeah according to all the things what I have told you right now I want to make a thing for for credit based thing calculation on how it should work what it should do and all that all those things and the dictation should be the least usage like the least credit usage it should be very very very very low credit usage and task tag shouldn have any credit usage unless and until they use an AI to like there is an AI connected to it so that it refines the tasks properly so I would say like compared to dictation it should be a little higher than dictation and and reprompt would be somewhat okay okay above task stack but like 2 times higher than task stack credit usage and last would be the agent agent isn't like is going to be published in the version 2 so I don't want you to care about that right now and memory will be unlimited and yeah I want you to go ahead and calculate all this for me okay.",
+      "final_text": "See, I want you to go ahead and read the whole project, the whole app, how it works, all that. And I want you to calculate a specialized credit thing for my whole project, which would be Bistent. I want you to make it credit based meaning if they buy a $20 plan roughly there would be 1000 credits for them and if they buy the power plan which would be $50 it would be 5x the program credits okay so I want you to make I want you to make calculations on how you can implement this for the project for the whole app and how it would be calculated in the backend for each user how much he uses on this account and all that And yeah I want you to come back to me with a specialized perfect credit plan for pro which would be 1000 and for power which would be a prox 5 times more than pro and for free it would be around 100 to 200 credits I want you to decide on that and yeah come back to me when you have all the data on how you can implement this and how it would be fair to all the users of the app and how would the credit system work and how much uses would the users get the $20 plan should be something as if like the guy should not be like it should be able to complete in a day if he works or like if he uses it a lot of times in a day and the power should be 5 times of that usage and yeah it should be according to how much profit I make to a 60 70% margin of each plan like pro and power 70% margin of pro plan and approximately 50-55% margin of power plan like in basis of this thing profit so yeah according to all the things what I have told you right now I want to make a thing for for credit based thing calculation on how it should work what it should do and all that all those things and the dictation should be the least usage like the least credit usage it should be very very very very low credit usage and task tag shouldn have any credit usage unless and until they use an AI to like there is an AI connected to it so that it refines the tasks properly so I would say like compared to dictation it should be a little higher than dictation and and reprompt would be somewhat okay okay above task stack but like 2 times higher than task stack credit usage and last would be the agent agent isn't like is going to be published in the version 2 so I don't want you to care about that right now and memory will be unlimited and yeah I want you to go ahead and calculate all this for me okay."
+    },
+    {
+      "id": "711bf0cc",
+      "timestamp": "2026-05-07T14:30:48.076026+00:00",
+      "mode": "dictation",
+      "original_text": "Also 1 more thing, the website is like what is it, sorry the Supabase project which I made, it is connected to Northeast Asia, Tokyo for some reason. Is there any chance that I can change it to India?",
+      "final_text": "Also 1 more thing, the website is like what is it, sorry the Supabase project which I made, it is connected to Northeast Asia, Tokyo for some reason. Is there any chance that I can change it to India?"
+    },
+    {
+      "id": "7d644759",
+      "timestamp": "2026-05-07T14:28:10.767117+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, for the website you had suggested me to share the database which would be of the app and the website. I have decided to keep it separate. So, what should I do now to keep it separate? I have made the Supabase account, I have made the Supabase new project also just for the website. I just want you to give me the SQL elegant which I should make the tables with at the end of the process. But yeah, for now I want you to tell what should I enter inside the. Env for the website. So there is a. Env file which is out of the project 2, out of the Wistand website 2 right now. So I just want you to go ahead and tell me if it's okay to keep 2 ENVs inside 1 folder. So for the Westint main app, there is the env. And again inside the website folder, there is like you are telling me to keep another env. So is that fine? And how should I implement it right now? Just tell me.",
+      "final_text": "Hey, for the website you had suggested me to share the database which would be of the app and the website. I have decided to keep it separate. so, what should I do now to keep it separate? I have made the Supabase account, I have made the Supabase new project also just for the website. I just want you to give me the SQL elegant which I should make the tables with at the end of the process. But yeah, for now I want you to tell what should I enter inside the. env for the website. so there is a. env file which is out of the project 2, out of the Wistand website 2 right now. so I just want you to go ahead and tell me if it's okay to keep 2 ENVs inside 1 folder. so for the Westint main app, there is the env. And again inside the website folder, there is like you are telling me to keep another env. so is that fine? And how should I implement it right now? Just tell me."
+    },
+    {
+      "id": "dba17245",
+      "timestamp": "2026-05-07T14:26:26.557665+00:00",
+      "mode": "dictation",
+      "original_text": "The problem is now the pill isn't moving across the screens. So imagine I'm on the monitor right now. The pill isn't having a smooth animation which is going to the screen. So I want you to look through what was the mistake and make it proper and make it right. I want the pill to be moving around whenever the mouse is moving from 1 monitor to the other. It should move to the next monitor but then have the same place as it was on the first monitor.",
+      "final_text": "The problem is now the pill isn't moving across the screens. so imagine I'm on the monitor right now. The pill isn't having a smooth animation which is going to the screen. so I want you to look through what was the mistake and make it proper and make it right. I want the pill to be moving around whenever the mouse is moving from 1 monitor to the other. It should move to the next monitor but then have the same place as it was on the first monitor."
+    },
+    {
+      "id": "0629edc4",
+      "timestamp": "2026-05-07T14:20:41.906617+00:00",
+      "mode": "dictation",
+      "original_text": "What should I set inside the. Env of Wisdom website? I am making it separate right now because I want it to be separate. So just tell me where should I set this up? Like sorry, what should I set up inside the. Env?",
+      "final_text": "What should I set inside the. env of Wisdom website? I am making it separate right now because I want it to be separate. so just tell me where should I set this up? Like sorry, what should I set up inside the. env?"
+    },
+    {
+      "id": "d1d49c17",
+      "timestamp": "2026-05-07T14:14:15.923642+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, it is not transitioning from 1 monitor to the other whenever I move the mouse to the other monitor. It's not having that smooth animation which I told you to make it so that the overlay pill moves from the monitor 1 to monitor 2. Make that happen and it should go to the same position as it was. It was in the center or anywhere in the bottom or anywhere in the right left or top it should go right there and sit on the next monitor where it goes to okay I want you to look through this because it's not still animating that way as I wanted it to so just make this proper and come back to me when you're done with it.",
+      "final_text": "Hey, it is not transitioning from 1 monitor to the other whenever I move the mouse to the other monitor. It's not having that smooth animation which I told you to make it so that the overlay pill moves from the monitor 1 to monitor 2. Make that happen and it should go to the same position as it was. It was in the center or anywhere in the bottom or anywhere in the right left or top it should go right there and sit on the next monitor where it goes to okay I want you to look through this because it's not still animating that way as I wanted it to so just make this proper and come back to me when you're done with it."
+    },
+    {
+      "id": "2e3b42fa",
+      "timestamp": "2026-05-07T11:24:07.469136+00:00",
+      "mode": "dictation",
+      "original_text": "What do you suggest to have? Should I have another Supabase for the website individually or it should be the same Supabase as the app? What do you suggest?",
+      "final_text": "What do you suggest to have? Should I have another Supabase for the website individually or it should be the same Supabase as the app? What do you suggest?"
+    },
+    {
+      "id": "719335f6",
+      "timestamp": "2026-05-07T11:22:28.358866+00:00",
+      "mode": "dictation",
+      "original_text": "I Want you to go ahead and add reprompt Reprompt prompts which generates like the initial prompt which was given by the user and the optimized prompt which was given by the AI That should be as a stored as a memory inside the memory stack. Okay, so I want you to add the memories of the Reprompt, okay Thank you.",
+      "final_text": "I Want you to go ahead and add reprompt Reprompt prompts which generates like the initial prompt which was given by the user and the optimized prompt which was given by the AI That should be as a stored as a memory inside the memory stack. Okay, so I want you to add the memories of the Reprompt, okay Thank you."
+    },
+    {
+      "id": "d605db0d",
+      "timestamp": "2026-05-07T11:18:32.584965+00:00",
+      "mode": "dictation",
+      "original_text": "Okay, whenever I like whenever I try to like if I press ctrl shift space it is just copying the text which is already copied and it is refining that. I want you to make it so that imagine I'm on a text field right now and I press ctrl shift space. What it should do is it should grab the text from the text field which is active right now. Which would be by doing control A and control X on the same input field. And after it does that, it should open up the overlay panel where the reprompt tab is there. It should open up that tab where the optimization of the prompt is happening. And then it should proceed with the optimization of the prompt. Okay, only then only when it opens up it should proceed with the prompt and it should be copied right after it optimizes the prompt. It should be copied to the clipboard okay and whenever they do control V it should come with the real like what is it the optimized prompt okay so I want you to do this right now.",
+      "final_text": "Okay, whenever I like whenever I try to like if I press ctrl shift space it is just copying the text which is already copied and it is refining that. I want you to make it so that imagine I'm on a text field right now and I press ctrl shift space. What it should do is it should grab the text from the text field which is active right now. Which would be by doing control A and control X on the same input field. And after it does that, it should open up the overlay panel where the reprompt tab is there. It should open up that tab where the optimization of the prompt is happening. And then it should proceed with the optimization of the prompt. Okay, only then only when it opens up it should proceed with the prompt and it should be copied right after it optimizes the prompt. It should be copied to the clipboard okay and whenever they do control V it should come with the real like what is it the optimized prompt okay so I want you to do this right now."
+    },
+    {
+      "id": "d1ede661",
+      "timestamp": "2026-05-07T11:16:26.661673+00:00",
+      "mode": "dictation",
+      "original_text": "1 more thing, for the overlay fill, imagine I go to a second display which would be on the right side, my mouse scrolls from the left side to the right side to that screen and imagine if it would have been from the laptop screen is in the bottom and the other screen is in the top and I have to move the Cursor upwards to go to the second screen. So it should identify where the screen is, imagine they have set it up to be in the bottom of the proposed screen, then it should, like the overlay, like whenever I click on the other monitor, like whenever I click something on the other monitor, I want the overlay to have overlay bill to have a smooth animation which moves from the normal monitor which would be the first monitor to the second monitor in a smooth manner just as a smooth transition but in the same place where it was on the second monitor okay so do this.",
+      "final_text": "1 more thing, for the overlay fill, imagine I go to a second display which would be on the right side, my mouse scrolls from the left side to the right side to that screen and imagine if it would have been from the laptop screen is in the bottom and the other screen is in the top and I have to move the Cursor upwards to go to the second screen. so it should identify where the screen is, imagine they have set it up to be in the bottom of the proposed screen, then it should, like the overlay, like whenever I click on the other monitor, like whenever I click something on the other monitor, I want the overlay to have overlay bill to have a smooth animation which moves from the normal monitor which would be the first monitor to the second monitor in a smooth manner just as a smooth transition but in the same place where it was on the second monitor okay so do this."
+    },
+    {
+      "id": "b907c6ef",
+      "timestamp": "2026-05-07T11:13:36.242167+00:00",
+      "mode": "dictation",
+      "original_text": "See, this is happening whenever I have like 2 screens and I'm using TutuApps where the text input plays is there. And imagine like I am on the second screen right now, not on the main screen which would be the laptop. And I like dictate something and after the transcribing is done, it is not able to focus on the second display's text field. So I want you to come up with how you can fix this and fix this.",
+      "final_text": "See, this is happening whenever I have like 2 screens and I'm using TutuApps where the text input plays is there. And imagine like I am on the second screen right now, not on the main screen which would be the laptop. And I like dictate something and after the transcribing is done, it is not able to focus on the second display's text field. so I want you to come up with how you can fix this and fix this."
+    },
+    {
+      "id": "44cc5eee",
+      "timestamp": "2026-05-07T11:12:20.319477+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and fix this.",
+      "final_text": "I want you to go ahead and fix this."
+    },
+    {
+      "id": "6c6c9bbb",
+      "timestamp": "2026-05-07T11:10:08.445908+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and make it so that each part of the website wherever the agent is mentioned, I want you to blank that page, make it grayed out, not scrollable. And this is for the agent page. In the agent page I want the whole page to be grayed out and it should not be scrollable and the starting part of it it should be grayed out and on top of it from bottom left to top right there should be a text saying coming soon in in the same like what is that the same fonts which we have been using for the website and wherever the agent is mentioned like inside the main page there is the agent this thing mentioned right as the 4 ways to work smarter that agent thing should not be clickable and it should be grayed out a little bit okay and I want you to remove all the fake reviews that are there allowed by productive people inside the main page It written some comments from some people but I want you to remove those keep it empty and add a place where people can enter a review. And those reviews should be stored in the database, which would be the Supabase database, which I've already connected. I want you to provide me the SQL elegant for creating those tables on Supabase at the end of all the things that you should do right now. And yeah, I want you to add a place where people can enter a photo or a video and write down text and yeah, they can post it as a review and it should be updated ASAP onto the website. Okay so it should not be editable and it should be viewable but only in a small pop-up that comes that shows their review okay so go ahead and do that for me and come back to me when you're done.",
+      "final_text": "I want you to go ahead and make it so that each part of the website wherever the agent is mentioned, I want you to blank that page, make it grayed out, not scrollable. And this is for the agent page. In the agent page I want the whole page to be grayed out and it should not be scrollable and the starting part of it it should be grayed out and on top of it from bottom left to top right there should be a text saying coming soon in in the same like what is that the same fonts which we have been using for the website and wherever the agent is mentioned like inside the main page there is the agent this thing mentioned right as the 4 ways to work smarter that agent thing should not be clickable and it should be grayed out a little bit okay and I want you to remove all the fake reviews that are there allowed by productive people inside the main page It written some comments from some people but I want you to remove those keep it empty and add a place where people can enter a review. And those reviews should be stored in the database, which would be the Supabase database, which I've already connected. I want you to provide me the SQL elegant for creating those tables on Supabase at the end of all the things that you should do right now. And yeah, I want you to add a place where people can enter a photo or a video and write down text and yeah, they can post it as a review and it should be updated ASAP onto the website. Okay so it should not be editable and it should be viewable but only in a small pop-up that comes that shows their review okay so go ahead and do that for me and come back to me when you're done."
+    },
+    {
+      "id": "a70cb35a",
+      "timestamp": "2026-05-05T18:59:18.934026+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and make a plan on how you can implement this. Go through. Winsurf/rules/superpowers writing plans and executing plans and brainstorming and go ahead make a plan on how you can implement this and test it before it's done.",
+      "final_text": "I want you to go ahead and make a plan on how you can implement this. go through. Winsurf/rules/superpowers writing plans and executing plans and brainstorming and go ahead make a plan on how you can implement this and test it before it's done."
+    },
+    {
+      "id": "6d4488e0",
+      "timestamp": "2026-05-05T18:52:05.874318+00:00",
+      "mode": "dictation",
+      "original_text": "It's not an open API, it is open router API.",
+      "final_text": "It's not an open API, it is open router API."
+    },
+    {
+      "id": "2970d75f",
+      "timestamp": "2026-05-05T18:45:03.816435+00:00",
+      "mode": "dictation",
+      "original_text": "On the main settings page add a toggle for Overlay pill notification. Toggle.",
+      "final_text": "On the main settings page add a toggle for Overlay pill notification. Toggle."
+    },
+    {
+      "id": "31b2a52d",
+      "timestamp": "2026-05-05T18:42:49.805402+00:00",
+      "mode": "dictation",
+      "original_text": "In the task tab of the settings, for the due snooze time, make it so that only 1 of them is togglable at once. And even add another toggle for undefined.",
+      "final_text": "In the task tab of the settings, for the due snooze time, make it so that only 1 of them is togglable@once.And even add another toggle for undefined."
+    },
+    {
+      "id": "7a73c330",
+      "timestamp": "2026-05-05T18:40:09.118177+00:00",
+      "mode": "dictation",
+      "original_text": "Remove the coming soon UI sorry fix the coming soon UI in the settings tab for the agent tab.",
+      "final_text": "Remove the coming soon UI sorry fix the coming soon UI in the settings tab for the agent tab."
+    },
+    {
+      "id": "284fac24",
+      "timestamp": "2026-05-05T18:38:40.084517+00:00",
+      "mode": "dictation",
+      "original_text": "From the dictation tab in the settings, I want you to remove the Your Voice and Leaderboard tabs.",
+      "final_text": "From the dictation tab in the settings, I want you to remove the Your Voice and Leaderboard tabs."
+    },
+    {
+      "id": "21cb4038",
+      "timestamp": "2026-05-05T18:37:48.143984+00:00",
+      "mode": "dictation",
+      "original_text": "Remove the expanded UI toggle in the settings.",
+      "final_text": "Remove the expanded UI toggle in the settings."
+    },
+    {
+      "id": "98380a9b",
+      "timestamp": "2026-05-05T18:37:02.405153+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to remove the settings button from the tune hub.",
+      "final_text": "I want you to remove the settings button from the tune hub."
+    },
+    {
+      "id": "edb1728d",
+      "timestamp": "2026-05-05T18:35:40.917405+00:00",
+      "mode": "dictation",
+      "original_text": "And yeah the save button should be added so whenever they press the save whatever was changed it should save that and if nothing was changed the save key shouldn't be pressable clickable sorry.",
+      "final_text": "And yeah the save button should be added so whenever they press the save whatever was changed it should save that and if nothing was changed the save key shouldn't be pressable clickable sorry."
+    },
+    {
+      "id": "6e69ab67",
+      "timestamp": "2026-05-05T18:34:48.154725+00:00",
+      "mode": "dictation",
+      "original_text": "For the key shortcuts for each feature, I want you to make it so that they can select on a drop down for which feature they want to change the shortcut of and whenever they change the shortcut it should be changed to that on the. .. This thing also. It should be updated so that whenever they. .. Like right after they select what they want and save it on the settings, it should be saved as that. And whenever they press that combination of keys or that 1 key, it should start that thing, what they intended it to be.",
+      "final_text": "For the key shortcuts for each feature, I want you to make it so that they can select on a drop down for which feature they want to change the shortcut of and whenever they change the shortcut it should be changed to that on the. .. This thing also. It should be updated so that whenever they. .. Like right after they select what they want and save it on the settings, it should be saved as that. And whenever they press that combination of keys or that 1 key, it should start that thing, what they intended it to be."
+    },
+    {
+      "id": "02a00858",
+      "timestamp": "2026-05-05T18:32:30.050200+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to remove this from the settings.",
+      "final_text": "I want you to remove this from the settings."
+    },
+    {
+      "id": "3c23eb13",
+      "timestamp": "2026-05-05T18:17:27.552891+00:00",
+      "mode": "dictation",
+      "original_text": "And 1 more thing, I have made it intelligent so that whenever I tell like at 5pm tomorrow or at 5pm at this date or something like that, when I mention a date or when I mention a time, it gets stored as a time or a date, okay? So, like whenever they mention a time or a date, it should even show that inside a kind of a box like instead of a kind of a curved box where it shows the time and in next to that the date okay so I want you to make it work like that.",
+      "final_text": "And 1 more thing, I have made it intelligent so that whenever I tell like at 5pm tomorrow or at 5pm at this date or something like that, when I mention a date or when I mention a time, it gets stored as a time or a date, okay? so, like whenever they mention a time or a date, it should even show that inside a kind of a box like instead of a kind of a curved box where it shows the time and in next to that the date okay so I want you to make it work like that."
+    },
+    {
+      "id": "ebe6f284",
+      "timestamp": "2026-05-05T18:15:00.988133+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and make me an implementation plan on how I can implement it into making this overlay bill. I want it to expand. Like imagine I tell it to store a task. I want it to expand sideways like in the left and right equally. And show what the task was that they wanted to store and there should be a approve disapprove and edit this thing button so if they approve it it should just paste that as a task and if they disapprove it it should not store it as a task and if they press the edit button it should open up the task page with the text input place selected where they can edit the text or the task yeah and 1 more thing is whenever.",
+      "final_text": "I want you to go ahead and make me an implementation plan on how I can implement it into making this overlay bill. I want it to expand. Like imagine I tell it to store a task. I want it to expand sideways like in the left and right equally. And show what the task was that they wanted to store and there should be a approve disapprove and edit this thing button so if they approve it it should just paste that as a task and if they disapprove it it should not store it as a task and if they press the edit button it should open up the task page with the text input place selected where they can edit the text or the task yeah and 1 more thing is whenever."
+    },
+    {
+      "id": "57c3ff1b",
+      "timestamp": "2026-05-05T18:11:37.168813+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go through. Wincerf/rules/superpowers executing plans and go ahead and implement this.",
+      "final_text": "I want you to go through. Wincerf/rules/superpowers executing plans and go ahead and implement this."
+    },
+    {
+      "id": "404f772c",
+      "timestamp": "2026-05-05T18:04:46.550872+00:00",
+      "mode": "dictation",
+      "original_text": ". Windsurf/rules/superpowers executing dash plans.",
+      "final_text": ". Windsurf/rules/superpowers executing dash plans."
+    },
+    {
+      "id": "ea3aea37",
+      "timestamp": "2026-05-05T18:00:19.614963+00:00",
+      "mode": "dictation",
+      "original_text": "So the area, like the place where the optimized prompt appears, that place should also be editable and it should be always monitored by the app. So whenever the user optimizes it in such, like in a different manner, it should store it as a memory and use it up next time whenever they optimize the prompt. So it should do it in that way.",
+      "final_text": "so the area, like the place where the optimized prompt appears, that place should also be editable and it should be always monitored by the app. so whenever the user optimizes it in such, like in a different manner, it should store it as a memory and use it up next time whenever they optimize the prompt. so it should do it in that way."
+    },
+    {
+      "id": "92f48690",
+      "timestamp": "2026-05-05T17:55:00.938047+00:00",
+      "mode": "dictation",
+      "original_text": "This can be even stored as a memory for later reference. So imagine if they optimize the prompt on the window, optimize the dictation, transcribe text on the window and they copy the text. It should wait for another, how many other seconds. If they close the window, it should be stored as the memory. This was the prompt which we made and this was the prompt he optimized. This was how he optimized it and these are the words which were changed. And if it was again optimized, even after copying again, then it should store the most recent optimization of that transcribed text.",
+      "final_text": "This can be even stored as a memory for later reference. so imagine if they optimize the prompt on the window, optimize the dictation, transcribe text on the window and they copy the text. It should wait for another, how many other seconds. If they close the window, it should be stored as the memory. This was the prompt which we made and this was the prompt he optimized. This was how he optimized it and these are the words which were changed. And if it was again optimized, even after copying again, then it should store the most recent optimization of that transcribed text."
+    },
+    {
+      "id": "14d98454",
+      "timestamp": "2026-05-05T17:42:34.153397+00:00",
+      "mode": "dictation",
+      "original_text": "How do you think I can make this better? I want it to store in the database which should be Supabase I want it to store inside Supabase but then it should be accessible for the users inside their settings and it should be optimizable by themselves also they can edit what they want to add also so they can add it after it optimizes it so imagine they tell it to optimize based on crypto vocabulary so if they tell optimize on crypto vocabulary it does everything but then it might have missed 1 or something which they needed so they can go ahead go on settings and then go to that optimization which they have applied and then they can just optimize that and add that 1 more so that will be directly added as a Python correction vocabulary thing. So what do you think about this and how can this be made better? Any other ways to implement this? Don't think about the agent right now. Agent will be coming soon in version 2. Until then, just focus on the tune hub should be only for the dictation and this thing. Prompt right now so just go ahead and give me some ideas.",
+      "final_text": "vocabulary thing. so what do you think about this and how can this be made better? Any other ways to implement this? Don't think about the agent right now. Agent will be coming soon in version 2. Until then, just focus on the tune hub should be only for the dictation and this thing. Prompt right now so just go ahead and give me some ideas."
+    },
+    {
+      "id": "4668ff5e",
+      "timestamp": "2026-05-05T17:37:35.397726+00:00",
+      "mode": "dictation",
+      "original_text": "See the re-prompt is taking a lot of time for it to process and then come up with a prompt. So if you can, can you just make it more faster the way it processes and gives the prompt. The optimized prompt should come out much faster. It is taking a bit of time for it to load in. So I want you to go ahead and make it so that it loads faster. Yeah.",
+      "final_text": "See the re-prompt is taking a lot of time for it to process and then come up with a prompt. so if you can, can you just make it more faster the way it processes and gives the prompt. The optimized prompt should come out much faster. It is taking a bit of time for it to load in. so I want you to go ahead and make it so that it loads faster. Yeah."
+    },
+    {
+      "id": "d3e57474",
+      "timestamp": "2026-05-05T17:35:06.511156+00:00",
+      "mode": "dictation",
+      "original_text": "See, what I want you to do is, I want you to go ahead and make the dictation faster. See, whenever I press F9 right now, it is taking time to load in and then come, like it is listening to me. So I want you to make it so that it comes right when I press F9.",
+      "final_text": "See, what I want you to do is, I want you to go ahead and make the dictation faster. See, whenever I press F9 right now, it is taking time to load in and then come, like it is listening to me. so I want you to make it so that it comes right when I press F9."
+    },
+    {
+      "id": "4190a15f",
+      "timestamp": "2026-05-05T17:35:05.575787+00:00",
+      "mode": "dictation",
+      "original_text": "See, what I want you to do is, I want you to go ahead and make the dictation faster. Like, see whenever I press F9 right now, it is taking time to load in and then come, like it is listening to me. So I want you to make it so that it comes right when I press F9. Okay?",
+      "final_text": "See, what I want you to do is, I want you to go ahead and make the dictation faster. Like, see whenever I press F9 right now, it is taking time to load in and then come, like it is listening to me. so I want you to make it so that it comes right when I press F9. Okay?"
+    },
+    {
+      "id": "39ae5f20",
+      "timestamp": "2026-05-05T17:34:27.300454+00:00",
+      "mode": "dictation",
+      "original_text": "See whenever I go into the memories tab, change up filters like when I go to the memories tab and I press on this tasks or the dictation filters whenever I press on those and then go back to another tab example I go to the tune hub tab it is not loading up for some reason it is staying blank so I want you to fix that.",
+      "final_text": "See whenever I go into the memories tab, change up filters like when I go to the memories tab and I press on this tasks or the dictation filters whenever I press on those and then go back to another tab example I go to the tune hub tab it is not loading up for some reason it is staying blank so I want you to fix that."
+    },
+    {
+      "id": "0937fa14",
+      "timestamp": "2026-05-05T17:33:10.333583+00:00",
+      "mode": "dictation",
+      "original_text": "See, I want you to go ahead and I want you to check if the tune hub, like whatever implications they do. Imagine they ask for like improvement of their this thing, reprompt or even improvement of their dictation. So whenever they do an improvement, where is it getting stored and how is it getting stored is it a prompt kind of a thing which the AI follows so that it makes it better or what is it is what I wanted to ask you so just tell me all the details.",
+      "final_text": "See, I want you to go ahead and I want you to check if the tune hub, like whatever implications they do. Imagine they ask for like improvement of their this thing, reprompt or even improvement of their dictation. so whenever they do an improvement, where is it getting stored and how is it getting stored is it a prompt kind of a thing which the AI follows so that it makes it better or what is it is what I wanted to ask you so just tell me all the details."
+    },
+    {
+      "id": "76017f9e",
+      "timestamp": "2026-05-05T17:33:09.997829+00:00",
+      "mode": "dictation",
+      "original_text": "See, I want you to go ahead and I want you to check if the tune hub, like whatever implications they do. Imagine they ask for like improvement of their this thing, reprompt or even improvement of their dictation. So whenever they do an improvement, where is it getting stored and how is it getting stored is it a prompt kind of a thing which the AI follows so that it makes it better or what is it is what I wanted to ask you so just tell me all the details.",
+      "final_text": "See, I want you to go ahead and I want you to check if the tune hub, like whatever implications they do. Imagine they ask for like improvement of their this thing, reprompt or even improvement of their dictation. so whenever they do an improvement, where is it getting stored and how is it getting stored is it a prompt kind of a thing which the AI follows so that it makes it better or what is it is what I wanted to ask you so just tell me all the details."
+    },
+    {
+      "id": "aeb8a4b6",
+      "timestamp": "2026-05-05T13:40:35.599337+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and inside the reprompt tab whenever the refined prompt gets made the scroll wheel for the whole tab goes away and it comes only for the place where the prompt has been refined. So I want you to fix that, make it so that the overflow Y is there for the whole tab and not only for the refined prompt.",
+      "final_text": "I want you to go ahead and inside the reprompt tab whenever the refined prompt gets made the scroll wheel for the whole tab goes away and it comes only for the place where the prompt has been refined. so I want you to fix that, make it so that the overflow Y is there for the whole tab and not only for the refined prompt."
+    },
+    {
+      "id": "f22f5b01",
+      "timestamp": "2026-05-05T11:13:05.413007+00:00",
+      "mode": "dictation",
+      "original_text": "See what I want you to go ahead and do now is I want you to make the agent tab like what is that like grayed out and on top of it like in a big text it should be written coming soon and the same thing for the agent tab inside the settings page also. And like if you press f9 twice it should not work for now it should not work it should just be inactive and 1 more thing is in the tune tab there is an agent button right that button should be grayed out it should not be clickable so yeah go ahead and do this for me because it's going to be coming soon later so I want you to do this now.",
+      "final_text": "See what I want you to go ahead and do now is I want you to make the agent tab like what is that like grayed out and on top of it like in a big text it should be written coming soon and the same thing for the agent tab inside the settings page also. And like if you press f9 twice it should not work for now it should not work it should just be inactive and 1 more thing is in the tune tab there is an agent button right that button should be grayed out it should not be clickable so yeah go ahead and do this for me because it's going to be coming soon later so I want you to do this now."
+    },
+    {
+      "id": "7c3da2d5",
+      "timestamp": "2026-05-05T11:13:03.816378+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to learn all the terms on this thing on tech and AI right now which is trending at 2026. I want you to go and learn all those.",
+      "final_text": "I want you to learn all the terms on this thing on tech and AI right now which is trending@2026.I want you to go and learn all those."
+    },
+    {
+      "id": "f5f19916",
+      "timestamp": "2026-05-05T11:13:03.815572+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and fix this thing. Let it just listen. Why is this text pasting again and again the whole time when I'm trying to record something? Make it proper on the Python, like whenever it runs. I don't want those many lines to be generated for it. Saying the same shit.",
+      "final_text": "I want you to go ahead and fix this thing. Let it just listen. Why is this text pasting again and again the whole time when I'm trying to record something? Make it proper on the Python, like whenever it runs. I don't want those many lines to be generated for it. Saying the same shit."
+    },
+    {
+      "id": "ba7025e0",
+      "timestamp": "2026-05-05T11:13:03.799861+00:00",
+      "mode": "dictation",
+      "original_text": "This is the error that is showing up if I go to the tune hub and try to make some tuning. I want you to make this proper and 1 more thing would be, I want you to make it so that if the text is a little longer, if it goes out of the x bound, it should not be scrollable sideways. It sure the text box should expand downwards okay according to how much text is there it should expand downwards.",
+      "final_text": "This is the error that is showing up if I go to the tune hub and try to make some tuning. I want you to make this proper and 1 more thing would be, I want you to make it so that if the text is a little longer, if it goes out of the x bound, it should not be scrollable sideways. It sure the text box should expand downwards okay according to how much text is there it should expand downwards."
+    },
+    {
+      "id": "2c203cbf",
+      "timestamp": "2026-05-05T09:50:38.560517+00:00",
+      "mode": "dictation",
+      "original_text": "See what I want you to go ahead and do now is I want you to make the agent tab like what is that like grayed out and on top of it like in a big text it should be written coming soon and the same thing for the agent tab inside the settings page also. And like if you press f9 twice it should not work for now it should not work it should just be inactive and 1 more thing is in the tune tab there is an agent button right that button should be grayed out it should not be clickable so yeah go ahead and do this for me because it's going to be coming soon later so I want you to do this now.",
+      "final_text": "See what I want you to go ahead and do now is I want you to make the agent tab like what is that like grayed out and on top of it like in a big text it should be written coming soon and the same thing for the agent tab inside the settings page also. And like if you press f9 twice it should not work for now it should not work it should just be inactive and 1 more thing is in the tune tab there is an agent button right that button should be grayed out it should not be clickable so yeah go ahead and do this for me because it's going to be coming soon later so I want you to do this now."
+    },
+    {
+      "id": "99a990a4",
+      "timestamp": "2026-05-05T09:46:00.156687+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and fix this thing. Let it just listen. Why is this text pasting again and again the whole time when I'm trying to record something? Make it proper on the Python whenever it runs. I don't want those many lines to be generated for saying the same shit.",
+      "final_text": "I want you to go ahead and fix this thing. Let it just listen. Why is this text pasting again and again the whole time when I'm trying to record something? Make it proper on the Python whenever it runs. I don't want those many lines to be generated for saying the same shit."
+    },
+    {
+      "id": "636ab398",
+      "timestamp": "2026-05-05T09:44:24.622838+00:00",
+      "mode": "dictation",
+      "original_text": "This is the error that is showing up if I go to the tune hub and try to make some tuning. I want you to make this proper and 1 more thing would be, I want you to make it so that if the text is a little longer, if it goes out of the x bound, it should not be scrollable sideways. Be it sure the text box should expand downwards okay according to how much text is there it should expand downwards.",
+      "final_text": "This is the error that is showing up if I go to the tune hub and try to make some tuning. I want you to make this proper and 1 more thing would be, I want you to make it so that if the text is a little longer, if it goes out of the x bound, it should not be scrollable sideways. Be it sure the text box should expand downwards okay according to how much text is there it should expand downwards."
+    },
+    {
+      "id": "38071edf",
+      "timestamp": "2026-05-05T09:43:06.385499+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to learn all the terms on this thing on tech and AI right now which is trending at 2026. I want you to go and learn all those.",
+      "final_text": "I want you to learn all the terms on this thing on tech and AI right now which is trending@2026.I want you to go and learn all those."
+    },
+    {
+      "id": "c24fa3b1",
+      "timestamp": "2026-05-05T09:38:37.356257+00:00",
+      "mode": "dictation",
+      "original_text": "To do go ahead sorry go ahead and do is I want you to make the settings of dictation tab proper so what is happening is in the dictation tab on the settings page uh the this the weekly thing is getting overflowed on the x axis so because of that there is an x scroll too and there is an X scroll and a Y scroll. I wanted to have only the X scroll so what I wanted to do is I want you to make the desktop usage the panel to be across across until 1 left to right it should be across the page and below it should be the streak tab okay so make that happen Thank you.",
+      "final_text": "To do go ahead sorry go ahead and do is I want you to make the settings of dictation tab proper so what is happening is in the dictation tab on the settings page uh the this the weekly thing is getting overflowed on the x axis so because of that there is an x scroll too and there is an X scroll and a Y scroll. I wanted to have only the X scroll so what I wanted to do is I want you to make the desktop usage the panel to be across across until 1 left to right it should be across the page and below it should be the streak tab okay so make that happen Thank you."
+    },
+    {
+      "id": "64093916",
+      "timestamp": "2026-05-05T09:38:37.289380+00:00",
+      "mode": "dictation",
+      "original_text": "See what I want you to do go ahead sorry go ahead and do is I want you to make the settings of dictation tab proper so what is happening is in the dictation tab on the settings page the weekly thing is getting overflowed on the x axis so so because of that there is an X scroll too and there is an X scroll and a Y scroll. I wanted to have only the X scroll so what I wanted to do is I wanted to make the desktop usage panel to be across until 1 left to right it should be across the page and below it should be the streak tab. Okay, so make that happen now.",
+      "final_text": "See what I want you to do go ahead sorry go ahead and do is I want you to make the settings of dictation tab proper so what is happening is in the dictation tab on the settings page the weekly thing is getting overflowed on the x axis so so because of that there is an X scroll too and there is an X scroll and a Y scroll. I wanted to have only the X scroll so what I wanted to do is I wanted to make the desktop usage panel to be across until 1 left to right it should be across the page and below it should be the streak tab. Okay, so make that happen now."
+    },
+    {
+      "id": "ff86bbc5",
+      "timestamp": "2026-05-05T09:22:17.177595+00:00",
+      "mode": "dictation",
+      "original_text": "See I disabled that f10 press like if I press f10 and then tell a task it should like what is that go directly to the task right I disabled that thing I put on smart detection but then whenever I pressed f10 again while the smart detection was on for dictation it is still processing f10 so just go ahead and fix that now please Hmmm. .. ..",
+      "final_text": "See I disabled that f10 press like if I press f10 and then tell a task it should like what is that go directly to the task right I disabled that thing I put on smart detection but then whenever I pressed f10 again while the smart detection was on for dictation it is still processing f10 so just go ahead and fix that now please Hmmm. .. .."
+    },
+    {
+      "id": "7a7efb76",
+      "timestamp": "2026-05-05T09:19:34.244489+00:00",
+      "mode": "task",
+      "original_text": "Oh Arena and Down This is surprising Oh.",
+      "final_text": "Arena and Down"
+    },
+    {
+      "id": "3c75d0a2",
+      "timestamp": "2026-05-05T09:19:03.398577+00:00",
+      "mode": "task",
+      "original_text": "Good buddy",
+      "final_text": "Good buddy"
+    },
+    {
+      "id": "37374545",
+      "timestamp": "2026-05-05T09:17:52.947938+00:00",
+      "mode": "dictation",
+      "original_text": "Hey, I want you to go ahead and for each tab on the app, I want you to add Overflow Y should be automatic. So if it expands, like more textures there down, it should be automatically set to be scrollable down. So just do that for me on all tabs on the app.",
+      "final_text": "Hey, I want you to go ahead and for each tab on the app, I want you to add Overflow Y should be automatic. so if it expands, like more textures there down, it should be automatically set to be scrollable down. so just do that for me on all tabs on the app."
+    },
+    {
+      "id": "d26188d2",
+      "timestamp": "2026-05-05T09:11:34.478951+00:00",
+      "mode": "dictation",
+      "original_text": "Even tune hub is there right? Even tune hub is there. So why didn't you include that?",
+      "final_text": "Even tune hub is there right? Even tune hub is there. so why didn't you include that?"
+    },
+    {
+      "id": "65bb9fba",
+      "timestamp": "2026-05-05T09:10:18.963847+00:00",
+      "mode": "dictation",
+      "original_text": "See, see, 1 thing is, agent is going to be coming soon, it's not still available. So, it is not in Windows AI operating assistant and all that shit. It is there on Windows and on Linux, an AI that works for you, okay? Like, makes your productivity more and saves you time in a lot of things. Is what I want this to be.",
+      "final_text": "See, see, 1 thing is, agent is going to be coming soon, it's not still available. so, it is not in Windows AI operating assistant and all that shit. It is there on Windows and on Linux, an AI that works for you, okay? Like, makes your productivity more and saves you time in a lot of things. Is what I want this to be."
+    },
+    {
+      "id": "01ec8bc4",
+      "timestamp": "2026-05-05T09:08:08.170120+00:00",
+      "mode": "dictation",
+      "original_text": "Go through this file, you will get to know everything. Go through this file and go ahead and tell me how can I. .. Like what are the marketing strategies for this?",
+      "final_text": "go through this file, you will get to know everything. go through this file and go ahead and tell me how can I. .. Like what are the marketing strategies for this?"
+    },
+    {
+      "id": "44a9c2b6",
+      "timestamp": "2026-05-04T18:06:10.108675+00:00",
+      "mode": "dictation",
+      "original_text": "The reprompt optimization is coming up like this It is showing the optimizations applied to so I want you to restructure the way it Like what is that? Makes the like edits the prompt make it so that it's more understandable and more clear to the topic you know and and no need to make it as an Markdown file like Markdown way.",
+      "final_text": "The reprompt optimization is coming up like this It is showing the optimizations applied to so I want you to restructure the way it Like what is that? Makes the like edits the prompt make it so that it's more understandable and more clear to the topic you know and and no need to make it as an Markdown file like Markdown way."
+    },
+    {
+      "id": "a17681bf",
+      "timestamp": "2026-05-04T17:44:42.628574+00:00",
+      "mode": "dictation",
+      "original_text": "Overlay fill is having too much distance from the left side and the top side. I want you to make the padding lesser, equivalent to how much it is when it's in the bottom or in the right.",
+      "final_text": "Overlay fill is having too much distance from the left side and the top side. I want you to make the padding lesser, equivalent to how much it is when it's in the bottom or in the right."
+    },
+    {
+      "id": "422caeef",
+      "timestamp": "2026-05-04T17:25:10.059148+00:00",
+      "mode": "dictation",
+      "original_text": "Hey the overlay pill itself isn't showing up but the. .. Like what is that? Like the overlay pill isn't showing up Fix it!",
+      "final_text": "Hey the overlay pill itself isn't showing up but the. .. Like what is that? Like the overlay pill isn't showing up Fix it!"
+    },
+    {
+      "id": "5ee1b3df",
+      "timestamp": "2026-05-04T15:19:29.442896+00:00",
+      "mode": "dictation",
+      "original_text": "See the overlay pill like draggable the single click and hold is perfectly working but then if the mouse movement is too fast it is staying back so I want you to make it so that it stays on the mouse itself so on the mouse tip the overlay pill should be there whenever I'm dragging it also it shouldn't lag behind.",
+      "final_text": "See the overlay pill like draggable the single click and hold is perfectly working but then if the mouse movement is too fast it is staying back so I want you to make it so that it stays on the mouse itself so on the mouse tip the overlay pill should be there whenever I'm dragging it also it shouldn't lag behind."
+    },
+    {
+      "id": "11073557",
+      "timestamp": "2026-05-04T15:16:54.376657+00:00",
+      "mode": "dictation",
+      "original_text": "Go through the. Winserv/rules/superpowers writing plans, brainstorming, verification before completion, while executing before executing go through executing plans.",
+      "final_text": "go through the. Winserv/rules/superpowers writing plans, brainstorming, verification before completion, while executing before executing go through executing plans."
+    },
+    {
+      "id": "cdca5705",
+      "timestamp": "2026-05-04T15:12:55.545978+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and make up edge cases for the tasks to follow and make it so that it is very strict and never goes out of it's boundaries. And like the verification of what it is the like whatever I mentioned in the like audio when like I am telling right now whenever it is transcribed and the agent should sorry the AI should be identifying if it is a task that he's mentioning or he's just casually mentioning tasks if If casually, it should not be a task. If not casually, it should be a task.",
+      "final_text": "I want you to go ahead and make up edge cases for the tasks to follow and make it so that it is very strict and never goes out of it's boundaries. And like the verification of what it is the like whatever I mentioned in the like audio when like I am telling right now whenever it is transcribed and the agent should sorry the AI should be identifying if it is a task that he's mentioning or he's just casually mentioning tasks if If casually, it should not be a task. If not casually, it should be a task."
+    },
+    {
+      "id": "2dbd61a3",
+      "timestamp": "2026-05-04T15:11:38.449063+00:00",
+      "mode": "dictation",
+      "original_text": "See right now the smart detection in dictation is on for the tasks mode for the task panel but then what is happening is I am not even mentioning tasks but it is going ahead and making it as a task in the task mode sorry in the task panel so I want you to make it smart wherein like it should identify only if something is specified it should paste it as a task and make it as a task if not if they casually mention tasks it shouldn't like it shouldn't make it as a task and put it as a task.",
+      "final_text": "See right now the smart detection in dictation is on for the tasks mode for the task panel but then what is happening is I am not even mentioning tasks but it is going ahead and making it as a task in the task mode sorry in the task panel so I want you to make it smart wherein like it should identify only if something is specified it should paste it as a task and make it as a task if not if they casually mention tasks it shouldn't like it shouldn't make it as a task and put it as a task."
+    },
+    {
+      "id": "a7c66acc",
+      "timestamp": "2026-05-04T15:10:04.331639+00:00",
+      "mode": "dictation",
+      "original_text": "See the",
+      "final_text": "See the"
+    },
+    {
+      "id": "abc39e42",
+      "timestamp": "2026-05-04T15:09:47.401470+00:00",
+      "mode": "dictation",
+      "original_text": "And I don't know why but whenever I press F9 and I talk in the dictation mode.",
+      "final_text": "And I don't know why but whenever I press F9 and I talk in the dictation mode."
+    },
+    {
+      "id": "514da166",
+      "timestamp": "2026-05-04T15:08:35.080443+00:00",
+      "mode": "dictation",
+      "original_text": "Happening like it is actually making it I guess it is refining the prompt but then it is not copying it to the clipboard and 1 more thing I want you to do is I want you to go ahead and make it so that it is like an auto overflow of y-axis on all the panels so that whenever there is extra things which is gone down like example now the error came and things which were below it got pushed down and it went out of the overlay app so whenever something gets pushed down overflow auto y should enact and let me scroll down in the panel too.",
+      "final_text": "Happening like it is actually making it I guess it is refining the prompt but then it is not copying it to the clipboard and 1 more thing I want you to do is I want you to go ahead and make it so that it is like an auto overflow of y-axis on all the panels so that whenever there is extra things which is gone down like example now the error came and things which were below it got pushed down and it went out of the overlay app so whenever something gets pushed down overflow auto y should enact and let me scroll down in the panel too."
+    },
+    {
+      "id": "41075dfb",
+      "timestamp": "2026-05-04T15:06:03.594456+00:00",
+      "mode": "dictation",
+      "original_text": "It has transcribed the thing whatever I told inside the agent mode 2. So go ahead and fix it. I don't know why is this happening. I want you to make a proper plan on this, how you can fix it. Go ahead take up systematic debugging and writing plans from superpowers inside Windsurf rules. Surf rules and yeah just go ahead and make up the rules and execute the plan so use the executing plans from superpowers for executing the plan.",
+      "final_text": "It has transcribed the thing whatever I told inside the agent mode 2. so go ahead and fix it. I don't know why is this happening. I want you to make a proper plan on this, how you can fix it. go ahead take up systematic debugging and writing plans from superpowers inside Windsurf rules. Surf rules and yeah just go ahead and make up the rules and execute the plan so use the executing plans from superpowers for executing the plan."
+    },
+    {
+      "id": "5196cebf",
+      "timestamp": "2026-05-04T15:04:39.154243+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead open chrome, navigate to youtube, play the most recent video of MrBeast Nothing what you told has been updated whenever I press F9 twice it isn't changing the pill and even the agent mode is not turning on or even taking in the dictation like whatever I tell isn't it isn't taking it in and it's not executing the task so go ahead and fix that and check even if it works through the app whenever I text the agent to do something does it work through that.",
+      "final_text": "I want you to go ahead open chrome, navigate to youtube, play the most recent video of MrBeast Nothing what you told has been updated whenever I press F9 twice it isn't changing the pill and even the agent mode is not turning on or even taking in the dictation like whatever I tell isn't it isn't taking it in and it's not executing the task so go ahead and fix that and check even if it works through the app whenever I text the agent to do something does it work through that."
+    },
+    {
+      "id": "12b31876",
+      "timestamp": "2026-05-04T15:02:05.103722+00:00",
+      "mode": "dictation",
+      "original_text": "It's coming fail to fetch so I want you to go through. Winsurve/rules/superpowers/systematic debugging and go through it debug the whole thing and go ahead and fix it after that.",
+      "final_text": "It's coming fail to fetch so I want you to go through. Winsurve/rules/superpowers/systematic debugging and go through it debug the whole thing and go ahead and fix it after that."
+    },
+    {
+      "id": "f2e2feb7",
+      "timestamp": "2026-05-04T14:54:13.543857+00:00",
+      "mode": "dictation",
+      "original_text": "The D prompt isn't actually working so whenever I try to refine a prompt, it is coming fail to fetch still. So I want you to go ahead and fix that.",
+      "final_text": "The D prompt isn't actually working so whenever I try to refine a prompt, it is coming fail to fetch still. so I want you to go ahead and fix that."
+    },
+    {
+      "id": "254c5973",
+      "timestamp": "2026-05-04T14:46:44.608691+00:00",
+      "mode": "dictation",
+      "original_text": "Hey inside the website the docs page isn't being rendered in it is just showing a blank page I want you to go ahead and fix that and also the plan pro plan will be $20 and the power plan will be $30. So I want you to no no no power plan will be $50 so I want you to go ahead and fix that I want you to go ahead and fix that and even update the yearly prices according to how much the pro and power are for monthly okay.",
+      "final_text": "Hey inside the website the docs page isn't being rendered in it is just showing a blank page I want you to go ahead and fix that and also the plan pro plan will be $20 and the power plan will be $30. so I want you to no no no power plan will be $50 so I want you to go ahead and fix that I want you to go ahead and fix that and even update the yearly prices according to how much the pro and power are for monthly okay."
+    },
+    {
+      "id": "175023dc",
+      "timestamp": "2026-05-04T14:43:27.270980+00:00",
+      "mode": "dictation",
+      "original_text": "Also should I enter all the models names which is listed inside the drop down menu in the env or is it automatically changed whenever I select a model on the panel.",
+      "final_text": "Also should I enter all the models names which is listed inside the drop down menu in the env or is it automatically changed whenever I select a model on the panel."
+    },
+    {
+      "id": "4f8ece93",
+      "timestamp": "2026-05-04T14:41:32.491372+00:00",
+      "mode": "dictation",
+      "original_text": "Whenever I try to refine a prompt. So I want you to go ahead and fix this problem. I have already put the models, drop down, everything is put. So I want you to tell me what is the problem and come back to me with the solution for it. Like what is that? Complete it. Do the solution and come back to me when you are done with it.",
+      "final_text": "Whenever I try to refine a prompt. so I want you to go ahead and fix this problem. I have already put the models, drop down, everything is put. so I want you to tell me what is the problem and come back to me with the solution for it. Like what is that? Complete it. Do the solution and come back to me when you are done with it."
+    },
+    {
+      "id": "fef6e640",
+      "timestamp": "2026-05-04T14:30:25.659290+00:00",
+      "mode": "dictation",
+      "original_text": "See, actually I told this in the dictation and the thing was on, it was on, toggled on, where in the dictation if I mention task, in a smart way it identifies what is the task and it updates it as a task. But it's not happening look at this go through this and make this proper and yeah make the toggles proper then if I press sorry if I put the toggle on for a shortcut it should show a text space where I can enter 3 combinations 3 key combinations 2 key combinations or even 1 key combination and you can choose for the 1 key you can choose how many times does it have to be pressed for the tasks thing to be active and 1 more thing would be I yeah when I put it on the dictation thing smart sorting smart like what is that smart grasp of tasks, it should work. So go ahead and go through the whole structure what you have changed and just review why isn't it working and make it proper. Find out the bug and make it proper.",
+      "final_text": "See, actually I told this in the dictation and the thing was on, it was on, toggled on, where in the dictation if I mention task, in a smart way it identifies what is the task and it updates it as a task. But it's not happening look at this go through this and make this proper and yeah make the toggles proper then if I press sorry if I put the toggle on for a shortcut it should show a text space where I can enter 3 combinations 3 key combinations 2 key combinations or even 1 key combination and you can choose for the 1 key you can choose how many times does it have to be pressed for the tasks thing to be active and 1 more thing would be I yeah when I put it on the dictation thing smart sorting smart like what is that smart grasp of tasks, it should work. so go ahead and go through the whole structure what you have changed and just review why isn't it working and make it proper. Find out the bug and make it proper."
+    },
+    {
+      "id": "715bff90",
+      "timestamp": "2026-05-04T14:27:40.796379+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to store this as a task so I need to complete shivora by today 9. 30 pm.",
+      "final_text": "I want you to store this as a task so I need to complete shivora by today 9. 30 pm."
+    },
+    {
+      "id": "441c8411",
+      "timestamp": "2026-05-04T14:27:17.089273+00:00",
+      "mode": "dictation",
+      "original_text": "You to go ahead and check if the agent mode is put on f9 if pressed twice it will be activated because it isn't working right now and 1 more thing even if I press f9 twice the voice this thing the animation on the overlay pill for dictation the same animation should happen even on the agent mode okay but then the overlay pill instead of being black in the background it should be like kind of dark blue.",
+      "final_text": "You to go ahead and check if the agent mode is put on f9 if pressed twice it will be activated because it isn't working right now and 1 more thing even if I press f9 twice the voice this thing the animation on the overlay pill for dictation the same animation should happen even on the agent mode okay but then the overlay pill instead of being black in the background it should be like kind of dark blue."
+    },
+    {
+      "id": "0b046f36",
+      "timestamp": "2026-05-04T14:18:21.833421+00:00",
+      "mode": "dictation",
+      "original_text": "I want you to go ahead and take out this model selection thing for the agent mode. The default models will be the models which are already set. Which is GEN3 VL235B and Gemini 3 Flash.",
+      "final_text": "I want you to go ahead and take out this model selection thing for the agent mode. The default models will be the models which are already set. Which is GEN3 VL235B and Gemini 3 Flash."
+    },
+    {
+      "id": "5e0aa59f",
+      "timestamp": "2026-05-04T09:52:25.159383+00:00",
+      "mode": "dictation",
+      "original_text": "And and it should be all routable sorry it should be all routed to open router and yeah go ahead and do this 1.",
+      "final_text": "And and it should be all routable sorry it should be all routed to open router and yeah go ahead and do this 1."
+    },
+    {
+      "id": "dbbaf72f",
+      "timestamp": "2026-05-04T09:52:06.636185+00:00",
+      "mode": "dictation",
+      "original_text": "I want these to be the models and the models which I told to keep in the drop down keep it as the models in the drop down and they can be set in the UI of the overlay app itself there should be a drop down menu for the models on the bottom left of the feature page on the overlay app.",
+      "final_text": "I want these to be the models and the models which I told to keep in the drop down keep it as the models in the drop down and they can be set in the UI of the overlay app itself there should be a drop down menu for the models on the bottom left of the feature page on the overlay app."
+    },
+    {
+      "id": "17012e52",
+      "timestamp": "2026-05-04T08:44:49.376428+00:00",
+      "mode": "dictation",
+      "original_text": "For the TVN Hub, I want you to note down what are the kind of edge cases that it should follow and it should not edit the system, it should only edit the features that are there and it should make it better that's it nothing else so yeah I want you to plan on how you can implement that and go ahead and do it.",
+      "final_text": "For the TVN Hub, I want you to note down what are the kind of edge cases that it should follow and it should not edit the system, it should only edit the features that are there and it should make it better that's it nothing else so yeah I want you to plan on how you can implement that and go ahead and do it."
+    },
+    {
       "id": "c40a5898",
       "timestamp": "2026-05-02T22:55:57.033182+00:00",
       "mode": "dictation",

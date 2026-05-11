@@ -154,7 +154,7 @@ def _contextual_llm_polish(text: str) -> str:
 #  SMART PASTE
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def smart_paste(text: str) -> bool:
+def smart_paste(text: str, window_id: Optional[str] = None) -> bool:
     """
     Paste text into the active window.
 
@@ -163,6 +163,11 @@ def smart_paste(text: str) -> bool:
       2. Linux: clipboard + Ctrl+V first — xdotool/wtype are more reliable
          than pynput which may silently fail on Wayland.
       3. Fallback across platforms when primary method fails.
+
+    Args:
+        text: The text to paste.
+        window_id: If provided on Linux, xdotool sends the key directly
+                   to this window via --window, bypassing focus issues.
     """
     import shutil
 
@@ -222,85 +227,132 @@ def smart_paste(text: str) -> bool:
     except Exception:
         pass
 
+    # If we have a specific window ID, send directly to it before trying
+    # generic focus-dependent tools.
+    if window_id and shutil.which("xdotool"):
+        try:
+            subprocess.run(
+                ["xdotool", "key", "--window", window_id, "ctrl+v"],
+                timeout=2,
+                check=True,
+            )
+            print(f"[Paste] xdotool --window {window_id} ctrl+v succeeded")
+            return True
+        except Exception as e:
+            print(f"[Paste] xdotool --window failed: {e}")
+
     # Detect Wayland so we paste from the same clipboard backend we copied to.
     _is_wayland = (
         os.environ.get("XDG_SESSION_TYPE") == "wayland"
         or bool(os.environ.get("WAYLAND_DISPLAY"))
     )
 
-    # Retry Linux native tools so an OS accessibility dialog can be
-    # approved mid-loop and a later attempt succeeds.
-    for attempt in range(3):
-        if _is_wayland:
-            # Wayland: wtype first (reads Wayland clipboard), then xdotool fallback
-            if shutil.which("wtype"):
-                try:
-                    subprocess.run(["wtype", "-M", "ctrl", "v", "-m", "ctrl"], timeout=2, check=True)
-                    print(f"[Paste] wtype ctrl+v succeeded (attempt {attempt + 1})")
-                    return True
-                except Exception as e:
-                    print(f"[Paste] wtype failed (attempt {attempt + 1}): {e}")
+    # Cache whether wtype is known-broken on this compositor.
+    _wtype_broken = False
 
-            if shutil.which("ydotool"):
-                try:
-                    subprocess.run(["ydotool", "key", "ctrl+v"], timeout=2, check=True)
-                    print(f"[Paste] ydotool ctrl+v succeeded (attempt {attempt + 1})")
-                    return True
-                except Exception as e:
-                    print(f"[Paste] ydotool failed (attempt {attempt + 1}): {e}")
+    # Try Linux native tools once. Retrying just re-triggers accessibility
+    # dialogs without improving success odds — each tool is already attempted
+    # in priority order below.
+    if _is_wayland:
+        # Wayland: prefer tools that don't need virtual_keyboard protocol.
+        if shutil.which("dotool"):
+            try:
+                subprocess.run(
+                    ["dotool"],
+                    input="key ctrl+v\n",
+                    text=True,
+                    timeout=2,
+                    check=True,
+                )
+                print("[Paste] dotool ctrl+v succeeded")
+                return True
+            except Exception as e:
+                print(f"[Paste] dotool failed: {e}")
 
-            # xdotool fallback via XWayland (reads X11 clipboard — may be stale)
-            if shutil.which("xdotool"):
-                try:
-                    subprocess.run(["xdotool", "key", "ctrl+v"], timeout=2, check=True)
-                    print(f"[Paste] xdotool ctrl+v succeeded (attempt {attempt + 1})")
-                    return True
-                except Exception as e:
-                    print(f"[Paste] xdotool failed (attempt {attempt + 1}): {e}")
-        else:
-            # X11: xdotool first, then Wayland fallbacks
-            if shutil.which("xdotool"):
-                try:
-                    subprocess.run(["xdotool", "key", "ctrl+v"], timeout=2, check=True)
-                    print(f"[Paste] xdotool ctrl+v succeeded (attempt {attempt + 1})")
-                    return True
-                except Exception as e:
-                    print(f"[Paste] xdotool failed (attempt {attempt + 1}): {e}")
+        if shutil.which("ydotool"):
+            try:
+                subprocess.run(["ydotool", "key", "ctrl+v"], timeout=2, check=True)
+                print("[Paste] ydotool ctrl+v succeeded")
+                return True
+            except Exception as e:
+                print(f"[Paste] ydotool failed: {e}")
 
-            if shutil.which("wtype"):
-                try:
-                    subprocess.run(["wtype", "-M", "ctrl", "v", "-m", "ctrl"], timeout=2, check=True)
-                    print(f"[Paste] wtype ctrl+v succeeded (attempt {attempt + 1})")
-                    return True
-                except Exception as e:
-                    print(f"[Paste] wtype failed (attempt {attempt + 1}): {e}")
+        # wtype — only if not known-broken on this compositor
+        if shutil.which("wtype") and not _wtype_broken:
+            try:
+                result = subprocess.run(
+                    ["wtype", "-M", "ctrl", "v", "-m", "ctrl"],
+                    capture_output=True,
+                    text=True,
+                    timeout=2,
+                    check=True,
+                )
+                print("[Paste] wtype ctrl+v succeeded")
+                return True
+            except subprocess.CalledProcessError as e:
+                err = (e.stderr or "").lower()
+                if "compositor does not support" in err or "virtual keyboard" in err:
+                    print("[Paste] wtype unsupported by compositor — skipping future attempts")
+                    _wtype_broken = True
+                else:
+                    print(f"[Paste] wtype failed: {e}")
+            except Exception as e:
+                print(f"[Paste] wtype failed: {e}")
 
-            if shutil.which("ydotool"):
-                try:
-                    subprocess.run(["ydotool", "key", "ctrl+v"], timeout=2, check=True)
-                    print(f"[Paste] ydotool ctrl+v succeeded (attempt {attempt + 1})")
-                    return True
-                except Exception as e:
-                    print(f"[Paste] ydotool failed (attempt {attempt + 1}): {e}")
+        # xdotool fallback via XWayland (reads X11 clipboard — may be stale)
+        if shutil.which("xdotool"):
+            try:
+                subprocess.run(["xdotool", "key", "ctrl+v"], timeout=2, check=True)
+                print("[Paste] xdotool ctrl+v succeeded")
+                return True
+            except Exception as e:
+                print(f"[Paste] xdotool failed: {e}")
+    else:
+        # X11: xdotool first, then Wayland fallbacks
+        if shutil.which("xdotool"):
+            try:
+                subprocess.run(["xdotool", "key", "ctrl+v"], timeout=2, check=True)
+                print("[Paste] xdotool ctrl+v succeeded")
+                return True
+            except Exception as e:
+                print(f"[Paste] xdotool failed: {e}")
 
-        # pynput fallback
-        try:
-            from pynput.keyboard import Controller, Key
-            c = Controller()
-            c.press(Key.ctrl)
-            c.press("v")
-            c.release("v")
-            c.release(Key.ctrl)
-            print(f"[Paste] pynput ctrl+v attempted (attempt {attempt + 1})")
+        if shutil.which("dotool"):
+            try:
+                subprocess.run(
+                    ["dotool"],
+                    input="key ctrl+v\n",
+                    text=True,
+                    timeout=2,
+                    check=True,
+                )
+                print("[Paste] dotool ctrl+v succeeded")
+                return True
+            except Exception as e:
+                print(f"[Paste] dotool failed: {e}")
+
+        if shutil.which("ydotool"):
+            try:
+                subprocess.run(["ydotool", "key", "ctrl+v"], timeout=2, check=True)
+                print("[Paste] ydotool ctrl+v succeeded")
+                return True
+            except Exception as e:
+                print(f"[Paste] ydotool failed: {e}")
+
+    # Final fallback: use the cached platform system access instead of
+    # creating a fresh pynput Controller (which re-triggers accessibility
+    # approval dialogs every single time).
+    try:
+        from platforms.factory import get_system_access
+        system = get_system_access()
+        ok, _ = system.hotkey("ctrl", "v")
+        if ok:
+            print("[Paste] system access hotkey succeeded")
             return True
-        except Exception as e:
-            print(f"[Paste] pynput failed (attempt {attempt + 1}): {e}")
+    except Exception as e:
+        print(f"[Paste] system access hotkey failed: {e}")
 
-        if attempt < 2:
-            print("[Paste] Retrying in 0.5s...")
-            time.sleep(0.5)
-
-    # Final fallback: direct type injection (Linux only — pynput/xdotool/wtype type)
+    # Final fallback: direct type injection (Linux only)
     if sys.platform != "win32":
         try:
             from core.platform_backends import type_text
@@ -430,6 +482,8 @@ class StreamingSTT:
             self._recording = False
         self._stop_event.set()
         send_voice_state("processing")
+        # Finalize so the transcript is captured and returned on next request_stop()
+        self._finalize()
         if self.on_auto_stop:
             try:
                 self.on_auto_stop()

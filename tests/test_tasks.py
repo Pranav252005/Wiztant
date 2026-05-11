@@ -189,3 +189,72 @@ def test_get_carried_over_undone():
     tasks.reschedule_to_tomorrow(t["id"])
     carried = tasks.get_carried_over_undone()
     assert any(x["id"] == t["id"] for x in carried)
+
+
+# ─── Task mention / smart detection patterns ──────────────────────
+
+class TestTaskMentionPatterns:
+    # ── Explicit prefixes: fast path, extracted candidate returned ──
+
+    def test_prefix_this_is_a_task(self):
+        result = tasks.extract_task_mention("this is a task buy milk")
+        assert result is not None
+        assert result == "buy milk"
+
+    def test_prefix_add_task(self):
+        result = tasks.extract_task_mention("add task call John by 5pm")
+        assert result is not None
+        assert "call John" in result
+
+    def test_prefix_create_a_task_for(self):
+        result = tasks.extract_task_mention("create a task for the Q4 report")
+        assert result is not None
+        assert "Q4 report" in result
+
+    def test_prefix_task_colon(self):
+        result = tasks.extract_task_mention("task: finish the deck")
+        assert result is not None
+        assert result == "finish the deck"
+
+    def test_prefix_todo_colon(self):
+        result = tasks.extract_task_mention("todo: email the team")
+        assert result is not None
+        assert result == "email the team"
+
+    # ── Borderline mentions: raw text returned for LLM verification ──
+
+    def test_trailing_this_is_a_task_returns_raw(self):
+        # Was previously extracted directly; now returned raw for LLM gate
+        result = tasks.extract_task_mention("buy groceries this is a task")
+        assert result == "buy groceries this is a task"
+
+    def test_casual_task_mention_returns_raw(self):
+        result = tasks.extract_task_mention("I have a lot of tasks today")
+        assert result == "I have a lot of tasks today"
+
+    def test_that_sounds_like_a_task_returns_raw(self):
+        result = tasks.extract_task_mention("That sounds like a task")
+        assert result == "That sounds like a task"
+
+    # ── No match: normal dictation ──
+
+    def test_no_false_positive_on_normal_text(self):
+        result = tasks.extract_task_mention("just some normal dictation text")
+        assert result is None
+
+    def test_no_match_without_task_word(self):
+        # Natural language without "task"/"todo" must NOT trigger
+        result = tasks.extract_task_mention("I need to call John")
+        assert result is None
+
+    def test_no_match_remind_me_without_task_word(self):
+        result = tasks.extract_task_mention("Remind me to call mom")
+        assert result is None
+
+    def test_no_match_action_plus_time_without_task_word(self):
+        result = tasks.extract_task_mention("Call John by 5pm")
+        assert result is None
+
+    def test_no_match_implicit_future_without_task_word(self):
+        result = tasks.extract_task_mention("I will finish the report tomorrow")
+        assert result is None

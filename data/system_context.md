@@ -1,9 +1,9 @@
 # System Context — fedora
-Generated: 2026-05-03 02:41:39
-Last Updated: 2026-05-03 02:41:39
+Generated: 2026-05-08 20:14:26
+Last Updated: 2026-05-08 20:14:26
 Scan Type: Lightweight Update
-Next Hourly Update: 2026-05-03 03:41:39
-Next Daily Full Scan: 2026-05-04 00:00:00 (midnight)
+Next Hourly Update: 2026-05-08 21:14:26
+Next Daily Full Scan: 2026-05-09 00:00:00 (midnight)
 
 ## System Information
 - **OS**: Linux 6.19.12-200.fc43.x86_64
@@ -64,6 +64,9 @@ Next Daily Full Scan: 2026-05-04 00:00:00 (midnight)
 - Privileged Cont
 - RDD Process
 - Socket Process
+- UVM Tools Event Queue
+- UVM deferred release queue
+- UVM global queue
 - Utility Process
 - Web Content
 - WebExtensions
@@ -91,9 +94,6 @@ Next Daily Full Scan: 2026-05-04 00:00:00 (midnight)
 - akonadi_newmailnotifier_agent
 - akonadi_sendlater_agent
 - akonadi_unifiedmailbox_agent
-- akonadiserver
-- alsactl
-- at-spi-bus-launcher
 
 ## Quick Navigation Tips for Agent
 1. **Check browsers section** before opening a browser — use the path listed above.

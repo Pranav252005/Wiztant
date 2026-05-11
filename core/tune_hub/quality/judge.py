@@ -69,7 +69,7 @@ class LLMJudge(BaseJudge):
     Falls back to SimpleJudge if API is unavailable.
     """
 
-    DEFAULT_MODEL = "anthropic/claude-sonnet-4-20250514"
+    DEFAULT_MODEL = "anthropic/claude-sonnet-4.6"
     JUDGE_SYSTEM_PROMPT = (
         "You are an objective quality evaluator. "
         "Score the given output on accuracy, completeness, and clarity. "

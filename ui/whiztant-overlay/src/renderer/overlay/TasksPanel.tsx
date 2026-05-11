@@ -1,10 +1,12 @@
 import type { CSSProperties } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { Task } from '../shared/ipc';
+import type { Task, TaskDifficulty } from '../shared/ipc';
 import type { Theme } from '../shared/themes';
 import { sendBridgeMessage } from '../shared/useBridge';
+import CustomDropdown from '../shared/CustomDropdown';
 import TaskTile from './TaskTile';
+import CategoryTabs from './CategoryTabs';
 
 export type TaskItem = Task;
 
@@ -29,6 +31,11 @@ type Props = {
   onTaskAdded?: () => void;
   sortMode?: SortMode;
   onSortChange?: (mode: SortMode) => void;
+  prefill?: Record<string, unknown> | null;
+  onPrefillConsumed?: () => void;
+  categories?: string[];
+  onAddCategory?: (name: string) => void;
+  onDropTask?: (taskId: string, category: string) => void;
 };
 
 function formatDueLabel(value?: string | null) {
@@ -91,7 +98,21 @@ function buildDueAtISO(day: 'none' | 'today' | 'tomorrow', time: string, meridie
   return date.toISOString();
 }
 
-export type SortMode = 'smart' | 'due_asc' | 'due_desc' | 'alpha_asc' | 'alpha_desc';
+const TASK_MODEL_OPTIONS = [
+  { value: 'anthropic/claude-sonnet-4.6', label: 'Claude Sonnet 4.6' },
+  { value: 'anthropic/claude-haiku-4.5', label: 'Claude Haiku 4.5' },
+  { value: 'openai/gpt-5.5', label: 'GPT 5.5' },
+  { value: 'openai/gpt-5.4', label: 'GPT 5.4' },
+  { value: 'openai/gpt-5.5-mini', label: 'GPT 5.5 mini' },
+  { value: 'openai/gpt-5.4-mini', label: 'GPT 5.4 mini' },
+  { value: 'x-ai/grok-4.3', label: 'Grok 4.3' },
+  { value: 'google/gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro' },
+  { value: 'google/gemini-3-flash-preview', label: 'Gemini 3 Flash' },
+  { value: 'qwen/qwen3.5-plus-20260420', label: 'Qwen 3.5 Plus' },
+  { value: 'moonshotai/kimi-k2.6', label: 'Kimi K2.6' },
+];
+
+export type SortMode = 'smart' | 'due_asc' | 'due_desc' | 'alpha_asc' | 'alpha_desc' | 'difficulty_asc' | 'difficulty_desc';
 
 const SORT_LABELS: Record<SortMode, string> = {
   smart: 'Smart',
@@ -99,6 +120,8 @@ const SORT_LABELS: Record<SortMode, string> = {
   due_desc: 'Due: Latest',
   alpha_asc: 'A → Z',
   alpha_desc: 'Z → A',
+  difficulty_asc: 'Difficulty: Easy first',
+  difficulty_desc: 'Difficulty: Hard first',
 };
 
 export default function TasksPanel({
@@ -114,6 +137,11 @@ export default function TasksPanel({
   onTaskAdded,
   sortMode: sortModeProp,
   onSortChange,
+  prefill,
+  onPrefillConsumed,
+  categories = [],
+  onAddCategory,
+  onDropTask,
 }: Props) {
   const [focusIdx, setFocusIdx] = useState(0);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -121,8 +149,39 @@ export default function TasksPanel({
   const [draftDay, setDraftDay] = useState<'none' | 'today' | 'tomorrow'>('none');
   const [draftTime, setDraftTime] = useState('');
   const [draftMeridiem, setDraftMeridiem] = useState<'24' | 'am' | 'pm'>('pm');
+  const [draftCategory, setDraftCategory] = useState<string | null>(null);
+  const [draftDifficulty, setDraftDifficulty] = useState<TaskDifficulty>(null);
+  const [activeCategory, setActiveCategory] = useState<string | 'all'>('all');
+  const [taskRefinerModel, setTaskRefinerModel] = useState<string>(() => {
+    try {
+      return window.localStorage.getItem('whiztant.model.taskRefiner') || 'anthropic/claude-haiku-4.5';
+    } catch { return 'anthropic/claude-haiku-4.5'; }
+  });
+  const [taskAiEnabled, setTaskAiEnabled] = useState<boolean>(() => {
+    try {
+      return window.localStorage.getItem('whiztant.task_ai_enabled') !== 'false';
+    } catch { return true; }
+  });
+  const inputRef = useRef<HTMLInputElement>(null);
   const sortMode = sortModeProp ?? 'smart';
   const setSortMode = onSortChange ?? (() => {});
+
+  useEffect(() => {
+    try { window.localStorage.setItem('whiztant.model.taskRefiner', taskRefinerModel); } catch { /* noop */ }
+    sendBridgeMessage({ type: 'settings/set', key: 'TASK_REFINER_MODEL', value: taskRefinerModel });
+  }, [taskRefinerModel]);
+
+  useEffect(() => {
+    fetch('http://localhost:8765/settings/task_ai_enabled')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.ok) {
+          setTaskAiEnabled(d.enabled);
+          window.localStorage.setItem('whiztant.task_ai_enabled', String(d.enabled));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const nowMs = Date.now();
 
@@ -182,16 +241,93 @@ export default function TasksPanel({
     if (sortMode === 'alpha_desc') {
       return list.sort((a, b) => (b.text || '').localeCompare(a.text || ''));
     }
+    if (sortMode === 'difficulty_asc') {
+      const order = { easy: 0, medium: 1, hard: 2, null: 3 };
+      return list.sort((a, b) => {
+        const diffCmp = (order[(a.difficulty ?? 'null') as keyof typeof order] ?? 3) - (order[(b.difficulty ?? 'null') as keyof typeof order] ?? 3);
+        if (diffCmp !== 0) return diffCmp;
+        return (a.text || '').localeCompare(b.text || '');
+      });
+    }
+    if (sortMode === 'difficulty_desc') {
+      const order = { hard: 0, medium: 1, easy: 2, null: 3 };
+      return list.sort((a, b) => {
+        const diffCmp = (order[(a.difficulty ?? 'null') as keyof typeof order] ?? 3) - (order[(b.difficulty ?? 'null') as keyof typeof order] ?? 3);
+        if (diffCmp !== 0) return diffCmp;
+        return (a.text || '').localeCompare(b.text || '');
+      });
+    }
     return list;
   }, [tasks, nowMs, sortMode]);
-  const activeTasks = useMemo(() => sortedTasks.filter((task) => !task.failed), [sortedTasks]);
-  const failedTasks = useMemo(() => sortedTasks.filter((task) => task.failed), [sortedTasks]);
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: tasks.filter((t) => !t.failed).length };
+    for (const cat of categories) {
+      counts[cat] = tasks.filter((t) => t.category === cat && !t.failed).length;
+    }
+    return counts;
+  }, [tasks, categories]);
+
+  const filteredTasks = useMemo(() => {
+    if (activeCategory === 'all') return sortedTasks;
+    return sortedTasks.filter((t) => t.category === activeCategory);
+  }, [sortedTasks, activeCategory]);
+
+  const activeTasks = useMemo(() => filteredTasks.filter((task) => !task.failed), [filteredTasks]);
+  const failedTasks = useMemo(() => filteredTasks.filter((task) => task.failed), [filteredTasks]);
 
   useEffect(() => {
     if (focusIdx > activeTasks.length - 1) {
       setFocusIdx(Math.max(0, activeTasks.length - 1));
     }
   }, [activeTasks, focusIdx]);
+
+  // Consume prefill data from pill edit flow
+  useEffect(() => {
+    if (!prefill) return;
+    const title = typeof prefill.prefillTitle === 'string' ? prefill.prefillTitle : '';
+    const due = typeof prefill.prefillDue === 'string' ? prefill.prefillDue : undefined;
+    if (title) {
+      setDraftText(title);
+      if (due) {
+        const d = new Date(due);
+        if (!Number.isNaN(d.getTime())) {
+          const now = new Date();
+          const isToday = d.toDateString() === now.toDateString();
+          const tomorrow = new Date(now);
+          tomorrow.setDate(now.getDate() + 1);
+          const isTomorrow = d.toDateString() === tomorrow.toDateString();
+          setDraftDay(isToday ? 'today' : isTomorrow ? 'tomorrow' : 'none');
+          if (!isToday && !isTomorrow) {
+            setDraftDay('none');
+          } else {
+            const hours = d.getHours();
+            const minutes = d.getMinutes();
+            const isPm = hours >= 12;
+            const displayHour = hours % 12 || 12;
+            setDraftTime(`${String(displayHour).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`);
+            setDraftMeridiem(isPm ? 'pm' : 'am');
+          }
+        }
+      }
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      });
+    }
+    // Scroll to task if requested
+    const scrollToTask = prefill.scrollToTask === true;
+    const taskId = typeof prefill.taskId === 'string' ? prefill.taskId : undefined;
+    if (scrollToTask && taskId) {
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-task-id="${taskId}"]`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    }
+    onPrefillConsumed?.();
+  }, [prefill, onPrefillConsumed]);
 
   useEffect(() => {
     if (pendingDeleteId && !tasks.some((task) => task.id === pendingDeleteId)) {
@@ -270,11 +406,13 @@ export default function TasksPanel({
     const text = draftText.trim();
     if (!text) return;
     const due_at = buildDueAtISO(draftDay, draftTime, draftMeridiem);
-    sendBridgeMessage({ type: 'tasks/add', text, source: 'typed', due_at });
+    sendBridgeMessage({ type: 'tasks/add', text, source: 'typed', due_at, category: draftCategory, difficulty: draftDifficulty });
     setDraftText('');
     setDraftDay('none');
     setDraftTime('');
     setDraftMeridiem('pm');
+    setDraftCategory(null);
+    setDraftDifficulty(null);
     onTaskAdded?.();
   };
 
@@ -295,68 +433,125 @@ export default function TasksPanel({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 8,
-        marginBottom: 12,
-        padding: '12px',
-        borderRadius: 14,
+        gap: 6,
+        marginBottom: 10,
+        padding: '10px',
+        borderRadius: 12,
         border: `1px solid ${theme.border}`,
         background: theme.inputBg,
       }}
     >
-      <input
-        type="text"
-        value={draftText}
-        placeholder="Add a task…"
-        onChange={(e) => setDraftText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            submitDraft();
-          }
-        }}
-        style={{ ...inputBaseStyle, width: '100%' }}
-      />
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-        <select
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <input
+          ref={inputRef}
+          type="text"
+          value={draftText}
+          placeholder="Add a task…"
+          onChange={(e) => setDraftText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              submitDraft();
+            }
+          }}
+          style={{ ...inputBaseStyle, width: '100%' }}
+        />
+        {taskAiEnabled && (
+          <span
+            style={{
+              fontSize: 10,
+              color: theme.aiAccent,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            ✨ AI ON
+          </span>
+        )}
+      </div>
+
+      {/* Row 1: Due time (left) + Category / Difficulty (right) -->
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+        <CustomDropdown
           value={draftDay}
-          onChange={(e) => setDraftDay(e.target.value as 'none' | 'today' | 'tomorrow')}
-          style={{ ...inputBaseStyle, padding: '6px 8px' }}
-        >
-          <option value="none">No due time</option>
-          <option value="today">Today</option>
-          <option value="tomorrow">Tomorrow</option>
-        </select>
+          onChange={(v) => setDraftDay(v as 'none' | 'today' | 'tomorrow')}
+          options={[
+            { value: 'none', label: 'No due' },
+            { value: 'today', label: 'Today' },
+            { value: 'tomorrow', label: 'Tomorrow' },
+          ]}
+          theme={theme}
+          style={{ width: 95 }}
+        />
         <input
           type="text"
           placeholder="hh:mm"
           value={draftTime}
           disabled={draftDay === 'none'}
           onChange={(e) => setDraftTime(e.target.value)}
-          style={{ ...inputBaseStyle, padding: '6px 8px', opacity: draftDay === 'none' ? 0.5 : 1 }}
+          style={{ ...inputBaseStyle, padding: '6px 8px', width: 56, opacity: draftDay === 'none' ? 0.5 : 1 }}
         />
-        <select
+        <CustomDropdown
           value={draftMeridiem}
+          onChange={(v) => setDraftMeridiem(v as '24' | 'am' | 'pm')}
+          options={[
+            { value: 'pm', label: 'PM' },
+            { value: 'am', label: 'AM' },
+            { value: '24', label: '24h' },
+          ]}
+          theme={theme}
           disabled={draftDay === 'none'}
-          onChange={(e) => setDraftMeridiem(e.target.value as '24' | 'am' | 'pm')}
-          style={{ ...inputBaseStyle, padding: '6px 8px', opacity: draftDay === 'none' ? 0.5 : 1 }}
-        >
-          <option value="pm">PM</option>
-          <option value="am">AM</option>
-          <option value="24">24h</option>
-        </select>
+          style={{ width: 52 }}
+        />
+        <div style={{ flex: 1, minWidth: 8 }} />
+        <CustomDropdown
+          value={draftCategory ?? 'auto'}
+          onChange={(v) => setDraftCategory(v === 'auto' ? null : v)}
+          options={[
+            { value: 'auto', label: 'Auto' },
+            ...categories.map((c) => ({ value: c, label: c })),
+          ]}
+          theme={theme}
+          style={{ width: 110 }}
+        />
+        <CustomDropdown
+          value={draftDifficulty ?? 'auto'}
+          onChange={(v) => setDraftDifficulty(v === 'auto' ? null : (v as TaskDifficulty))}
+          options={[
+            { value: 'auto', label: 'Auto' },
+            { value: 'easy', label: 'Easy' },
+            { value: 'medium', label: 'Medium' },
+            { value: 'hard', label: 'Hard' },
+          ]}
+          theme={theme}
+          style={{ width: 80 }}
+        />
+      </div>
+
+      {/* Row 2: Model (left) + Add button (right) */}
+      <div style={{ display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'space-between' }}>
+        <CustomDropdown
+          value={taskRefinerModel}
+          onChange={(v) => setTaskRefinerModel(v)}
+          options={TASK_MODEL_OPTIONS}
+          theme={theme}
+          style={{ width: 150 }}
+        />
         <button
           type="button"
           onClick={submitDraft}
           disabled={!draftText.trim()}
           style={{
-            marginLeft: 'auto',
             background: theme.aiAccent,
             color: '#0a0a0a',
             border: 'none',
             borderRadius: 10,
-            padding: '7px 14px',
+            padding: '7px 16px',
             fontSize: 12,
-            fontWeight: 600,
+            fontWeight: 700,
             cursor: draftText.trim() ? 'pointer' : 'not-allowed',
             opacity: draftText.trim() ? 1 : 0.5,
           }}
@@ -456,6 +651,15 @@ export default function TasksPanel({
   return (
     <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '12px 12px 14px', position: 'relative' }}>
       {formSection}
+      <CategoryTabs
+        categories={categories}
+        active={activeCategory}
+        onChange={setActiveCategory}
+        theme={theme}
+        counts={categoryCounts}
+        onAddCategory={onAddCategory}
+        onDropTask={onDropTask}
+      />
       {isEmpty ? (
         <div
           style={{
@@ -496,31 +700,21 @@ export default function TasksPanel({
         }}
       >
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Today</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>TaskStack</div>
           <div style={{ fontSize: 11, color: theme.textMuted }}>
             {activeTasks.filter((task) => task.status !== 'done').length} active tasks · {completedTodayCount} done today{loading ? ' · syncing…' : ''}
           </div>
         </div>
-        <select
+        <CustomDropdown
           value={sortMode}
-          onChange={(e) => setSortMode(e.target.value as SortMode)}
-          style={{
-            background: theme.inputBg,
-            color: theme.text,
-            border: `1px solid ${theme.border}`,
-            borderRadius: 8,
-            padding: '4px 8px',
-            fontSize: 11,
-            outline: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          {(Object.keys(SORT_LABELS) as SortMode[]).map((mode) => (
-            <option key={mode} value={mode}>
-              {SORT_LABELS[mode]}
-            </option>
-          ))}
-        </select>
+          onChange={(v) => setSortMode(v as SortMode)}
+          options={(Object.keys(SORT_LABELS) as SortMode[]).map((mode) => ({
+            value: mode,
+            label: SORT_LABELS[mode],
+          }))}
+          theme={theme}
+          style={{ width: 130 }}
+        />
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -528,6 +722,7 @@ export default function TasksPanel({
         {activeTasks.map((task, index) => (
           <motion.div
             key={task.id}
+            data-task-id={task.id}
             layout
             initial={{ opacity: 0, y: -6, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

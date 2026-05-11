@@ -11,11 +11,16 @@ Latency budget:
 
 from __future__ import annotations
 
+import copy
+import logging
 import time
 from typing import Any, Callable, Dict, List, Optional
 
 from .base import TuneStatus
+from .guardrails import TuneBoundaryGuard, TuneBoundaryViolation
 from .orchestrator import TuneHub
+
+logger = logging.getLogger(__name__)
 
 
 class TuneEvent:
@@ -92,24 +97,44 @@ class TuneApplicationMiddleware:
         if not self._enabled:
             return feature_input
 
+        # Deep copy so the caller's original dict is never mutated
+        immutable_input = TuneBoundaryGuard.ensure_immutable_input(feature_input)
+
         event = TuneEvent(
             user_id=user_id,
             feature_name=feature_name,
             task=task,
-            feature_input=dict(feature_input),
+            feature_input=immutable_input,
         )
 
         start = time.perf_counter()
+        tuned_input = immutable_input
         try:
             tuned_input = self.tune_hub.resolve_tune(
                 user_id=user_id,
                 feature_name=feature_name,
                 task=task,
-                feature_input=event.feature_input,
+                feature_input=immutable_input,
             )
+        except TuneBoundaryViolation as exc:
+            logger.warning(
+                "Tune boundary violation for user=%s feature=%s: %s",
+                user_id,
+                feature_name,
+                exc,
+            )
+            if not self._fallback_enabled:
+                raise
+            tuned_input = immutable_input
         except Exception:
-            # Fallback: return original input on any error
-            tuned_input = event.feature_input
+            logger.exception(
+                "Tune resolution failed for user=%s feature=%s",
+                user_id,
+                feature_name,
+            )
+            if not self._fallback_enabled:
+                raise
+            tuned_input = immutable_input
 
         elapsed_ms = (time.perf_counter() - start) * 1000
         event.latency_ms = elapsed_ms

@@ -69,16 +69,15 @@ async def tune(request: Request, body: Dict[str, Any]):
         user_id=body["user_id"],
         feature_name=body["feature_name"],
         task=body["task"],
-        approved_credits=body.get("approved_credits", 100),
-        tier=body.get("tier", "free"),
+        budget_limit=body.get("budget_limit", 100),
         urgency=body.get("urgency", "normal"),
         context=body.get("context", {}),
     )
     result = hub.tune_feature(req)
     return {
         "success": result.success,
-        "credits_used": result.credits_used,
-        "credits_remaining": result.credits_remaining,
+        "iterations_used": result.iterations_used,
+        "iterations_remaining": result.iterations_remaining,
         "message": result.message,
         "reusable": result.reusable,
         "sync_status": result.sync_status,

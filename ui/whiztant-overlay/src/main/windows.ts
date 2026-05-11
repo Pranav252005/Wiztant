@@ -2,7 +2,8 @@ import { BrowserWindow, screen, app, type Rectangle, type Display } from 'electr
 import path from 'node:path';
 import { exec } from 'node:child_process';
 import { VITE_DEV_SERVER_URL, RENDERER_DIST, PRELOAD_PATH } from './utils';
-import { getPillBounds, getOverlayBounds, setWindowBounds } from './positioning';
+import { getPillBounds, getOverlayBounds, setWindowBounds, getCursorDisplay } from './positioning';
+import { setLastCursorDisplayId } from './monitorState';
 import type { EdgePosition } from './orbit';
 
 // ── Linux WM compatibility helpers ──────────────────────────────
@@ -198,10 +199,26 @@ export function createOverlayWindow(disp: Display, pill?: BrowserWindow, _pos?: 
   }
 
   // Blur auto-hide: clicking outside the overlay group closes the overlay.
+  // If the click landed on a different monitor, smoothly animate the pill +
+  // overlay there before hiding so the next open is on the right display.
   win.on('blur', () => {
     setTimeout(() => {
       const focused = BrowserWindow.getFocusedWindow();
       if (isWindowInOverlayGroup(focused, win, pill)) return;
+
+      if (pill && !pill.isDestroyed()) {
+        const cursorDisp = getCursorDisplay();
+        const currentDisp = screen.getDisplayMatching(pill.getBounds());
+        if (cursorDisp.id !== currentDisp.id) {
+          const pillBounds = pill.getBounds();
+          const targetPillBounds = getPillBounds(cursorDisp, pillBounds.width, pillBounds.height);
+          const targetOverlayBounds = getOverlayBounds(cursorDisp, targetPillBounds);
+          setWindowBounds(pill, targetPillBounds, true);
+          setWindowBounds(win, targetOverlayBounds, true);
+          setLastCursorDisplayId(cursorDisp.id);
+        }
+      }
+
       if (!win.isDestroyed() && win.isVisible()) {
         stampAutoHidden(win);
         win.hide();

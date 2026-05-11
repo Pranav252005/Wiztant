@@ -11,6 +11,7 @@ const features = [
     desc: 'Rewrite prompts faster with AI-powered personas. One tap, instant refinement.',
     to: '/features/reprompt',
     hotkey: 'Ctrl+Space',
+    disabled: false,
   },
   {
     icon: Mic,
@@ -18,6 +19,7 @@ const features = [
     desc: 'Speak, do not type. Perfect for hands-free coding, writing, and quick notes.',
     to: '/features/dictation',
     hotkey: 'F9',
+    disabled: false,
   },
   {
     icon: Bot,
@@ -25,6 +27,7 @@ const features = [
     desc: 'Autonomous multi-step tasks. Click, type, control, all hands-free.',
     to: '/features/agent',
     hotkey: 'F9 x2',
+    disabled: true,
   },
   {
     icon: ListTodo,
@@ -32,6 +35,7 @@ const features = [
     desc: 'Dump your tasks anytime. It sorts, schedules, and reminds you so nothing slips.',
     to: '/features/taskstack',
     hotkey: 'F10',
+    disabled: false,
   },
 ]
 
@@ -58,20 +62,34 @@ export default function FeaturesOverview() {
         <div className="grid gap-6 md:grid-cols-2">
           {features.map((f, i) => (
             <AnimatedSection key={f.title} delay={i * 0.1}>
-              <Link
-                to={f.to}
-                className="group card block"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <f.icon size={36} className="text-primary" />
-                  <span className="kbd text-sm">{f.hotkey}</span>
+              {f.disabled ? (
+                <div className="group card block opacity-50 grayscale cursor-not-allowed">
+                  <div className="flex items-center justify-between mb-6">
+                    <f.icon size={36} className="text-primary" />
+                    <span className="kbd text-sm">{f.hotkey}</span>
+                  </div>
+                  <h3 className="font-display text-2xl font-bold text-text-primary">{f.title}</h3>
+                  <p className="mt-3 text-base leading-relaxed text-text-secondary">{f.desc}</p>
+                  <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-text-secondary">
+                    Coming Soon
+                  </span>
                 </div>
-                <h3 className="font-display text-2xl font-bold text-text-primary">{f.title}</h3>
-                <p className="mt-3 text-base leading-relaxed text-text-secondary">{f.desc}</p>
-                <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors">
-                  Explore {f.title} <ArrowRight size={16} />
-                </span>
-              </Link>
+              ) : (
+                <Link
+                  to={f.to}
+                  className="group card block"
+                >
+                  <div className="flex items-center justify-between mb-6">
+                    <f.icon size={36} className="text-primary" />
+                    <span className="kbd text-sm">{f.hotkey}</span>
+                  </div>
+                  <h3 className="font-display text-2xl font-bold text-text-primary">{f.title}</h3>
+                  <p className="mt-3 text-base leading-relaxed text-text-secondary">{f.desc}</p>
+                  <span className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors">
+                    Explore {f.title} <ArrowRight size={16} />
+                  </span>
+                </Link>
+              )}
             </AnimatedSection>
           ))}
         </div>

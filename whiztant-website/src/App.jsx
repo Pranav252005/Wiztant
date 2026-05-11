@@ -17,6 +17,7 @@ import Docs from './pages/Docs'
 import Changelog from './pages/Changelog'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
+import Settings from './pages/Settings'
 import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/download" element={<Download />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/docs" element={<Docs />} />

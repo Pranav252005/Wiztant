@@ -10,6 +10,11 @@ from core.tune_hub.orchestrator import TuneHub, TuneRequest
 from core.tune_hub.quality.judge import SimpleJudge
 from core.tune_hub.storage.sqlite_store import SQLiteTuneStore
 
+# Import tuners to trigger TuneBase registration
+from core.tune_hub.tuners.agent_tuner import AgentTuner  # noqa: F401
+from core.tune_hub.tuners.dictation_tuner import DictationTuner  # noqa: F401
+from core.tune_hub.tuners.reprompt_tuner import RePromptTuner  # noqa: F401
+
 
 class TestTuneHub:
     def setup_method(self):

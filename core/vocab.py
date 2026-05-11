@@ -82,7 +82,7 @@ def apply_corrections(text: str) -> str:
     return text
 
 
-def add_correction(heard: str, actual: str, case_sensitive: bool = False) -> None:
+def add_correction(heard: str, actual: str, case_sensitive: bool = False, domain: str | None = None) -> None:
     data = load_vocab()
     corrections = data.setdefault("corrections", [])
     # Update existing entry if same 'heard' word exists
@@ -90,6 +90,10 @@ def add_correction(heard: str, actual: str, case_sensitive: bool = False) -> Non
         if entry.get("heard", "").lower() == heard.lower():
             entry["actual"] = actual
             entry["case_sensitive"] = case_sensitive
+            entry["frequency"] = entry.get("frequency", 0) + 1
+            entry["updated_at"] = datetime.now(timezone.utc).isoformat()
+            if domain:
+                entry["domain"] = domain
             save_vocab(data)
             return
     corrections.append({
@@ -97,8 +101,9 @@ def add_correction(heard: str, actual: str, case_sensitive: bool = False) -> Non
         "actual": actual,
         "case_sensitive": case_sensitive,
         "added_at": datetime.now(timezone.utc).isoformat(),
-        "frequency": 0,
+        "frequency": 1,
         "phonetic": _phonetic_key(actual),
+        "domain": domain,
     })
     save_vocab(data)
 
@@ -288,10 +293,18 @@ class VocabManager:
         data["corrections"] = corrections
         save_vocab(data)
 
-    def add_correction(self, heard: str, actual: str):
+    def add_correction(self, heard: str, actual: str, domain: str | None = None):
         """Add or update a correction."""
         self.vocab_db[heard] = actual
-        add_correction(heard, actual)
+        add_correction(heard, actual, domain=domain)
+
+    def apply_phonetic_corrections(self, text: str, context_words: List[str] | None = None) -> Tuple[str, List[str]]:
+        """Apply phonetic fuzzy + domain-aware corrections."""
+        try:
+            from core.dictation_correction import apply_corrections
+            return apply_corrections(text, context_window=context_words)
+        except Exception:
+            return text, []
 
     def apply_corrections(self, text: str) -> Tuple[str, List[str]]:
         """

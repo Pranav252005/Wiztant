@@ -1,0 +1,101 @@
+{
+  "_meta": {
+    "description": "Model price registry for Bistent credit system. Prices are per-million-tokens in USD.",
+    "updated": "2026-05-07",
+    "formula": "credits = ceil((input_tokens * input_price/1e6 + output_tokens * output_price/1e6) * markup / cost_per_credit)"
+  },
+  "markup_multiplier": 5,
+  "cost_per_credit": {
+    "pro": 0.006,
+    "power": 0.005,
+    "free": 0.006
+  },
+  "models": {
+    "qwen/qwen3.5-plus-20260420": {
+      "input": 0.40,
+      "output": 2.40,
+      "category": "budget",
+      "speed": "fast"
+    },
+    "google/gemini-3-flash-preview": {
+      "input": 0.50,
+      "output": 3.00,
+      "category": "budget",
+      "speed": "fast"
+    },
+    "x-ai/grok-4.3": {
+      "input": 1.25,
+      "output": 2.50,
+      "category": "budget",
+      "speed": "fast"
+    },
+    "moonshotai/kimi-k2.6": {
+      "input": 0.75,
+      "output": 3.50,
+      "category": "budget",
+      "speed": "fast"
+    },
+    "openai/gpt-5.4-mini": {
+      "input": 0.75,
+      "output": 4.50,
+      "category": "budget",
+      "speed": "fast"
+    },
+    "anthropic/claude-haiku-4.5": {
+      "input": 1.00,
+      "output": 5.00,
+      "category": "mid",
+      "speed": "fast"
+    },
+    "google/gemini-3.1-pro-preview": {
+      "input": 2.00,
+      "output": 12.00,
+      "category": "pro",
+      "speed": "medium"
+    },
+    "openai/gpt-5.4": {
+      "input": 2.50,
+      "output": 15.00,
+      "category": "pro",
+      "speed": "medium"
+    },
+    "anthropic/claude-sonnet-4.6": {
+      "input": 3.00,
+      "output": 15.00,
+      "category": "pro",
+      "speed": "medium"
+    },
+    "openai/gpt-5.5": {
+      "input": 5.00,
+      "output": 30.00,
+      "category": "ultra",
+      "speed": "slow"
+    }
+  },
+  "defaults": {
+    "reprompt_model": "google/gemini-3-flash-preview",
+    "tunehub_judge_model": "anthropic/claude-haiku-4.5"
+  },
+  "dictation": {
+    "provider": "groq",
+    "model": "whisper-large-v3-turbo",
+    "price_per_hour": 0.04,
+    "average_utterance_seconds": 5,
+    "fixed_credits": 1
+  },
+  "tunehub_iterations": {
+    "LOW": 3,
+    "MEDIUM": 10,
+    "HIGH": 30
+  },
+  "token_estimates": {
+    "reprompt": {
+      "input": 3000,
+      "output": 2000
+    },
+    "judge": {
+      "input": 2000,
+      "output": 20
+    }
+  }
+}

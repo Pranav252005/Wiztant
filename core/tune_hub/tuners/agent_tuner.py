@@ -533,23 +533,23 @@ class AgentTuner(TuneBase, feature_name="agent"):
         feature_input["tune_id"] = model.tune_id
         feature_input["dsl_code"] = model.payload.get("dsl_code", "")
 
-        # Modify the task to indicate a learned recipe is available
-        task = feature_input.get("task", "")
-        if task and model.payload.get("recipe"):
-            feature_input["task"] = f"[Use learned recipe {model.tune_id}] {task}"
-
-        # Inject recipe guidance hint
+        # Inject recipe guidance hint — NEVER mutate the original task key
         recipe_hint = model.payload.get("recipe", [])
         if recipe_hint:
             dsl_code = model.payload.get("dsl_code", "")
-            feature_input["recipe_hint"] = f"Follow this learned automation sequence: {recipe_hint}"
+            hint = f"Follow this learned automation sequence: {recipe_hint}"
             if dsl_code:
-                feature_input["recipe_hint"] += f"\nDSL: {dsl_code}"
+                hint += f"\nDSL: {dsl_code}"
+            feature_input["recipe_hint"] = hint
 
         return feature_input
 
     def get_default_config(self, task: str) -> Dict[str, Any]:
         return {"recipe": [], "tune_id": None, "dsl_code": ""}
+
+    def allowed_injectable_keys(self) -> frozenset[str]:
+        from ..guardrails import INJECTABLE_KEYS
+        return INJECTABLE_KEYS.get(self.feature_name, frozenset())
 
     # ── INTERNALS ──
 

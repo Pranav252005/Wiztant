@@ -38,6 +38,17 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 def _cfg(key: str, default: str = "") -> str:
+    try:
+        import json
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            val = data.get(key)
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+    except Exception:
+        pass
     return os.getenv(key, default)
 
 
@@ -218,7 +229,7 @@ async def _call_bg_vlm(
         api_key=api_key,
         base_url="https://openrouter.ai/api/v1",
     )
-    model = _cfg("PLANNER_MODEL", "qwen/qwen3-vl-30b-a3b-instruct")
+    model = _cfg("PLANNER_MODEL", "qwen/qwen3-vl-235b-a22b-instruct")
 
     messages: List[Dict] = [{"role": "system", "content": _BG_AGENT_SYSTEM_PROMPT}]
 

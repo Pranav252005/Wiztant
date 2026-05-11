@@ -86,7 +86,7 @@ class TaskClassifier:
         confidence = confidence / total_score
 
         if confidence < 0.4:
-            return ("general", confidence)
+            return ("general_polish", confidence)
         return (best_task, confidence)
 
     def get_default_blend(self, task_type: str) -> Dict[str, float]:
@@ -404,6 +404,10 @@ class RePromptTuner(TuneBase, feature_name="reprompt"):
             "tune_id": None,
             "task_type": task_type,
         }
+
+    def allowed_injectable_keys(self) -> frozenset[str]:
+        from ..guardrails import INJECTABLE_KEYS
+        return INJECTABLE_KEYS.get(self.feature_name, frozenset())
 
     # ── INTERNALS ──
 

@@ -129,8 +129,13 @@ class SmartPasteEngine:
             logger.error(f"Copy to clipboard error: {e}")
             return self._linux_clipboard_copy(text)
 
-    def paste_via_hotkey(self) -> bool:
-        """Paste via Ctrl+V simulation."""
+    def paste_via_hotkey(self, window_id: Optional[str] = None) -> bool:
+        """Paste via Ctrl+V simulation.
+
+        Args:
+            window_id: If provided on Linux, xdotool will send the key
+                       directly to this window via --window.
+        """
         # Try keyboard library first (works on Windows and some Linux setups)
         try:
             import keyboard as _kb
@@ -145,19 +150,44 @@ class SmartPasteEngine:
             or bool(os.environ.get("WAYLAND_DISPLAY"))
         )
 
+        # Cache whether wtype is known-broken on this compositor so we don't
+        # retry it every single attempt (saves ~2s on GNOME etc.).
+        _wtype_broken = getattr(self, "_wtype_broken", False)
+
+        # If we have a specific window ID, try sending directly to it first.
+        # This bypasses focus issues caused by overlays or window managers.
+        if window_id and shutil.which("xdotool"):
+            try:
+                subprocess.run(
+                    ["xdotool", "key", "--window", window_id, "ctrl+v"],
+                    timeout=2,
+                    check=True,
+                )
+                print(f"[Paste] xdotool --window {window_id} ctrl+v succeeded")
+                return True
+            except Exception as e:
+                print(f"[Paste] xdotool --window failed: {e}")
+
         # Fallback: display-server-native tools first to avoid pynput
         # permission dialogs that silently fail on Wayland / some X11.
         # Only try a tool if it is actually installed (shutil.which).
 
         if _is_wayland:
-            # Wayland: wtype first (reads Wayland clipboard), then xdotool fallback
-            if shutil.which("wtype"):
+            # Wayland: prefer tools that don't need virtual_keyboard protocol.
+            # dotool is a modern single-binary alternative to ydotool.
+            if shutil.which("dotool"):
                 try:
-                    subprocess.run(["wtype", "-M", "ctrl", "v", "-m", "ctrl"], timeout=2, check=True)
-                    print("[Paste] wtype ctrl+v succeeded")
+                    proc = subprocess.run(
+                        ["dotool"],
+                        input="key ctrl+v\n",
+                        text=True,
+                        timeout=2,
+                        check=True,
+                    )
+                    print("[Paste] dotool ctrl+v succeeded")
                     return True
                 except Exception as e:
-                    print(f"[Paste] wtype failed: {e}")
+                    print(f"[Paste] dotool failed: {e}")
 
             if shutil.which("ydotool"):
                 try:
@@ -166,6 +196,28 @@ class SmartPasteEngine:
                     return True
                 except Exception as e:
                     print(f"[Paste] ydotool failed: {e}")
+
+            # wtype — only if not known-broken on this compositor
+            if shutil.which("wtype") and not _wtype_broken:
+                try:
+                    result = subprocess.run(
+                        ["wtype", "-M", "ctrl", "v", "-m", "ctrl"],
+                        capture_output=True,
+                        text=True,
+                        timeout=2,
+                        check=True,
+                    )
+                    print("[Paste] wtype ctrl+v succeeded")
+                    return True
+                except subprocess.CalledProcessError as e:
+                    err = (e.stderr or "").lower()
+                    if "compositor does not support" in err or "virtual keyboard" in err:
+                        print("[Paste] wtype unsupported by compositor — skipping future attempts")
+                        self._wtype_broken = True
+                    else:
+                        print(f"[Paste] wtype failed: {e}")
+                except Exception as e:
+                    print(f"[Paste] wtype failed: {e}")
 
             # xdotool fallback via XWayland (reads X11 clipboard — may be stale)
             if shutil.which("xdotool"):
@@ -185,13 +237,19 @@ class SmartPasteEngine:
                 except Exception as e:
                     print(f"[Paste] xdotool failed: {e}")
 
-            if shutil.which("wtype"):
+            if shutil.which("dotool"):
                 try:
-                    subprocess.run(["wtype", "-M", "ctrl", "v", "-m", "ctrl"], timeout=2, check=True)
-                    print("[Paste] wtype ctrl+v succeeded")
+                    subprocess.run(
+                        ["dotool"],
+                        input="key ctrl+v\n",
+                        text=True,
+                        timeout=2,
+                        check=True,
+                    )
+                    print("[Paste] dotool ctrl+v succeeded")
                     return True
                 except Exception as e:
-                    print(f"[Paste] wtype failed: {e}")
+                    print(f"[Paste] dotool failed: {e}")
 
             if shutil.which("ydotool"):
                 try:
@@ -201,24 +259,23 @@ class SmartPasteEngine:
                 except Exception as e:
                     print(f"[Paste] ydotool failed: {e}")
 
-        # pynput fallback — may trigger an accessibility approval dialog
+        # Final fallback: use the cached platform system access instead of
+        # creating a fresh pynput Controller (which re-triggers accessibility
+        # approval dialogs every single time).
         try:
-            from pynput.keyboard import Controller, Key
-
-            c = Controller()
-            c.press(Key.ctrl)
-            c.press("v")
-            c.release("v")
-            c.release(Key.ctrl)
-            print("[Paste] pynput ctrl+v attempted")
-            return True
+            from platforms.factory import get_system_access
+            system = get_system_access()
+            ok, _ = system.hotkey("ctrl", "v")
+            if ok:
+                print("[Paste] system access hotkey succeeded")
+                return True
         except Exception as e:
-            print(f"[Paste] pynput failed: {e}")
+            print(f"[Paste] system access hotkey failed: {e}")
 
         print("[Paste] No input backend available for Ctrl+V")
         return False
 
-    def paste_text(self, text: str, format_type: str = "task") -> Tuple[bool, str]:
+    def paste_text(self, text: str, format_type: str = "task", window_id: Optional[str] = None) -> Tuple[bool, str]:
         """
         Complete paste flow: format -> clear -> copy -> paste.
 
@@ -271,7 +328,7 @@ class SmartPasteEngine:
                     logger.debug(f"Direct type failed: {e}")
 
                 # Fallback: clipboard + Ctrl+V
-                if self.paste_via_hotkey():
+                if self.paste_via_hotkey(window_id=window_id):
                     latency = (time.time() - start_time) * 1000
                     self._track_success(latency)
                     logger.info(
@@ -281,14 +338,9 @@ class SmartPasteEngine:
             else:
                 # Linux: clipboard + Ctrl+V first (xdotool/wtype are more reliable
                 # than pynput which may silently fail on Wayland).
-                # Retry up to 3 times so user can approve any OS accessibility dialog.
-                pasted = False
-                for attempt in range(3):
-                    if self.paste_via_hotkey():
-                        pasted = True
-                        break
-                    logger.info(f"Paste attempt {attempt + 1}/3 failed; retrying...")
-                    time.sleep(0.5)
+                # paste_via_hotkey() already tries every available tool in one call;
+                # retrying just re-triggers accessibility dialogs for no benefit.
+                pasted = self.paste_via_hotkey(window_id=window_id)
 
                 if pasted:
                     latency = (time.time() - start_time) * 1000

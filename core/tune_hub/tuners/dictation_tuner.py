@@ -542,6 +542,10 @@ class DictationTuner(TuneBase, feature_name="dictation"):
     def get_default_config(self, task: str) -> Dict[str, Any]:
         return {"correction_map": {}, "tune_id": None, "domain": "general"}
 
+    def allowed_injectable_keys(self) -> frozenset[str]:
+        from ..guardrails import INJECTABLE_KEYS
+        return INJECTABLE_KEYS.get(self.feature_name, frozenset())
+
     # ── RUNTIME: Process Transcription (hot path) ──
 
     def process_transcription(

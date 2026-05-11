@@ -3,6 +3,7 @@ import type { Task } from '../shared/ipc';
 import { defaultTheme, themes } from '../shared/themes';
 import type { ThemeName } from '../shared/ipc';
 import { sendBridgeMessage } from '../shared/useBridge';
+import CustomDropdown from '../shared/CustomDropdown';
 
 function parseTaskFromHash(): Task | null {
   try {
@@ -77,6 +78,8 @@ export default function TaskPanel() {
   const [dueDay, setDueDay] = useState(initialDue.day);
   const [dueTime, setDueTime] = useState(initialDue.time);
   const [duePeriod, setDuePeriod] = useState<'AM' | 'PM'>(initialDue.period);
+  const [category, setCategory] = useState(task?.category || '');
+  const [difficulty, setDifficulty] = useState(task?.difficulty || 'medium');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const contentLength = title.trim().length;
 
@@ -113,6 +116,8 @@ export default function TaskPanel() {
     setDueDay(nextDue.day);
     setDueTime(nextDue.time);
     setDuePeriod(nextDue.period);
+    setCategory(nextTask?.category || '');
+    setDifficulty(nextTask?.difficulty || 'medium');
   }, []);
 
   const save = async () => {
@@ -124,6 +129,8 @@ export default function TaskPanel() {
         content: null,
         due_at: buildDue(dueDay, dueTime, duePeriod),
         task_type: 'small',
+        category: category.trim() || null,
+        difficulty: difficulty as Task['difficulty'],
       });
       if (!updated) {
         setStatus('error');
@@ -151,7 +158,7 @@ export default function TaskPanel() {
   const copyContent = async () => {
     const value = title.trim();
     if (!value) return;
-    await navigator.clipboard.writeText(value);
+    await window.api.writeClipboard(value);
   };
 
   if (!task) {
@@ -211,7 +218,7 @@ export default function TaskPanel() {
         </button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, minHeight: 0, flex: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, minHeight: 0, flex: 1, overflowY: 'auto' }}>
         <div
           style={{
             display: 'flex',
@@ -249,6 +256,36 @@ export default function TaskPanel() {
           }}
         />
 
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input
+            type="text"
+            value={category}
+            onChange={(event) => setCategory(event.target.value)}
+            placeholder="Category"
+            style={{
+              background: theme.inputBg,
+              color: theme.text,
+              border: `1px solid ${theme.border}`,
+              borderRadius: 10,
+              padding: '8px 10px',
+              fontSize: 11,
+              outline: 'none',
+              width: 140,
+            }}
+          />
+          <CustomDropdown
+            value={difficulty}
+            onChange={(v) => setDifficulty(v as 'easy' | 'medium' | 'hard')}
+            options={[
+              { value: 'easy', label: 'Easy' },
+              { value: 'medium', label: 'Medium' },
+              { value: 'hard', label: 'Hard' },
+            ]}
+            theme={theme}
+            style={{ width: 100 }}
+          />
+        </div>
+
         <div
           style={{
             display: 'flex',
@@ -260,23 +297,17 @@ export default function TaskPanel() {
           }}
         >
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-            <select
+            <CustomDropdown
               value={dueDay}
-              onChange={(event) => setDueDay(event.target.value)}
-              style={{
-                background: theme.inputBg,
-                color: theme.text,
-                border: `1px solid ${theme.border}`,
-                borderRadius: 10,
-                padding: '8px 10px',
-                fontSize: 11,
-                outline: 'none',
-              }}
-            >
-              <option value="none">No due time</option>
-              <option value="today">Today</option>
-              <option value="tomorrow">Tomorrow</option>
-            </select>
+              onChange={(v) => setDueDay(v)}
+              options={[
+                { value: 'none', label: 'No due time' },
+                { value: 'today', label: 'Today' },
+                { value: 'tomorrow', label: 'Tomorrow' },
+              ]}
+              theme={theme}
+              style={{ width: 120 }}
+            />
             <input
               type="text"
               value={dueTime}

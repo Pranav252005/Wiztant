@@ -40,14 +40,22 @@ function mapHistoryToAgentMsgs(messages: unknown): AgentMsg[] {
     .filter((entry): entry is AgentMsg => Boolean(entry));
 }
 
+type ProcessStatus = 'idle' | 'active' | 'completed' | 'error';
+
 type Props = {
   theme: Theme['panel'];
+  onProcessChange?: (status: ProcessStatus) => void;
 };
 
-export default function AgentPanel({ theme }: Props) {
+export default function AgentPanel({ theme, onProcessChange }: Props) {
   const [messages, setMessages] = useState<AgentMsg[]>([]);
   const [input, setInput] = useState('');
   const [agentState, setAgentState] = useState<AgentState>('idle');
+
+  useEffect(() => {
+    const mapped: ProcessStatus = agentState === 'running' ? 'active' : agentState === 'done' ? 'completed' : 'idle';
+    onProcessChange?.(mapped);
+  }, [agentState]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -93,7 +101,7 @@ export default function AgentPanel({ theme }: Props) {
     const el = inputRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, 110)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 300)}px`;
   }, [input]);
 
   const send = () => {
@@ -139,8 +147,34 @@ export default function AgentPanel({ theme }: Props) {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
+      {/* Coming Soon overlay */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 10,
+          background: 'rgba(7,7,15,0.82)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <span
+          style={{
+            fontSize: 22,
+            fontWeight: 700,
+            color: theme.textMuted,
+            letterSpacing: '0.04em',
+          }}
+        >
+          Coming Soon
+        </span>
+      </div>
       {/* Messages area */}
       <div
         style={{
@@ -310,7 +344,7 @@ export default function AgentPanel({ theme }: Props) {
               lineHeight: 1.45,
               fontFamily: 'inherit',
               padding: '6px 0',
-              maxHeight: 110,
+              maxHeight: 300,
             }}
           />
           <motion.button

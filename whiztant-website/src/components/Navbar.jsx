@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Download, ChevronDown, Zap, Mic, Bot, ListTodo, Sparkles } from 'lucide-react'
+import { Menu, X, Download, ChevronDown, Zap, Mic, Bot, ListTodo, Sparkles, Wallet, Settings, LogOut, User } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { useCredits } from '../hooks/useCredits'
+import AuthModal from './AuthModal'
 
 const featureLinks = [
   { to: '/features/reprompt', label: 'RePrompt', icon: Zap, desc: 'AI-powered prompt rewriting' },
@@ -18,16 +20,44 @@ const navLinks = [
   { to: '/about', label: 'About' },
 ]
 
+function getAvatarUrl(user) {
+  if (!user) return null
+  return user.user_metadata?.avatar_url || user.user_metadata?.picture || null
+}
+
+function getInitials(email) {
+  if (!email) return '?'
+  return email.charAt(0).toUpperCase()
+}
+
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [featuresOpen, setFeaturesOpen] = useState(false)
-  const { user } = useAuth()
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [authOpen, setAuthOpen] = useState(false)
+  const { user, signOut } = useAuth()
+  const { credits } = useCredits(user)
   const location = useLocation()
+  const userMenuRef = useRef(null)
 
   useEffect(() => {
     setOpen(false)
     setFeaturesOpen(false)
+    setUserMenuOpen(false)
   }, [location.pathname])
+
+  // Close user menu on outside click
+  useEffect(() => {
+    function handleClick(e) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const avatarUrl = getAvatarUrl(user)
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 pt-3">
@@ -86,18 +116,83 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          {user && (
-            <Link
-              to="/download"
-              className="text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
+
+          {user ? (
+            <>
+              <Link
+                to="/settings"
+                className={`text-sm font-medium transition-colors ${
+                  location.pathname === '/settings' ? 'text-primary' : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                Settings
+              </Link>
+
+              {/* Credit badge */}
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-text-primary hover:bg-white/10 transition-colors"
+                >
+                  <Wallet size={14} className="text-primary" />
+                  {credits ? credits.balance : '—'}
+                </button>
+              </div>
+
+              {/* Avatar dropdown */}
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 overflow-hidden transition-all hover:border-primary/40 hover:ring-2 hover:ring-primary/20"
+                >
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-sm font-bold text-text-primary">{getInitials(user?.email)}</span>
+                  )}
+                </button>
+
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full right-0 mt-2 w-56 rounded-xl border border-white/[0.08] bg-bg-dark/95 backdrop-blur-xl p-2 shadow-2xl"
+                    >
+                      <div className="px-3 py-2 border-b border-white/[0.06] mb-1">
+                        <p className="text-sm font-medium text-text-primary truncate">{user.email}</p>
+                        <p className="text-xs text-text-secondary capitalize">{credits?.tier || 'free'} Plan</p>
+                      </div>
+                      <Link
+                        to="/settings"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-text-secondary hover:bg-white/[0.05] hover:text-text-primary transition-colors"
+                      >
+                        <Settings size={16} /> Settings
+                      </Link>
+                      <button
+                        onClick={() => { signOut(); setUserMenuOpen(false) }}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-text-secondary hover:bg-white/[0.05] hover:text-error transition-colors text-left"
+                      >
+                        <LogOut size={16} /> Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </>
+          ) : (
+            <button
+              onClick={() => setAuthOpen(true)}
+              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-text-primary hover:bg-white/10 transition-colors"
             >
-              Dashboard
-            </Link>
+              <User size={15} /> Sign In
+            </button>
           )}
-          <Link
-            to="/download"
-            className="btn-primary"
-          >
+
+          <Link to="/download" className="btn-primary">
             <Download size={15} />
             Download
           </Link>
@@ -147,15 +242,45 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              {user && (
-                <Link
-                  to="/download"
-                  onClick={() => setOpen(false)}
-                  className="text-base font-medium py-3 text-text-secondary hover:text-text-primary"
+
+              {user ? (
+                <>
+                  <div className="flex items-center gap-3 py-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 overflow-hidden">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-sm font-bold text-text-primary">{getInitials(user?.email)}</span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-text-primary">{user.email}</p>
+                      <p className="text-xs text-text-secondary capitalize">{credits?.tier || 'free'} Plan</p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/settings"
+                    onClick={() => setOpen(false)}
+                    className="text-base font-medium py-3 text-text-secondary hover:text-text-primary flex items-center gap-2"
+                  >
+                    <Settings size={16} /> Settings
+                  </Link>
+                  <button
+                    onClick={() => { signOut(); setOpen(false) }}
+                    className="text-base font-medium py-3 text-text-secondary hover:text-error flex items-center gap-2 text-left"
+                  >
+                    <LogOut size={16} /> Sign Out
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => { setAuthOpen(true); setOpen(false) }}
+                  className="mt-2 flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-text-primary hover:bg-white/10 transition-colors w-fit"
                 >
-                  Dashboard
-                </Link>
+                  <User size={16} /> Sign In / Sign Up
+                </button>
               )}
+
               <Link
                 to="/download"
                 onClick={() => setOpen(false)}
@@ -168,6 +293,8 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
     </header>
   )
 }

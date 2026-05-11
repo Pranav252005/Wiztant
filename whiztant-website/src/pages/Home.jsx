@@ -6,6 +6,7 @@ import SoftAurora from '../components/SoftAurora'
 import TextType from '../components/TextType'
 import Particles from '../components/Particles'
 import ScrollVelocity from '../components/ScrollVelocity'
+import ReviewsSection from '../components/ReviewsSection'
 
 const features = [
   {
@@ -14,6 +15,7 @@ const features = [
     desc: 'Rewrite prompts faster with AI-powered personas.',
     to: '/features/reprompt',
     hotkey: 'Ctrl+Space',
+    disabled: false,
   },
   {
     icon: Mic,
@@ -21,6 +23,7 @@ const features = [
     desc: 'Speak, do not type. Perfect for hands-free coding and writing.',
     to: '/features/dictation',
     hotkey: 'F9',
+    disabled: false,
   },
   {
     icon: Bot,
@@ -28,6 +31,7 @@ const features = [
     desc: 'Autonomous multi-step tasks. Click, type, control, all hands-free.',
     to: '/features/agent',
     hotkey: 'F9 x2',
+    disabled: true,
   },
   {
     icon: ListTodo,
@@ -35,6 +39,7 @@ const features = [
     desc: 'Dump your tasks anytime. It sorts, schedules, and reminds you.',
     to: '/features/taskstack',
     hotkey: 'F10',
+    disabled: false,
   },
 ]
 
@@ -126,71 +131,41 @@ export default function Home() {
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {features.map((f, i) => (
             <AnimatedSection key={f.title} delay={i * 0.1}>
-              <Link
-                to={f.to}
-                className="group card block"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <f.icon size={28} className="text-primary" />
-                  <span className="kbd">{f.hotkey}</span>
+              {f.disabled ? (
+                <div className="group card block opacity-50 grayscale cursor-not-allowed">
+                  <div className="flex items-center justify-between mb-4">
+                    <f.icon size={28} className="text-primary" />
+                    <span className="kbd">{f.hotkey}</span>
+                  </div>
+                  <h3 className="font-display text-lg font-semibold text-text-primary">{f.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-text-secondary">{f.desc}</p>
+                  <span className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-text-secondary">
+                    Coming Soon
+                  </span>
                 </div>
-                <h3 className="font-display text-lg font-semibold text-text-primary">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-text-secondary">{f.desc}</p>
-                <span className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-text-secondary transition-colors group-hover:text-primary">
-                  Learn more <ArrowRight size={14} />
-                </span>
-              </Link>
+              ) : (
+                <Link
+                  to={f.to}
+                  className="group card block"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <f.icon size={28} className="text-primary" />
+                    <span className="kbd">{f.hotkey}</span>
+                  </div>
+                  <h3 className="font-display text-lg font-semibold text-text-primary">{f.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-text-secondary">{f.desc}</p>
+                  <span className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-text-secondary transition-colors group-hover:text-primary">
+                    Learn more <ArrowRight size={14} />
+                  </span>
+                </Link>
+              )}
             </AnimatedSection>
           ))}
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="mx-auto max-w-7xl px-6 py-28">
-        <AnimatedSection className="mb-16 text-center">
-          <h2 className="font-display text-3xl font-bold text-text-primary md:text-4xl">
-            Loved by productive people
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-text-secondary">
-            See what users say about working with Wiztant.
-          </p>
-        </AnimatedSection>
-
-        <div className="grid gap-6 md:grid-cols-3">
-          {[
-            {
-              quote: "Dictation alone saves me 2 hours a day. I draft emails and code comments without touching the keyboard.",
-              author: "Sarah Chen",
-              role: "Software Engineer",
-            },
-            {
-              quote: "The Agent feature is mind-blowing. I told it to organize my downloads folder and it just... did it. Perfectly.",
-              author: "Marcus Johnson",
-              role: "Product Designer",
-            },
-            {
-              quote: "RePrompt turned my vague instructions into precise prompts. My ChatGPT outputs improved instantly.",
-              author: "Aisha Patel",
-              role: "Content Strategist",
-            },
-          ].map((t, i) => (
-            <AnimatedSection key={t.author} delay={i * 0.1}>
-              <div className="card h-full flex flex-col">
-                <p className="text-sm leading-relaxed text-text-secondary flex-1">"{t.quote}"</p>
-                <div className="mt-6 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-display text-sm font-bold text-primary">
-                    {t.author.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-text-primary">{t.author}</p>
-                    <p className="text-xs text-text-secondary">{t.role}</p>
-                  </div>
-                </div>
-              </div>
-            </AnimatedSection>
-          ))}
-        </div>
-      </section>
+      {/* Reviews */}
+      <ReviewsSection />
 
       {/* CTA */}
       <section className="mx-auto max-w-7xl px-6 py-28 text-center">

@@ -148,11 +148,11 @@ def update_memory(entry_id: str, final_text: str, original_text: str | None = No
 
     # Auto-learn corrections when the user edited the memory
     try:
-        from core.learning_agent import learn_from_edit
+        from core.dictation_correction import record_correction
         original = (original_text if original_text is not None else old_original) or old_final or ""
         corrected = (final_text or "").strip()
         if original and corrected and original != corrected:
-            learn_from_edit(original, corrected)
+            record_correction(original, corrected, confidence=0.8)
     except Exception:
         pass
 

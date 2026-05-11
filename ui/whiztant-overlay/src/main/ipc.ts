@@ -1,10 +1,10 @@
-import { ipcMain, app, BrowserWindow, Menu, clipboard } from 'electron';
+import { ipcMain, app, BrowserWindow, Menu, clipboard, shell } from 'electron';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { IPC } from '../renderer/shared/ipc';
 import type { PillNoticePayload, ThemeName, Task, TaskSnapshot, AppState } from '../renderer/shared/ipc';
-import { getPillState, setPillState, showPillNotice, setPillNotificationSize } from './pillState';
+import { getPillState, setPillState, showPillNotice, setPillNotificationSize, setPillNotificationsEnabled } from './pillState';
 import { screen, type Display } from 'electron';
 import {
   setEdgePosition,
@@ -16,7 +16,9 @@ import {
 import { setWindowBounds, getPillBounds } from './positioning';
 import { sendBridgeMessage } from './bridge';
 import { dragState } from './dragState';
+import { setLastCursorDisplayId } from './monitorState';
 import { createTaskPanelWindow, createStreakPanelWindow, createMemoryPanelWindow } from './windows';
+import { reloadShortcuts } from './shortcuts';
 
 // Theme persistence — stored next to the Python app in C:\whis\memory\theme.json
 // so the same file can be inspected or edited by the desktop side if needed.
@@ -140,9 +142,10 @@ interface Windows {
   pill: BrowserWindow;
   overlay: BrowserWindow;
   showOverlay: () => void;
+  setLastCursorDisplayId?: (id: number) => void;
 }
 
-export function registerIpcHandlers({ pill, overlay, showOverlay }: Windows): void {
+export function registerIpcHandlers({ pill, overlay, showOverlay, setLastCursorDisplayId }: Windows): void {
   for (const [taskId, win] of taskPanels) {
     if (win.isDestroyed()) taskPanels.delete(taskId);
   }
@@ -527,12 +530,6 @@ export function registerIpcHandlers({ pill, overlay, showOverlay }: Windows): vo
     return true;
   });
 
-  ipcMain.on(IPC.CONFIRM_OPEN_CHAT, () => {
-    if (!overlay.isDestroyed()) {
-      showOverlay();
-    }
-  });
-
   ipcMain.on(IPC.SHOW_OVERLAY, () => {
     if (!overlay.isDestroyed()) {
       showOverlay();
@@ -580,17 +577,21 @@ export function registerIpcHandlers({ pill, overlay, showOverlay }: Windows): vo
 
   // ─── Pill drag (renderer-driven, works for mouse + touch) ───
   let lastDragDisplay: Display | null = null;
+  let dragPillW = 0;
+  let dragPillH = 0;
 
   ipcMain.on(IPC.PILL_DRAG_START, () => {
     if (pill.isDestroyed()) return;
+    const b = pill.getBounds();
+    dragPillW = b.width;
+    dragPillH = b.height;
     pill.setOpacity(0.8);
   });
 
   ipcMain.on(IPC.PILL_DRAG_MOVE, (_e, screenX: number, screenY: number) => {
     if (pill.isDestroyed()) return;
-    const bounds = pill.getBounds();
-    const newX = screenX - Math.round(bounds.width / 2);
-    const newY = screenY - Math.round(bounds.height / 2);
+    const newX = screenX - Math.round(dragPillW / 2);
+    const newY = screenY - Math.round(dragPillH / 2);
     pill.setPosition(newX, newY);
     lastDragDisplay = screen.getDisplayNearestPoint({ x: screenX, y: screenY });
   });
@@ -606,9 +607,10 @@ export function registerIpcHandlers({ pill, overlay, showOverlay }: Windows): vo
     const newPos = latchToNearestEdge(disp, bounds.x, bounds.y, bounds.width, bounds.height, 14);
     setEdgePosition(newPos);
     savePosition(newPos);
+    setLastCursorDisplayId?.(disp.id);
 
     dragState.isProgrammaticMove = true;
-    const pb = getPillBounds(disp);
+    const pb = getPillBounds(disp, bounds.width, bounds.height);
     setWindowBounds(pill, pb, true);
     if (!overlay.isDestroyed()) {
       const ob = getOverlayBoundsFromEdge(disp, pb, newPos, overlay.getBounds().width, overlay.getBounds().height, 16);
@@ -628,6 +630,31 @@ export function registerIpcHandlers({ pill, overlay, showOverlay }: Windows): vo
 
   ipcMain.handle(IPC.PILL_GET_EDGE, () => {
     return getEdgePosition().edge;
+  });
+
+  // ─── Shortcuts reload ───────────────────────────────────────
+  ipcMain.on(IPC.RELOAD_SHORTCUTS, (_event, config: Record<string, string>) => {
+    reloadShortcuts(config);
+  });
+
+  // ─── Pill notifications toggle ──────────────────────────────
+  ipcMain.on(IPC.PILL_NOTIFICATIONS, (_event, enabled: boolean) => {
+    setPillNotificationsEnabled(Boolean(enabled));
+  });
+
+  // ─── Open overlay to Tasks tab with prefill ─────────────────
+  ipcMain.on(IPC.OPEN_OVERLAY_TO_TASKS_EDIT, (_event, data: Record<string, unknown>) => {
+    if (!overlay.isDestroyed()) {
+      showOverlay();
+      overlay.webContents.send(IPC.NAVIGATE_TO_TASKS_EDIT, data);
+    }
+  });
+
+  // ─── Open external URL in default browser ───────────────────
+  ipcMain.on(IPC.OPEN_EXTERNAL, (_event, url: string) => {
+    if (typeof url === 'string' && url.startsWith('http')) {
+      shell.openExternal(url).catch(() => { /* ignore */ });
+    }
   });
 
   // ─── Quit ───────────────────────────────────────────────────

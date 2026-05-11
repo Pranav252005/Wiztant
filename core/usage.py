@@ -12,7 +12,6 @@ USAGE_FILE = Path(__file__).resolve().parent.parent / "data" / "usage.json"
 
 # Column name mapping: action -> Supabase column
 _SUPABASE_COL = {
-    "chat":   "chat_count",
     "agent":  "agent_count",
     "vlm":    "vlm_count",
     "uitars": "uitars_count",
@@ -20,25 +19,21 @@ _SUPABASE_COL = {
 
 TIER_LIMITS = {
     "free": {
-        "chat": 15,
         "agent": 0,
         "vlm": 0,
         "uitars": 0,
     },
     "pro": {
-        "chat": 300,
         "agent": 50,
         "vlm": 30,
         "uitars": 30,
     },
     "power": {
-        "chat": 500,
         "agent": 200,
         "vlm": 200,
         "uitars": 200,
     },
     "trial": {
-        "chat": 30,
         "agent": 3,
         "vlm": 5,
         "uitars": 0,
@@ -141,14 +136,10 @@ def save_usage(data: dict):
 def _limit_message(action: str, limit: int = 0, tier_has_none: bool = False) -> str:
     if tier_has_none or limit == 0:
         return f"{action.title()} is not available on your current plan. Upgrade at whiztant.app/pricing"
-    if action == "chat":
-        return "You've hit your tune limit for this month. Upgrade at whiztant.app/pricing"
     return "You've hit your agent task limit for this month. Upgrade at whiztant.app/pricing"
 
 
 def _offline_required_message(action: str) -> str:
-    if action == "chat":
-        return "Tune mode needs an internet connection. Please turn on the internet and try again."
     return "Agent mode needs an internet connection. Please turn on the internet and try again."
 
 

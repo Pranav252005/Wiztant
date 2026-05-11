@@ -12,7 +12,10 @@
       "content": null,
       "task_type": "small",
       "carried_over": true,
-      "failed": false
+      "failed": false,
+      "snoozed_until": null,
+      "category": "Solopreneur",
+      "difficulty": "medium"
     },
     {
       "id": "task_1777632071_sekhoc",
@@ -26,7 +29,10 @@
       "content": null,
       "task_type": null,
       "carried_over": false,
-      "failed": false
+      "failed": false,
+      "snoozed_until": null,
+      "category": "Solopreneur",
+      "difficulty": "medium"
     }
   ],
   "history": [

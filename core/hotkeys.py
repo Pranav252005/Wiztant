@@ -60,6 +60,38 @@ def _load_task_hotkey() -> str:
         return "f10"
 
 
+def _load_task_hotkey_taps() -> int:
+    """Load tap count for single-key task hotkey (default 1)."""
+    try:
+        with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        taps = int(data.get("task_hotkey_taps", 1))
+        return max(1, min(5, taps))
+    except Exception:
+        return 1
+
+
+def _load_shortcuts_enabled() -> bool:
+    """Load whether custom shortcuts are enabled (default False)."""
+    try:
+        with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return bool(data.get("shortcuts_enabled", False))
+    except Exception:
+        return False
+
+
+def _load_task_creation_mode() -> str:
+    """Load task creation preference: 'hotkey' (F10) or 'smart' (dictation detection)."""
+    try:
+        with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        mode = str(data.get("task_creation_mode", "hotkey")).strip().lower()
+        return mode if mode in ("hotkey", "smart") else "hotkey"
+    except Exception:
+        return "hotkey"
+
+
 def _load_setting(key: str, default=None):
     """Read a setting from data/settings.json."""
     try:
@@ -89,6 +121,184 @@ recording_active = False
 _last_pasted_text: list = [""]  # single-element mutable cell for last dictation result
 _active_stt: StreamingSTT | None = None
 _last_stt_text: str = ""
+
+# ── Multi-monitor focus tracking ────────────────────────────────────────────
+# Saved at recording start so paste lands in the correct window/field.
+_recording_start_focus: dict = {}  # {"window_id": str|None, "desktop_id": str|None, "cursor": (x, y), "timestamp": float}
+
+
+def _save_recording_focus() -> None:
+    """Capture the currently active window, desktop, and mouse position before dictation.
+
+    On X11 this gives us a window ID we can restore. On Wayland we at least
+    have the cursor position so we can click back into the right field.
+    We also record the current virtual desktop so we never force-switch
+    workspaces on restore.
+    """
+    global _recording_start_focus
+    focus = {"window_id": None, "desktop_id": None, "cursor": (0, 0), "timestamp": time.time()}
+
+    # 1. Try to get active window ID (X11 / XWayland)
+    try:
+        result = subprocess.run(
+            ["xdotool", "getactivewindow"],
+            capture_output=True, text=True, timeout=1,
+        )
+        if result.returncode == 0:
+            wid = result.stdout.strip()
+            if wid and wid.isdigit():
+                focus["window_id"] = wid
+    except Exception:
+        pass
+
+    # 2. Remember the current virtual desktop so we don't switch workspaces later
+    try:
+        result = subprocess.run(
+            ["xdotool", "get_desktop"],
+            capture_output=True, text=True, timeout=1,
+        )
+        if result.returncode == 0:
+            focus["desktop_id"] = result.stdout.strip()
+    except Exception:
+        pass
+
+    # 3. Get cursor position (works on X11 and most Wayland setups)
+    try:
+        result = subprocess.run(
+            ["xdotool", "getmouselocation", "--shell"],
+            capture_output=True, text=True, timeout=1,
+        )
+        if result.returncode == 0:
+            x = y = 0
+            for line in result.stdout.strip().split("\n"):
+                if line.startswith("X="):
+                    x = int(line.split("=", 1)[1])
+                elif line.startswith("Y="):
+                    y = int(line.split("=", 1)[1])
+            focus["cursor"] = (x, y)
+    except Exception:
+        pass
+
+    _recording_start_focus = focus
+
+
+def _restore_recording_focus() -> None:
+    """Restore focus to the window/field that was active when recording started."""
+    focus = _recording_start_focus
+    if not focus:
+        return
+
+    window_id = focus.get("window_id")
+    saved_desktop = focus.get("desktop_id")
+    cursor_x, cursor_y = focus.get("cursor", (0, 0))
+
+    # If no window was captured, nothing to restore
+    if not window_id:
+        return
+
+    # Check if the target window is already active
+    already_active = False
+    try:
+        result = subprocess.run(
+            ["xdotool", "getactivewindow"],
+            capture_output=True, text=True, timeout=1,
+        )
+        if result.returncode == 0:
+            already_active = result.stdout.strip() == window_id
+    except Exception:
+        pass
+
+    if already_active:
+        return
+
+    # Get current desktop
+    current_desktop = None
+    try:
+        result = subprocess.run(
+            ["xdotool", "get_desktop"],
+            capture_output=True, text=True, timeout=1,
+        )
+        if result.returncode == 0:
+            current_desktop = result.stdout.strip()
+    except Exception:
+        pass
+
+    # Find out which desktop the saved window is actually on.
+    # If it's on a different desktop, don't force-switch workspaces —
+    # the user moved intentionally. Just paste into whatever is active here.
+    window_desktop = None
+    try:
+        result = subprocess.run(
+            ["xdotool", "get_desktop_for_window", window_id],
+            capture_output=True, text=True, timeout=1,
+        )
+        if result.returncode == 0:
+            window_desktop = result.stdout.strip()
+    except Exception:
+        pass
+
+    if window_desktop is not None and current_desktop is not None:
+        if window_desktop != current_desktop:
+            print(f"[Focus] Saved window is on desktop {window_desktop}, current is {current_desktop}; not switching")
+            return
+
+    # We're on the same desktop as the saved window, but it's not active.
+    # Restore it so paste lands in the right field.
+    try:
+        subprocess.run(
+            ["xdotool", "windowactivate", "--sync", window_id],
+            capture_output=True, timeout=2,
+        )
+    except Exception:
+        pass
+
+    try:
+        subprocess.run(
+            ["xdotool", "windowfocus", "--sync", window_id],
+            capture_output=True, timeout=2,
+        )
+    except Exception:
+        pass
+
+    try:
+        subprocess.run(
+            ["wmctrl", "-ia", window_id],
+            capture_output=True, timeout=1,
+        )
+    except Exception:
+        pass
+
+    time.sleep(0.08)
+
+    # Verify the window actually became active
+    try:
+        result = subprocess.run(
+            ["xdotool", "getactivewindow"],
+            capture_output=True, text=True, timeout=1,
+        )
+        if result.returncode == 0 and result.stdout.strip() == window_id:
+            print(f"[Focus] Restored window {window_id}")
+            return
+    except Exception:
+        pass
+
+    # Final fallback: click at the saved cursor position to refocus the
+    # specific text field within the window (handles cases where window
+    # activation succeeded but input focus didn't land in the text box).
+    if cursor_x or cursor_y:
+        try:
+            subprocess.run(
+                ["xdotool", "mousemove", str(cursor_x), str(cursor_y)],
+                capture_output=True, timeout=1,
+            )
+            time.sleep(0.05)
+            subprocess.run(
+                ["xdotool", "click", "1"],
+                capture_output=True, timeout=1,
+            )
+            time.sleep(0.05)
+        except Exception:
+            pass
 
 
 def _paste_clipboard() -> bool:
@@ -256,6 +466,37 @@ def _handle_new_task(candidate_text: str, due_at):
     send_tasks_update(snapshot.get("tasks", []))
 
 
+# Pending task confirmations: confirm_id -> {text, due_at}
+_pending_task_confirmations: dict = {}
+
+
+def _propose_task_for_confirmation(text: str, due_at, raw_text: str = ""):
+    """Send a task_confirm_request to the pill instead of saving immediately.
+
+    The pill will show a confirmation bar; when the user approves, the
+    frontend sends task_confirm_approve back to ws_bridge.py, which then
+    calls _handle_new_task to actually save the task.
+    """
+    import uuid
+    confirm_id = f"confirm_{uuid.uuid4().hex[:8]}"
+    _pending_task_confirmations[confirm_id] = {
+        "text": text,
+        "due_at": due_at,
+        "raw_text": raw_text or text,
+    }
+    from core.ws_bridge import broadcast_sync
+    broadcast_sync({
+        "type": "task_confirm_request",
+        "payload": {
+            "id": confirm_id,
+            "parsed_title": text,
+            "due_datetime": due_at,
+            "has_time": bool(due_at and ("T" in str(due_at) or ":" in str(due_at))),
+            "has_date": bool(due_at),
+        },
+    })
+
+
 def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None):
     # If this was an F10 task-capture recording, route to the task pipeline.
     if getattr(state, "_task_recording", False):
@@ -395,6 +636,14 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
         except Exception:
             pass
     else:
+        # ── Dictation credit deduction (after validation, before processing) ──
+        try:
+            from core.credit_system import deduct, get_current_user_id
+            user_id = get_current_user_id()
+            deduct(user_id, "dictation", 1, model="whisper-large-v3-turbo")
+        except Exception:
+            pass
+
         # ── Smart dictation: emails, scratch-that, symbols ────────
         # Runs on ALL tiers (free included) — fast, local, zero-cost.
         original_text = text
@@ -408,11 +657,22 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
         except Exception as e:
             print(f"[SmartDictate] Error: {e}")
 
+        # ── Phonetic fuzzy + domain-aware corrections ─────────────
+        _context_words = text.split()
+        try:
+            from core.dictation_correction import apply_corrections
+            text, phonetic_changes = apply_corrections(text, context_window=_context_words)
+            if phonetic_changes:
+                print(f"[Phonetic] {', '.join(phonetic_changes)}")
+        except Exception as e:
+            print(f"[Phonetic] Error: {e}")
+
         # Check for voice task commands before pasting
         from core.tasks import (
             parse_task_command, mark_done, delete_task, edit_task_text, edit_task_due,
             get_task_snapshot, parse_due_time, default_noon_due_at,
-            refine_task_text,
+            refine_task_text, extract_task_mention, verify_task_intent,
+            is_explicit_task_command,
         )
         from core.ws_bridge import send_tasks_update, send_pill_notice
 
@@ -458,7 +718,7 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
                 refined = refine_task_text(cleaned) or cleaned
                 if not due_at:
                     due_at = default_noon_due_at()
-                _handle_new_task(refined, due_at)
+                _propose_task_for_confirmation(refined, due_at, text)
                 _try_ws_send("state", "idle")
                 if state.overlay:
                     state.overlay.set_idle()
@@ -469,10 +729,11 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
         if cmd:
             action = cmd["action"]
             if action == "add":
-                _handle_new_task(cmd["text"], cmd.get("due_at"))
+                _propose_task_for_confirmation(cmd["text"], cmd.get("due_at"), text)
                 _try_ws_send("state", "idle")
                 if state.overlay:
                     state.overlay.set_idle()
+                _add_dictation_memory(original_text, text, mode="dictation")
                 return
             elif action == "done" and cmd.get("task_id"):
                 mark_done(cmd["task_id"])
@@ -526,6 +787,44 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
                 _add_dictation_memory(original_text, text, mode="dictation")
                 return
             # list or unmatched — fall through to paste
+
+        # ── Smart task detection (when F10 hotkey is disabled) ─────
+        # Two-layer strict gate:
+        #   1. Explicit prefix regex (fast path) → create task immediately.
+        #   2. Borderline mention → LLM intent verification → only create
+        #      if the model confirms explicit_task_request with confidence ≥ 0.8.
+        #   3. If LLM rejects or is uncertain → fall through to normal paste.
+        task_mode = _load_task_creation_mode()
+        if task_mode == "smart" and not cmd:
+            candidate = extract_task_mention(text)
+            if candidate:
+                # Distinguish explicit prefix match from borderline mention
+                if is_explicit_task_command(text):
+                    # Layer 1: explicit command — fast path, no LLM needed
+                    cleaned, due_at = parse_due_time(candidate)
+                    refined = refine_task_text(cleaned) or cleaned
+                    if refined:
+                        _propose_task_for_confirmation(refined, due_at, text)
+                        _try_ws_send("state", "idle")
+                        if state.overlay:
+                            state.overlay.set_idle()
+                        _add_dictation_memory(original_text, text, mode="dictation")
+                        return
+                else:
+                    # Layer 2: borderline mention — run LLM verification
+                    verified = verify_task_intent(candidate)
+                    if verified:
+                        cleaned, due_at = parse_due_time(verified)
+                        refined = refine_task_text(cleaned) or cleaned
+                        if refined:
+                            _propose_task_for_confirmation(refined, due_at, text)
+                            _try_ws_send("state", "idle")
+                            if state.overlay:
+                                state.overlay.set_idle()
+                            _add_dictation_memory(original_text, text, mode="dictation")
+                            return
+                    # If LLM rejected → fall through to paste below
+
         # Dictation mode — refine, apply vocab, format, paste (or preview)
         _last_pasted_text[0] = text
         paste_ok = False
@@ -553,12 +852,20 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
             print(f"[STT] Refinement error: {e}")
 
         # ── Live Dictation Preview (non-blocking) ─────────────────
-        if _load_setting("live_dictation_preview", False):
+        if _load_setting("live_dictation_preview", True):
+            import uuid as _uuid
+            _preview_session = f"preview-{_uuid.uuid4().hex[:12]}"
+            from core.dictation_correction import start_undo_hook
+            start_undo_hook(_preview_session, original_text, text)
+            # Persist to dictation memory so the preview has a real database ID
+            _preview_entry = _add_dictation_memory(original_text, text, mode="dictation")
             from core.ws_bridge import broadcast_sync, send_pill_notice
             broadcast_sync({
                 "type": "dictation_preview",
                 "text": text,
                 "original_text": original_text,
+                "session_id": _preview_session,
+                "id": _preview_entry.get("id", ""),
             })
             send_pill_notice(
                 "updated",
@@ -587,14 +894,24 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
                 print(f"[Clipboard] platform fallback failed: {e}")
             return False
 
+        # Pull the saved window ID so we can paste directly to it even if
+        # focus was stolen by the overlay or window manager.
+        _saved_window_id = _recording_start_focus.get("window_id")
+
         try:
-            # Step 3: Smart format + paste
+            # Step 3: Restore focus to the field that was active when recording
+            # started, then paste. Critical for multi-monitor setups.
+            _restore_recording_focus()
+
+            # Smart format + paste
             _paste_engine = SmartPasteEngine()
             formatted = _paste_engine.format_for_task(text)
-            paste_ok, msg = _paste_engine.paste_text(formatted, format_type="plain")
+            paste_ok, msg = _paste_engine.paste_text(
+                formatted, format_type="plain", window_id=_saved_window_id
+            )
             if not paste_ok:
                 # Fallback: legacy smart_paste + clipboard
-                paste_ok = smart_paste(text)
+                paste_ok = smart_paste(text, window_id=_saved_window_id)
                 if not paste_ok:
                     if _copy_to_clipboard_robust(text):
                         from core.ws_bridge import send_pill_notice
@@ -605,7 +922,7 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
         except Exception as e:
             print(f"[STT] Pipeline error: {e}")
             # Fallback to raw text
-            paste_ok = smart_paste(text)
+            paste_ok = smart_paste(text, window_id=_saved_window_id)
             if not paste_ok:
                 if _copy_to_clipboard_robust(text):
                     from core.ws_bridge import send_pill_notice
@@ -646,12 +963,28 @@ _last_start_time = 0.0
 _START_DEBOUNCE_SEC = 0.3
 _start_recording_lock = threading.Lock()
 
+_last_stop_time = 0.0
+_STOP_DEBOUNCE_SEC = 0.3
+_stop_recording_lock = threading.Lock()
+
 
 def start_recording():
-    # INTENTIONALLY no usage check here.
-    # Voice dictation (F9×1) is unlimited on all tiers — see pricing at whiztant.app/pricing.
-    # Only chat, agent, and uitars actions consume quota.
     global _audio_stream, recording_active, _active_stt, _last_stt_text, _last_start_time
+
+    # Credit gate for pure dictation (not agent voice input)
+    if not state.agent_mode and not getattr(state, "_agent_running", False):
+        try:
+            from core.credit_system import can_afford, get_current_user_id
+            user_id = get_current_user_id()
+            if not can_afford(user_id, 1):
+                from core.toast import show_toast
+                from core.ws_bridge import send_pill_notice
+                show_toast("Dictation blocked: 0 credits", "Wiztant")
+                _try_ws_send("state", "error", "Insufficient credits for dictation. Upgrade at whiztant.app/pricing")
+                send_pill_notice("error", "0 Credits", "Dictation blocked. Upgrade at whiztant.app/pricing", duration_ms=4000)
+                return
+        except Exception:
+            pass
 
     cancel_pending_f9_taps()
 
@@ -667,26 +1000,39 @@ def start_recording():
         _last_start_time = now
         state.recording = True
 
+    # ═══════════════════════════════════════════════════════════════════════
+    #  IMMEDIATE FEEDBACK — user knows it's working before heavy audio init
+    #  (sd.RawInputStream creation can take 50-300 ms; feedback must not wait)
+    # ═══════════════════════════════════════════════════════════════════════
+    print("\n🎙️  RECORDING STARTED — speak now, press F9 to stop")
     print("[Hotkeys] start_recording called")
+    _try_ws_send("state", "listening")
+    if state.overlay:
+        state.overlay.set_listening()
+    _start_mic_publisher()
+
+    # ═══════════════════════════════════════════════════════════════════════
+    #  AUDIO SETUP — happens after feedback so F9 feels instant
+    # ═══════════════════════════════════════════════════════════════════════
+    state.audio_frames = []
+    recording_active = False
+    _last_stt_text = ""
+
+    # Remember where the user was typing so paste lands on the right screen/field.
+    _save_recording_focus()
+
+    # Start the production streaming STT engine for live preview (no auto-stop)
+    _active_stt = StreamingSTT()
+    _active_stt.start()
+
+    # Clean up any stale stream handle left by a previous crash
     if _audio_stream is not None:
-        # Clean up any stale stream handle left by a previous crash
         try:
             _audio_stream.stop()
             _audio_stream.close()
         except Exception:
             pass
         _audio_stream = None
-
-    state.audio_frames = []
-    recording_active = False
-    _last_stt_text = ""
-
-    # Start the production streaming STT engine for live preview (no auto-stop)
-    _active_stt = StreamingSTT()
-    _active_stt.start()
-
-    if state.overlay:
-        state.overlay.set_listening()
 
     import sounddevice as sd
     try:
@@ -695,13 +1041,10 @@ def start_recording():
             blocksize=1024,
             dtype="int16",
             channels=1,
-            callback=audio_callback
+            callback=audio_callback,
+            latency="low",
         )
         _audio_stream.start()
-        time.sleep(0.05)
-        print("\n🎙️  RECORDING STARTED — speak now, press F9 to stop")
-        _try_ws_send("state", "listening")
-        _start_mic_publisher()
     except Exception as e:
         print(f"[Audio] Failed to open microphone: {e}")
         _try_ws_send("state", "error", "Microphone unavailable")
@@ -713,15 +1056,21 @@ def start_recording():
 
 
 def _stop_recording(process_audio: bool):
-    global _audio_stream, recording_active, _active_stt, _last_stt_text
+    global _audio_stream, recording_active, _active_stt, _last_stt_text, _last_stop_time
 
     cancel_pending_f9_taps()
 
-    if not state.recording:
-        return
+    with _stop_recording_lock:
+        if not state.recording:
+            return
 
-    state.recording = False
-    recording_active = False
+        now = time.time()
+        if now - _last_stop_time < _STOP_DEBOUNCE_SEC:
+            print(f"[Hotkeys] _stop_recording debounced ({now - _last_stop_time:.2f}s)")
+            return
+        _last_stop_time = now
+        state.recording = False
+        recording_active = False
 
     if _audio_stream is not None:
         _audio_stream.stop()
@@ -796,8 +1145,16 @@ def cancel_pending_f9_taps():
 
 def _on_f9_taps(count: int):
     if state.recording:
-        if count == 1:
-            stop_and_process()
+        # Defence against double-registration race: if recording started
+        # very recently (< 0.6 s) this pynput tap is almost certainly a
+        # stale echo of the same physical keypress that Electron already
+        # handled. Ignore it so we don't stop after 400 ms.
+        if count == 1 and time.time() - _last_start_time < 0.6:
+            print("[Hotkeys] Ignoring pynput stop — recording started by Electron very recently")
+            return
+        # Stop any active recording (F9 dictation or F10 task capture).
+        # This makes F9 a universal "stop recording" key.
+        stop_and_process()
         return
 
     if count == 1:
@@ -807,7 +1164,9 @@ def _on_f9_taps(count: int):
             state.agent_mode = True
         start_recording()
     elif count >= 2:
-        toggle_agent_mode()
+        # Agent mode coming soon — disabled for now.
+        # toggle_agent_mode()
+        pass
 
 
 def f9_handler():
@@ -850,28 +1209,37 @@ def hide_chat_overlay_if_visible():
 
 
 _last_toggle_time = 0.0
+_agent_toggle_lock = threading.Lock()
 
 
 def toggle_agent_mode():
     """Toggle agent_mode on/off. Mirrors the tray menu behavior."""
     global _last_toggle_time
-    try:
-        import core as state
-        from core.toast import show_toast
+    with _agent_toggle_lock:
+        try:
+            import core as state
+            from core.toast import show_toast
+            from core.ws_bridge import send_wave_state, broadcast_sync
 
-        cancel_pending_f9_taps()
+            cancel_pending_f9_taps()
 
-        now = time.time()
-        if now - _last_toggle_time < 0.6:
-            # Debounce: ignore rapid successive calls (e.g. Electron + pynput both handling F9)
-            return
-        _last_toggle_time = now
-        state.agent_mode = not getattr(state, "agent_mode", False)
-        mode_name = "Agent" if state.agent_mode else "Dictation"
-        show_toast(f"{mode_name} mode ready", "Wiztant")
-        print(f"[Hotkeys] Mode toggled: {mode_name}")
-    except Exception as e:
-        print(f"[Hotkeys] toggle_agent_mode error: {e}")
+            now = time.time()
+            if now - _last_toggle_time < 0.6:
+                print(f"[Hotkeys] toggle_agent_mode debounced ({now - _last_toggle_time:.2f}s)")
+                return
+            _last_toggle_time = now
+            prev_mode = getattr(state, "agent_mode", False)
+            state.agent_mode = not prev_mode
+            mode_name = "Agent" if state.agent_mode else "Dictation"
+            show_toast(f"{mode_name} mode ready", "Wiztant")
+            print(f"[Hotkeys] Mode toggled: {mode_name} (was {'Agent' if prev_mode else 'Dictation'})")
+
+            # Notify overlay so the pill can show the correct visual state
+            broadcast_sync({"type": "agent_mode", "enabled": state.agent_mode})
+            send_wave_state("agent" if state.agent_mode else "idle")
+            print(f"[Hotkeys] Broadcast agent_mode={state.agent_mode} + wave_state={'agent' if state.agent_mode else 'idle'}")
+        except Exception as e:
+            print(f"[Hotkeys] toggle_agent_mode error: {e}")
 
 
 # Track the last calendar day we showed the carry-over digest so it only fires once/day.
@@ -1073,7 +1441,6 @@ def _task_transcribe_and_save():
         return
 
     print(f"[Task] Captured: {text}")
-    _add_dictation_memory(text, text, mode="task")
 
     # If the user explicitly said "separately" (or "as separate tasks"), split
     # the utterance into multiple tasks and save each one independently. Each
@@ -1092,7 +1459,8 @@ def _task_transcribe_and_save():
             if not frag_due:
                 frag_due = default_noon_due_at()
             try:
-                _handle_new_task(frag_refined, frag_due)
+                _propose_task_for_confirmation(frag_refined, frag_due, text)
+                _add_dictation_memory(text, frag_refined, mode="task")
                 saved_any = True
             except Exception as e:
                 print(f"[Task] Save failed for fragment {frag_refined!r}: {e}")
@@ -1128,7 +1496,8 @@ def _task_transcribe_and_save():
         due_at = default_noon_due_at()
 
     try:
-        _handle_new_task(refined, due_at)
+        _propose_task_for_confirmation(refined, due_at, text)
+        _add_dictation_memory(text, refined, mode="task")
     except Exception as e:
         print(f"[Task] Save failed: {e}")
 
@@ -1143,8 +1512,10 @@ def task_hotkey_handler():
     if state.recording and getattr(state, "_task_recording", False):
         stop_and_process()
         return
-    # Don't interrupt an active F9 dictation / bg-agent recording.
+    # If an F9 dictation is in progress, treat F10 as "stop dictation"
+    # instead of starting a conflicting task recording.
     if state.recording:
+        stop_and_process()
         return
     _start_task_recording()
 
@@ -1164,18 +1535,62 @@ def flag_wrong_word():
     print(f"[Vocab] Flagged: {heard}")
 
 
+def _capture_active_field_text() -> str:
+    """Select all text in the active input field and cut it to clipboard. Returns the cut text."""
+    from platforms.factory import get_system_access
+    system = get_system_access()
+    # Clear clipboard first to guarantee we never read stale content
+    pyperclip.copy("")
+    ok, _ = system.hotkey("ctrl", "a")
+    if not ok:
+        raise RuntimeError("Failed to send Ctrl+A")
+    time.sleep(0.05)
+    ok, _ = system.hotkey("ctrl", "x")
+    if not ok:
+        raise RuntimeError("Failed to send Ctrl+X")
+    time.sleep(0.05)
+    return pyperclip.paste() or ""
+
+
 def optimize_clipboard_prompt():
-    """Ctrl+Shift+Space — optimize the clipboard contents via WizPrompt multi-agent system."""
-    text = pyperclip.paste()
-    if not text or not text.strip():
+    """Ctrl+Shift+Space — capture text from active field, open Reprompt tab, optimize, copy result."""
+    # Step 1: Capture text from active input field
+    try:
+        text = _capture_active_field_text()
+    except Exception as e:
+        print(f"[Hotkeys] Failed to capture active field text: {e}")
         from core.ws_bridge import send_pill_notice
-        send_pill_notice("error", "Clipboard empty", "Copy a prompt to optimize first.", duration_ms=3000)
+        send_pill_notice("error", "Capture failed", "Could not select and cut text from active field.", duration_ms=3000)
         return
 
+    if not text or not text.strip():
+        from core.ws_bridge import send_pill_notice
+        send_pill_notice("error", "No text captured", "Active field appears empty.", duration_ms=3000)
+        return
+
+    # Step 2: Open overlay and navigate to Reprompt tab
+    try:
+        from ui.react_overlay import show_react_overlay
+        show_react_overlay()
+    except Exception as e:
+        print(f"[Hotkeys] Failed to show overlay: {e}")
+
+    from core.ws_bridge import broadcast_sync, get_reprompt_ready_event
+    broadcast_sync({
+        "type": "reprompt_init",
+        "text": text,
+    })
+
+    # Step 3: Wait for overlay ready confirmation, then optimize
     def _run():
         import asyncio
         from core.wizprompt import optimize_prompt_with_dynamic_agents
         from core.ws_bridge import broadcast_sync, send_pill_notice
+
+        ready_event = get_reprompt_ready_event()
+        ready = ready_event.wait(timeout=3.0)
+        if not ready:
+            print("[Hotkeys] Overlay ready timeout — proceeding with optimization anyway")
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -1183,6 +1598,7 @@ def optimize_clipboard_prompt():
             result = loop.run_until_complete(optimize_prompt_with_dynamic_agents(text))
             optimized = result.get("optimized_prompt", "")
             if optimized:
+                # Step 4: Copy result to clipboard
                 pyperclip.copy(optimized)
                 broadcast_sync({
                     "type": "wizprompt_result",
@@ -1195,7 +1611,39 @@ def optimize_clipboard_prompt():
                     "framing_directive": result.get("framing_directive"),
                     "synthesis_failed": result.get("synthesis_failed", False),
                     "critiques": result.get("critiques", {}),
+                    "examples_used": result.get("examples_used", 0),
+                    "example_ids": result.get("example_ids", []),
                 })
+                # Store in few-shot memory (background, no feedback yet)
+                def _store():
+                    try:
+                        import core.wizprompt_memory as mem
+                        sloop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(sloop)
+                        sloop.run_until_complete(
+                            mem.remember_optimization(
+                                original_prompt=text,
+                                optimized_prompt=optimized,
+                                final_prompt=optimized,
+                                preset=result.get("preset_used"),
+                                model=result.get("model_used"),
+                                emotion=result.get("emotional_state"),
+                            )
+                        )
+                        sloop.close()
+                    except Exception as se:
+                        print(f"[Hotkeys] background store error: {se}")
+                threading.Thread(target=_store, daemon=True).start()
+
+                # Store in the visible memory stack
+                try:
+                    _add_dictation_memory(
+                        original_text=text,
+                        final_text=optimized,
+                        mode="reprompt",
+                    )
+                except Exception:
+                    pass
                 send_pill_notice(
                     "updated",
                     "Prompt optimized",
@@ -1240,18 +1688,23 @@ def register_hotkeys():
             print(f"[Hotkeys] Failed to register '{key}': {e}")
 
     # Task-creation hotkey (remappable via data/settings.json → "task_hotkey").
-    task_key = _load_task_hotkey()
-    try:
-        kb.add_hotkey(task_key, task_hotkey_handler)
-        registered += 1
-        print(f"[Hotkeys] Task hotkey registered: {task_key.upper()}")
-    except Exception as e:
-        print(f"[Hotkeys] Failed to register task hotkey '{task_key}': {e}. Falling back to F10.")
+    task_mode = _load_task_creation_mode()
+    shortcuts_enabled = _load_shortcuts_enabled()
+    if task_mode == "hotkey" or shortcuts_enabled:
+        task_key = _load_task_hotkey()
         try:
-            kb.add_hotkey("f10", task_hotkey_handler)
+            kb.add_hotkey(task_key, task_hotkey_handler)
             registered += 1
-        except Exception as e2:
-            print(f"[Hotkeys] F10 fallback also failed: {e2}")
+            print(f"[Hotkeys] Task hotkey registered: {task_key.upper()}")
+        except Exception as e:
+            print(f"[Hotkeys] Failed to register task hotkey '{task_key}': {e}. Falling back to F10.")
+            try:
+                kb.add_hotkey("f10", task_hotkey_handler)
+                registered += 1
+            except Exception as e2:
+                print(f"[Hotkeys] F10 fallback also failed: {e2}")
+    else:
+        print("[Hotkeys] Task creation mode = smart — task hotkey disabled")
     
     if registered > 0:
         print(f"[Hotkeys] {registered} hotkey(s) registered successfully")

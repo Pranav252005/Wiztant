@@ -1,4 +1,27 @@
 {
+  "task_ai_enabled": true,
   "task_hotkey": "f10",
-  "live_dictation_preview": true
+  "task_hotkey_taps": 1,
+  "live_dictation_preview": true,
+  "correction_copy_wait_sec": 3,
+  "task_creation_mode": "smart",
+  "shortcuts_enabled": false,
+  "features": {
+    "agent": true,
+    "tasks": true,
+    "reprompt": true,
+    "tunehub": true
+  },
+  "TASK_REFINER_MODEL": "google/gemini-3-flash-preview",
+  "PLANNER_MODEL": "qwen/qwen3-vl-235b-a22b-instruct",
+  "AGENT_OMNI_MODEL": "google/gemini-3-flash-preview",
+  "reminder_interval_min": 15,
+  "default_due_time": "17:00",
+  "snooze_presets": [
+    15,
+    60,
+    1440
+  ],
+  "pre_due_warning": true,
+  "carry_over": true
 }

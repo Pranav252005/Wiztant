@@ -14,14 +14,16 @@ import {
   loadSavedPosition,
   setEdgePosition,
   getEdgePosition,
-  savePosition,
-  latchToNearestEdge,
 } from './orbit';
 import { readFileSync, existsSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { sendBridgeMessage, closeBridge } from './bridge';
 import { dragState } from './dragState';
 import { IPC } from '../renderer/shared/ipc';
+import {
+  getLastCursorDisplayId,
+  setLastCursorDisplayId,
+} from './monitorState';
 
 let pill: BrowserWindow;
 let overlay: BrowserWindow;
@@ -30,7 +32,7 @@ let cmdWatchTimer: ReturnType<typeof setInterval> | null = null;
 let wsHeartbeatTimer: ReturnType<typeof setInterval> | null = null;
 let monitorFollowTimer: ReturnType<typeof setInterval> | null = null;
 
-let lastCursorDisplayId: number | null = null;
+
 
 
 
@@ -48,8 +50,8 @@ function moveToDisplay(disp: Display, animate: boolean = false): void {
 function showOverlay(): void {
   if (overlay.isDestroyed()) return;
   const disp = getCursorDisplay();
-  if (disp.id !== lastCursorDisplayId) {
-    lastCursorDisplayId = disp.id;
+  if (disp.id !== getLastCursorDisplayId()) {
+    setLastCursorDisplayId(disp.id);
     moveToDisplay(disp, false); // snap, don't animate on show
   } else if (!pill.isDestroyed()) {
     // Pill may have moved on the same display — keep overlay adjacent
@@ -136,24 +138,16 @@ function bootstrap(): void {
 
   // Start on the display the cursor is currently on (not hardcoded primary).
   const initialDisp = getCursorDisplay();
-  lastCursorDisplayId = initialDisp.id;
+  setLastCursorDisplayId(initialDisp.id);
 
   const savedPos = loadSavedPosition();
-  // Default to centered on the initial display if offset is unset (0)
-  if (savedPos.offset === 0) {
-    if (savedPos.edge === 'left' || savedPos.edge === 'right') {
-      savedPos.offset = Math.round(initialDisp.workArea.height / 2);
-    } else {
-      savedPos.offset = Math.round(initialDisp.workArea.width / 2);
-    }
-  }
   setEdgePosition(savedPos);
 
   pill = createPillWindow(initialDisp);
   overlay = createOverlayWindow(initialDisp, pill);
 
   bindPill(pill);
-  registerIpcHandlers({ pill, overlay, showOverlay });
+  registerIpcHandlers({ pill, overlay, showOverlay, setLastCursorDisplayId });
   registerShortcuts({ pill, overlay, showOverlay });
 
   // Send initial edge to pill renderer once it loads
@@ -177,15 +171,15 @@ function bootstrap(): void {
   }, 2000);
 
   // Follow the cursor across monitors: smoothly animate pill + overlay to the
-  // display the cursor is on. Poll every 500 ms for smooth but not excessive.
+  // display the cursor is on. Poll every 250 ms for responsive transitions.
   monitorFollowTimer = setInterval(() => {
-    const nextId = hasCursorChangedDisplay(lastCursorDisplayId);
-    if (nextId !== null && nextId !== lastCursorDisplayId) {
-      lastCursorDisplayId = nextId;
+    const nextId = hasCursorChangedDisplay(getLastCursorDisplayId());
+    if (nextId !== null && nextId !== getLastCursorDisplayId()) {
+      setLastCursorDisplayId(nextId);
       const disp = getDisplayById(nextId);
       moveToDisplay(disp, true); // animate for smooth multi-monitor transition
     }
-  }, 500);
+  }, 250);
 
   // Heartbeat to Python bridge so launcher knows we are alive
   startBridgeHeartbeat();

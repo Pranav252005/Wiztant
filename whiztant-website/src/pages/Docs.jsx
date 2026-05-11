@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BookOpen, Search, ChevronRight, Zap, Mic, Bot, ListTodo, Sparkles, Download, Keyboard, CreditCard, Monitor, AlertTriangle, CheckCircle2, Terminal } from 'lucide-react'
+import Particles from '../components/Particles'
 import AnimatedSection from '../components/AnimatedSection'
 import Aurora from '../components/Aurora'
 

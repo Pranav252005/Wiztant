@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Optional
 
+from . import tuners  # noqa: F401 — triggers TuneBase.__init_subclass__ registration
 from .orchestrator import TuneHub
 from .quality.judge import BaseJudge, SimpleJudge
 from .storage.sqlite_store import SQLiteTuneStore

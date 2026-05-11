@@ -27,6 +27,16 @@ export interface DueReminderPayload {
   tasks: DueReminderTask[];
 }
 
+export interface OverdueReminderTask {
+  id: string;
+  title: string;
+}
+
+export interface OverdueReminderPayload {
+  task: OverdueReminderTask;
+  reminder_count: number;
+}
+
 export interface DuplicateExistingTask {
   id: string;
   title: string;
@@ -40,19 +50,41 @@ export interface DuplicatePayload {
   newTime: string;
 }
 
+export interface TaskConfirmPayload {
+  id: string;
+  parsed_title: string;
+  due_datetime?: string;
+  has_time: boolean;
+  has_date: boolean;
+}
+
+export interface PillNotificationPayload {
+  task_id: string;
+  title: string;
+  due_datetime: string;
+  notification_type: 'pre_due' | 'due_now' | 'overdue';
+  minutes_remaining: number;
+}
+
 export type PillNotification =
+  | { kind: 'task_confirm'; payload: TaskConfirmPayload }
+  | { kind: 'pill_notification'; payload: PillNotificationPayload }
   | { kind: 'task_saved'; payload: TaskSavedPayload }
   | { kind: 'due_alert'; payload: DueAlertPayload }
   | { kind: 'due_reminder'; payload: DueReminderPayload }
+  | { kind: 'overdue_reminder'; payload: OverdueReminderPayload }
   | { kind: 'duplicate'; payload: DuplicatePayload };
 
 export type PillNotificationKind = PillNotification['kind'];
 
 // Priority (higher replaces lower; lower is queued):
 const PRIORITY: Record<PillNotificationKind, number> = {
+  task_confirm: 5,
   due_alert: 4,
   task_saved: 3,
+  overdue_reminder: 3,
   duplicate: 2,
+  pill_notification: 2,
   due_reminder: 1,
 };
 
@@ -146,6 +178,14 @@ export function usePillNotifications(): UsePillNotificationsResult {
         const existing = msg.existing_task as DuplicateExistingTask;
         const newTime = typeof msg.new_time === 'string' ? msg.new_time : '';
         enqueue({ kind: 'duplicate', payload: { existingTask: existing, newTime } });
+      } else if (type === 'task_confirm_request' && msg.payload) {
+        enqueue({ kind: 'task_confirm', payload: msg.payload as TaskConfirmPayload });
+      } else if (type === 'overdue_reminder' && msg.task) {
+        const task = msg.task as OverdueReminderTask;
+        const count = typeof msg.reminder_count === 'number' ? msg.reminder_count : 1;
+        enqueue({ kind: 'overdue_reminder', payload: { task, reminder_count: count } });
+      } else if (type === 'pill_notification' && msg.payload) {
+        enqueue({ kind: 'pill_notification', payload: msg.payload as PillNotificationPayload });
       }
     },
     [enqueue],

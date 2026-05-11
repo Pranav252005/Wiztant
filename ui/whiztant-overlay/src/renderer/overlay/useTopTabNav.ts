@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 
-export type TopTabId = 'chat' | 'wizprompt' | 'agent' | 'tasks' | 'memories' | 'tunehub';
+export type TopTabId = 'chat' | 'wizprompt' | 'agent' | 'builder' | 'tasks' | 'memories';
 
-const TAB_ORDER: TopTabId[] = ['chat', 'wizprompt', 'agent', 'tasks', 'memories', 'tunehub'];
+const TAB_ORDER: TopTabId[] = ['chat', 'wizprompt', 'agent', 'builder', 'tasks', 'memories'];
 
 export function useTopTabNav(activeTab: TopTabId, setTab: (tab: TopTabId) => void) {
   useEffect(() => {

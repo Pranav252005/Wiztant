@@ -15,6 +15,7 @@ from .base import (
     TuneStatus,
     ValidationError,
 )
+from .guardrails import TuneBoundaryGuard, TuneBoundaryViolation
 
 
 # =============================================================
@@ -226,6 +227,40 @@ class TuneBase(ABC):
         Must be FAST and deterministic. Used as fallback.
         """
         raise NotImplementedError
+
+    # ───────────────────────────────────────────────────────────────
+    # BOUNDARY SAFETY
+    # ───────────────────────────────────────────────────────────────
+
+    @abstractmethod
+    def allowed_injectable_keys(self) -> frozenset[str]:
+        """
+        Return the set of feature_input keys this tuner is permitted to
+        add or modify.  All other keys must remain untouched.
+        """
+        raise NotImplementedError
+
+    def safe_apply(
+        self,
+        model: LearnedModel,
+        feature_input: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Boundary-safe wrapper around apply().
+
+        1. Deep-copies the input so the caller's dict is never mutated.
+        2. Calls apply() on the copy.
+        3. Validates that only allowed keys were touched.
+        4. Raises TuneBoundaryViolation on violation.
+        """
+        original = TuneBoundaryGuard.ensure_immutable_input(feature_input)
+        modified = self.apply(model, original)
+        ok, reason = TuneBoundaryGuard.validate_injection(
+            self.feature_name, original, modified
+        )
+        if not ok:
+            raise TuneBoundaryViolation(reason)
+        return modified
 
     # ───────────────────────────────────────────────────────────────
     # Utility

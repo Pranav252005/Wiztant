@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { defaultTheme, themes } from '../shared/themes';
 import type { ThemeName, DictationMemory, DictationMemoryMode } from '../shared/ipc';
 import { sendBridgeMessage, useBridgeMessage } from '../shared/useBridge';
@@ -8,6 +8,7 @@ const MODE_LABEL: Record<DictationMemoryMode, string> = {
   agent: 'Agent',
   task: 'Task',
   bg_agent: 'Bg Agent',
+  reprompt: 'RePrompt',
 };
 
 const MODE_COLOR: Record<DictationMemoryMode, string> = {
@@ -15,6 +16,7 @@ const MODE_COLOR: Record<DictationMemoryMode, string> = {
   agent: '#4cd7f6',
   task: '#d0bcff',
   bg_agent: '#C4956A',
+  reprompt: '#d0bcff',
 };
 
 function parseMemoryFromHash(): DictationMemory | null {
@@ -55,6 +57,11 @@ export default function MemoryPanel() {
   const [text, setText] = useState(memory?.final_text || '');
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [sessionId] = useState(() => {
+    const fromMemory = parseMemoryFromHash()?.session_id;
+    return fromMemory || `preview-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  });
+  const editTimeoutRef = useRef<number | null>(null);
 
   useBridgeMessage((msg) => {
     if (msg?.type === 'dictation_preview/optimized' && memory) {
@@ -62,6 +69,12 @@ export default function MemoryPanel() {
       if (optimized) {
         setText(optimized);
         setIsOptimizing(false);
+        // Notify correction pipeline of optimization
+        sendBridgeMessage({
+          type: 'correction_capture/optimize',
+          session_id: sessionId,
+          optimized,
+        });
       }
     }
     if (msg?.type === 'dictation_memories/update' && memory) {
@@ -84,6 +97,34 @@ export default function MemoryPanel() {
     setText(next?.final_text || '');
   }, []);
 
+  // ── Undo Hook: notify Python when preview opens/closes ──
+  useEffect(() => {
+    sendBridgeMessage({
+      type: 'correction_capture/open',
+      session_id: sessionId,
+      original_text: memory?.original_text || '',
+      stt_text: memory?.final_text || '',
+    });
+    return () => {
+      sendBridgeMessage({ type: 'correction_capture/close', session_id: sessionId });
+    };
+  }, [sessionId, memory]);
+
+  // ── Undo Hook: capture Ctrl+Z as undo ──
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        sendBridgeMessage({
+          type: 'correction_capture/undo',
+          session_id: sessionId,
+          new_text: text,
+        });
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [sessionId, text]);
+
   const save = async () => {
     if (!memory?.id || !text.trim()) return;
     setStatus('saving');
@@ -93,16 +134,6 @@ export default function MemoryPanel() {
       final_text: text.trim(),
       original_text: memory.original_text,
     });
-    // Auto-learn spelling corrections from memory edits
-    const originalText = memory.original_text || '';
-    const correctedText = text.trim();
-    if (originalText && correctedText && originalText !== correctedText) {
-      sendBridgeMessage({
-        type: 'learn_from_edit',
-        original: originalText,
-        corrected: correctedText,
-      });
-    }
     try {
       await window.api.writeClipboard(text.trim());
     } catch {
@@ -115,12 +146,13 @@ export default function MemoryPanel() {
   const optimize = () => {
     if (!text.trim() || isOptimizing) return;
     setIsOptimizing(true);
-    sendBridgeMessage({ type: 'dictation_preview/optimize', text: text.trim() });
+    sendBridgeMessage({ type: 'dictation_preview/optimize', text: text.trim(), session_id: sessionId });
   };
 
   const copy = async () => {
     if (!text.trim()) return;
     await window.api.writeClipboard(text.trim());
+    sendBridgeMessage({ type: 'correction_capture/copy', session_id: sessionId });
   };
 
   const del = () => {
@@ -199,7 +231,7 @@ export default function MemoryPanel() {
         </button>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, minHeight: 0, flex: 1 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12, minHeight: 0, flex: 1, overflowY: 'auto' }}>
         <div
           style={{
             display: 'flex',
@@ -233,14 +265,12 @@ export default function MemoryPanel() {
 
         <div
           style={{
-            flex: 1,
-            minHeight: 0,
             display: 'flex',
             flexDirection: 'column',
             border: `1px solid ${theme.border}`,
             borderRadius: 12,
             background: theme.inputBg,
-            overflow: 'hidden',
+            overflow: 'visible',
           }}
         >
           {memory.original_text !== text && memory.original_text && (
@@ -257,11 +287,25 @@ export default function MemoryPanel() {
           )}
           <textarea
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              const newText = e.target.value;
+              setText(newText);
+              e.target.style.height = 'auto';
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 320)}px`;
+              if (editTimeoutRef.current) {
+                window.clearTimeout(editTimeoutRef.current);
+              }
+              editTimeoutRef.current = window.setTimeout(() => {
+                sendBridgeMessage({
+                  type: 'correction_capture/edit',
+                  session_id: sessionId,
+                  new_text: newText,
+                });
+              }, 300);
+            }}
             placeholder="Memory text"
             style={{
-              flex: 1,
-              minHeight: 0,
+              minHeight: 80,
               resize: 'none',
               background: 'transparent',
               color: theme.text,

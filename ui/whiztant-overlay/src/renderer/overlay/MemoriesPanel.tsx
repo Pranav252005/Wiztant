@@ -17,6 +17,7 @@ const MODE_LABEL: Record<DictationMemory['mode'], string> = {
   agent: 'Agent',
   task: 'Task',
   bg_agent: 'Bg Agent',
+  reprompt: 'RePrompt',
 };
 
 const MODE_COLOR: Record<DictationMemory['mode'], string> = {
@@ -24,6 +25,7 @@ const MODE_COLOR: Record<DictationMemory['mode'], string> = {
   agent: '#4cd7f6',
   task: '#d0bcff',
   bg_agent: '#C4956A',
+  reprompt: '#d0bcff',
 };
 
 function formatTime(value: string) {
@@ -73,6 +75,7 @@ export default function MemoriesPanel({ theme, memories, filter: filterProp, onF
     { key: 'dictation', label: 'Dictation' },
     { key: 'agent', label: 'Agent' },
     { key: 'task', label: 'Task' },
+    { key: 'reprompt', label: 'RePrompt' },
   ];
 
   return (
@@ -143,7 +146,6 @@ export default function MemoriesPanel({ theme, memories, filter: filterProp, onF
           filtered.map((mem) => (
             <motion.div
               key={mem.id}
-              layout
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, x: 20 }}

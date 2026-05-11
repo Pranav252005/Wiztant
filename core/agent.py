@@ -594,55 +594,6 @@ def add_system_message(content: str):
     add_history_message("system", content)
 
 
-def process_conversation_turn(user_text: str):
-    text = str(user_text).strip()
-    if not text:
-        return ""
-
-    if not _endpoint_reachable("https://api.openai.com/v1/models"):
-        message = _mode_offline_message("chat")
-        add_history_message("assistant", message)
-        return message
-
-    # Check chat quota after confirming the online API is reachable.
-    # Supabase usage can still fall back to the local counter.
-    tier = usage.get_tier()
-    allowed, quota_msg = usage.check_usage("chat", tier, fail_open=True)
-    if not allowed:
-        add_history_message("assistant", quota_msg)
-        return quota_msg
-
-    add_history_message("user", text)
-    state.thinking = True
-    if state.overlay:
-        state.overlay.set_thinking()
-
-    try:
-        response = call_llm(state.conversation_history, mode="chat")
-        add_history_message("assistant", response)
-        # Increment only after a successful LLM call — errors don't burn quota.
-        usage.increment_usage_count("chat", tier)
-        # Track insights
-        try:
-            from core.insights_tracker import record_event
-            record_event("ai_prompt")
-            record_event("work_message")
-        except Exception:
-            pass
-    except Exception as e:
-        state.thinking = False
-        if state.overlay:
-            state.overlay.set_idle()
-        error_text = f"Error: {e}"
-        add_history_message("assistant", error_text)
-        return error_text
-
-    state.thinking = False
-    if state.overlay:
-        state.overlay.set_idle()
-    return response
-
-
 async def execute_agent_task_fixed(task: str) -> dict:
     from core.agent_s3_wrapper import get_agent_s3
 
@@ -1250,24 +1201,56 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
 
     # ── F9×3 Agent mode → UI-TARS via OpenRouter ────────────────
     if state.agent_mode or force_agent:
+        print(f"[Agent] ask_ai entered agent block. agent_mode={state.agent_mode}, force_agent={force_agent}, text={user_text[:60]}")
         if not user_already_added:
             add_history_message("user", user_text)
-        if not all(_endpoint_reachable(url) for url in _agent_required_endpoints()):
+
+        # Pre-flight endpoint check
+        endpoints = _agent_required_endpoints()
+        print(f"[Agent] Required endpoints: {endpoints}")
+        if not all(_endpoint_reachable(url) for url in endpoints):
             message = _mode_offline_message("agent")
-            print(f"[Agent] Pre-flight blocked: {message}")
+            print(f"[Agent] BLOCKED: endpoints not reachable. Message: {message}")
             add_history_message("assistant", message)
             return
+        print("[Agent] Endpoint check passed")
+
         add_system_message(f"Agent task: {user_text}")
 
-        # Pre-flight check so we don't announce "Starting agent task" and then immediately
-        # block. The @requires_usage("uitars") decorator on run_agent_task is the real gate
-        # (check + increment-on-success); this check avoids the false announcement.
-        # Internet is required for agent mode; usage can still fall back to the local counter.
-        pre_allowed, pre_msg = usage.check_usage("uitars", tier, fail_open=True)
-        if not pre_allowed:
-            print(f"[Agent] Pre-flight blocked: {pre_msg}")
-            add_history_message("assistant", pre_msg)
-            return
+        # ── Credit pre-flight ──────────────────────────────────────
+        try:
+            from core.credit_system import (
+                can_afford,
+                calculate_agent_credits,
+                deduct,
+                get_balance,
+                get_current_user_id,
+                true_up_credits,
+                refill,
+            )
+            user_id = get_current_user_id()
+            # Heuristic: 1 step per ~10 words, minimum 3 steps
+            estimated_steps = max(3, 1 + len(user_text.split()) // 10)
+            estimated_cost = calculate_agent_credits(estimated_steps)
+            if not can_afford(user_id, estimated_cost):
+                balance = get_balance(user_id)
+                msg = f"Agent blocked: need ~{estimated_cost} credits, you have {balance}. Upgrade at whiztant.app/pricing"
+                print(f"[Agent] BLOCKED: {msg}")
+                add_history_message("assistant", msg)
+                return
+            # Reserve estimated cost upfront
+            if not deduct(user_id, "agent", estimated_cost, model=model):
+                msg = "Agent blocked: credit deduction failed."
+                print(f"[Agent] BLOCKED: {msg}")
+                add_history_message("assistant", msg)
+                return
+            print(f"[Agent] Reserved {estimated_cost} credits (est. {estimated_steps} steps)")
+        except Exception as e:
+            print(f"[Agent] Credit pre-flight error: {e}")
+            # Fail-open: allow agent to run if credit system is broken
+            estimated_cost = 0
+            estimated_steps = 0
+            user_id = ""
 
         print("\n[Router] AGENT mode → Unified Agent")
 
@@ -1291,11 +1274,24 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
         stop_event = threading.Event()
         state._agent_stop_event = stop_event
         state._agent_running = True
+        steps_taken = []
+
+        def _credit_check(step: int) -> bool:
+            """Mid-flight credit check — called before each step after the first."""
+            if not user_id:
+                return True
+            try:
+                from core.credit_system import can_afford
+                # Each additional step costs 2 credits
+                return can_afford(user_id, 2)
+            except Exception:
+                return True
 
         try:
             from core.agent_unified import run_unified_agent
             from platforms.factory import get_agent_runtime
 
+            print("[Agent] Starting run_unified_agent...")
             summary = asyncio.run(run_unified_agent(
                 task=tuned_task,
                 runtime=get_agent_runtime(),
@@ -1304,16 +1300,37 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
                 append_chat_fn=_append_agent_chat,
                 stop_event=stop_event,
                 max_steps=int(os.getenv("AGENT_MAX_STEPS", "15")),
+                credit_check_fn=_credit_check,
+                steps_taken_ref=steps_taken,
             ))
+            print(f"[Agent] run_unified_agent returned: {summary}")
         except Exception as e:
             summary = f"Agent stopped: {e}"
+            print(f"[Agent] run_unified_agent EXCEPTION: {e}")
         finally:
             state._agent_running = False
             state._agent_stop_event = None
             _set_agent_wave_state("idle")
+            # True-up: refund unused reserved credits
+            if user_id and estimated_cost > 0 and steps_taken:
+                try:
+                    actual_steps = steps_taken[0]
+                    actual_cost = calculate_agent_credits(actual_steps)
+                    if actual_cost < estimated_cost:
+                        refund = estimated_cost - actual_cost
+                        refill(user_id, refund, source="agent_true_up_refund")
+                        print(f"[Agent] True-up: refunded {refund} credits (est. {estimated_cost}, actual {actual_cost})")
+                    elif actual_cost > estimated_cost:
+                        extra = actual_cost - estimated_cost
+                        if not deduct(user_id, "agent", extra, model=model):
+                            print(f"[Agent] True-up: could not charge extra {extra} credits")
+                        else:
+                            print(f"[Agent] True-up: charged extra {extra} credits")
+                except Exception as e:
+                    print(f"[Agent] True-up error: {e}")
 
         if summary is None:
-            # Blocked by @requires_usage on run_agent_task; message already spoken.
+            # Blocked by credit gate or internal error; message already spoken.
             return
 
         print(f"[Agent] {summary}")
@@ -1337,157 +1354,6 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
                 pass
         return
 
-    # ── Chat routing (overlay text input) ───────────────────────
-    if not _endpoint_reachable("https://api.openai.com/v1/models"):
-        message = _mode_offline_message("chat")
-        print(f"[Tune] Blocked: {message}")
-        if not user_already_added:
-            add_history_message("user", user_text)
-        add_history_message("assistant", message)
-        return
-
-    # Tune Hub: apply learned reprompt tuning if available
-    try:
-        import core as _core_state
-        middleware = getattr(_core_state, "tune_middleware", None)
-        if middleware:
-            tuned = middleware.apply(
-                user_id=_get_user_id(),
-                feature_name="reprompt",
-                task=user_text,
-                feature_input={"prompt": user_text},
-            )
-            tuned_prompt = tuned.get("prompt")
-            if tuned_prompt and tuned_prompt != user_text:
-                print(f"[TuneHub] Reprompt applied: {user_text[:60]}... → {tuned_prompt[:60]}...")
-                user_text = tuned_prompt
-    except Exception:
-        pass
-
-    use_tools, do_search = route(user_text)
-    print(f"\n[Router] model={model}  tools={use_tools}  search={do_search}")
-
-    # Optional web search
-    search_context = ""
-    if do_search:
-        print("[Search] Fetching...")
-        search_context = tool_web_search(query=user_text)
-        print(f"[Search] {search_context[:120]}...")
-
-    augmented = (
-        f"{user_text}\n\n[SEARCH RESULT]:\n{search_context}"
-        if search_context else user_text
-    )
-
-    if not user_already_added:
-        add_history_message("user", user_text)
-
-    conversation_messages = list(state.conversation_history[1:])
-    if conversation_messages and conversation_messages[-1].get("role") == "user":
-        conversation_messages = conversation_messages[:-1] + [{"role": "user", "content": augmented}]
-    elif augmented:
-        conversation_messages.append({"role": "user", "content": augmented})
-
-    # Smart: tool-calling loop via call_llm
-    if use_tools:
-        # Agent tools: fail CLOSED when Supabase is offline (don't risk runaway tool use).
-        allowed, msg = usage.check_usage("agent", tier, fail_open=False)
-        if not allowed:
-            print(f"[Agent] Blocked: {msg}")
-            add_history_message("assistant", msg)
-            return
-        print(f"[Agent] {msg}")
-
-        system_prompt = build_smart_prompt()
-        replied = False
-        for turn in range(state.MAX_TOOL_TURNS + 1):
-            try:
-                print(f"[Smart turn {turn + 1}]")
-                messages = [{"role": "system", "content": system_prompt}] + conversation_messages[-14:]
-                reply = call_llm(messages)
-                print(reply)
-            except Exception as e:
-                print(f"\n[Smart] Error: {e}")
-                return  # no increment — API call failed
-
-            response_type, data = parse_response(reply)
-
-            if response_type == "text":
-                add_history_message("assistant", reply)
-                # Increment only after we got a final text reply — success.
-                usage.increment_usage_count("agent", tier)
-                if state.MEMORY_ENABLED:
-                    memory_mod.update_from_exchange(user_text, reply)
-                return
-
-            tool_name = data.get("tool", "")
-            args      = data.get("args", {})
-            say       = data.get("say", f"Running {tool_name}.")
-            print(f"\n[Tool] → {tool_name}  {args}")
-            try:
-                result = TOOLS[tool_name]["fn"](**args)
-            except Exception as e:
-                result = f"Tool error: {e}"
-            
-            # Handle REPLAY_SKILL special result — route to skill replay
-            if isinstance(result, str) and result.startswith("REPLAY_SKILL:"):
-                skill_name = result[len("REPLAY_SKILL:"):].strip()
-                add_history_message("assistant", f"Replaying skill: {skill_name}")
-                try:
-                    from core.workflow_recorder import SkillStore, replay_skill
-                    skill_data = SkillStore().load(skill_name)
-                    if skill_data:
-                        stop_event = threading.Event()
-                        state._agent_stop_event = stop_event
-                        state._agent_running = True
-                        try:
-                            replay_result = asyncio.run(replay_skill(
-                                skill_data,
-                                speak_fn=_speak_via_tts,
-                                transcribe_fn=_transcribe_once_for_agent,
-                                set_wave_state_fn=_set_agent_wave_state,
-                                append_chat_fn=_append_agent_chat,
-                                stop_event=stop_event,
-                            ))
-                            result = replay_result
-                        finally:
-                            state._agent_running = False
-                            state._agent_stop_event = None
-                            _set_agent_wave_state("idle")
-                    else:
-                        result = f"Skill '{skill_name}' not found."
-                except Exception as e:
-                    result = f"Skill replay failed: {e}"
-            
-            print(f"[Result] {str(result)[:200]}")
-            add_history_message("assistant", reply)
-            add_history_message("user", f"[TOOL RESULT — {tool_name}]:\n{result}")
-            conversation_messages = list(state.conversation_history[1:])
-
-        add_history_message("assistant", "Could not complete.")
-
-    # Conversation: single-shot, no tools
-    else:
-        # Internet was already verified above; Supabase usage can still fall back locally.
-        allowed, msg = usage.check_usage("chat", tier, fail_open=True)
-        if not allowed:
-            print(f"[Tune] Blocked: {msg}")
-            add_history_message("assistant", msg)
-            return
-        print(f"[Tune] {msg}")
-
-        try:
-            print("[Tune]")
-            system_prompt = build_fast_prompt()
-            messages = [{"role": "system", "content": system_prompt}] + conversation_messages[-14:]
-            reply = call_llm(messages)
-            print(reply)
-        except Exception as e:
-            print(f"\n[Tune] Error: {e}")
-            return  # no increment — API call failed
-
-        # Increment only after a successful LLM response — errors don't burn quota.
-        usage.increment_usage_count("chat", tier)
-        add_history_message("assistant", reply)
-        if state.MEMORY_ENABLED:
-            memory_mod.update_from_exchange(user_text, reply)
+    # Chat feature removed — only agent mode is supported via F9×2
+    print("[Router] Chat feature removed. Use F9 × 2 for agent mode.")
+    add_history_message("assistant", "Text chat has been removed. Use F9 × 2 for agent mode.")

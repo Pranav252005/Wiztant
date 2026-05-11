@@ -1,24 +1,60 @@
 """core/wizprompt.py — Dynamic Multi-Agent Prompt Optimization System."""
 from __future__ import annotations
 import asyncio
+import hashlib
 import logging
 import os
 import re
+import time
 from typing import Dict, List, Optional
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 log = logging.getLogger("core.wizprompt")
 
-WIZPROMPT_MODEL = os.getenv("WIZPROMPT_MODEL", "anthropic/claude-sonnet-4-20250514")
+# Lazy import to avoid circular dependency at module load time
+_wizprompt_memory = None
+
+def _get_memory():
+    global _wizprompt_memory
+    if _wizprompt_memory is None:
+        import core.wizprompt_memory as _wizprompt_memory
+    return _wizprompt_memory
+
+
+def _load_model_setting(key: str, default: str) -> str:
+    try:
+        import json
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            val = data.get(key)
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+    except Exception:
+        pass
+    return os.getenv(key, default)
+
+
+WIZPROMPT_MODEL = _load_model_setting("WIZPROMPT_MODEL", "google/gemini-3-flash-preview")
 WIZPROMPT_TEMP = float(os.getenv("WIZPROMPT_TEMP", "0.2"))
 MAX_TOKENS = int(os.getenv("WIZPROMPT_MAX_TOKENS", "1200"))
 SYNTH_MAX_TOKENS = int(os.getenv("WIZPROMPT_SYNTHESIS_MAX_TOKENS", "1800"))
+FAST_MAX_TOKENS = int(os.getenv("WIZPROMPT_FAST_MAX_TOKENS", "2000"))
 
-_openrouter_client = OpenAI(
-    api_key=os.getenv("OPENROUTER_API_KEY", ""),
-    base_url="https://openrouter.ai/api/v1",
-    default_headers={"HTTP-Referer": "https://whiztant.com", "X-Title": "Wiztant"},
-)
+_async_openrouter_client: Optional[AsyncOpenAI] = None
+
+
+def _get_async_client() -> AsyncOpenAI:
+    global _async_openrouter_client
+    if _async_openrouter_client is None:
+        _async_openrouter_client = AsyncOpenAI(
+            api_key=os.getenv("OPENROUTER_API_KEY", ""),
+            base_url="https://openrouter.ai/api/v1",
+            default_headers={"HTTP-Referer": "https://whiztant.com", "X-Title": "Wiztant"},
+        )
+    return _async_openrouter_client
+
 
 EMOTIONS = [
     "admiration","adoration","aesthetic appreciation","amusement","anger",
@@ -114,12 +150,40 @@ SYNTHESIS = (
     "4. Add guardrails for edge cases (Agent 3 suggestions, if present)\n"
     "5. Embed emotional framing (Agent 4 directive, if present)\n"
     "6. Ensure the final prompt is coherent, not fragmented\n\n"
-    "Output Format:\n"
-    "- Markdown with clear sections\n"
-    "- Preserve the original intent while incorporating all improvements\n"
-    "- If emotional framing is provided, embed it naturally in the system message or opening directive\n"
-    "- Include a brief \"Optimizations Applied\" header listing what changed\n\n"
-    "Quality bar: The output should be a prompt that an expert could have written from scratch."
+    "Output Format (IMPORTANT - NO MARKDOWN):\n"
+    "- Use plain text only. Do NOT use markdown syntax like #, ##, **, *, `, or tables.\n"
+    "- Use clear section labels in plain text (e.g., 'Role:', 'Context:', 'Goal:', 'Constraints:').\n"
+    "- Use simple numbered lists (1., 2., 3.) or bullet points (-) where helpful.\n"
+    "- Preserve the original intent while incorporating all improvements.\n"
+    "- If emotional framing is provided, embed it naturally in the opening directive.\n"
+    "- Do NOT include an 'Optimizations Applied' summary section. Just give the final prompt.\n\n"
+    "Quality bar: The output should be a prompt that an expert could have written from scratch, formatted as clean plain text."
+)
+
+FAST_SINGLE_SHOT = (
+    "You are an elite prompt engineer. Your job is to analyze and optimize the user's prompt in a single pass.\n\n"
+    "Analyze across these 4 dimensions:\n"
+    "1. STRUCTURE: logical flow, hierarchy, output format clarity, step numbering, scope boundaries.\n"
+    "2. SEMANTICS: ambiguous language, missing examples, implicit assumptions, vocabulary precision, constraints clarity.\n"
+    "3. EDGE CASES: boundary conditions, contradictions, incomplete coverage, fragile assumptions, adversarial inputs.\n"
+    "4. EMOTIONAL FRAMING: pick the single best emotion from this list that unlocks peak LLM performance: "
+    + ", ".join(EMOTIONS) + ".\n\n"
+    "Output Format (STRICT — use these exact XML-like tags):\n"
+    "<optimized_prompt>\n"
+    "[The fully optimized prompt here. Plain text only. No markdown (#, ##, **, *, `, tables). "
+    "Use clear section labels like 'Role:', 'Context:', 'Goal:', 'Constraints:'. "
+    "Use simple numbered lists or bullet points. Preserve original intent.]\n"
+    "</optimized_prompt>\n\n"
+    "<emotion>[single emotion name from the list above]</emotion>\n\n"
+    "<framing>[One 1-2 sentence directive on how the emotional framing is embedded]</framing>\n\n"
+    "<critique_structure>[2-3 bullet points of structural weaknesses and improvements]</critique_structure>\n\n"
+    "<critique_semantic>[2-3 bullet points of semantic issues and fixes]</critique_semantic>\n\n"
+    "<critique_edge>[2-3 bullet points of edge cases and guardrails, or 'N/A' if none found]</critique_edge>\n\n"
+    "Rules:\n"
+    "- The optimized prompt inside <optimized_prompt> must be production-ready and coherent.\n"
+    "- Do not output any text outside the tags.\n"
+    "- Do not include a summary section.\n"
+    "- If a preset focus is provided, bias the optimization toward that focus."
 )
 
 AGENTS = {"structure": STRUCTURE, "semantic": SEMANTIC, "edge_case": EDGE, "emotional": EMOTIONAL}
@@ -135,18 +199,115 @@ def select_agents_by_size(line_count: int) -> dict:
     return {"size_category": "large", "selected_agents": ["structure", "semantic", "edge_case", "emotional"]}
 
 
+# =============================================================
+#  CACHE & IN-FLIGHT DEDUPLICATION
+# =============================================================
+
+_CACHE_TTL_SECONDS = 300  # 5 minutes
+_result_cache: dict[str, tuple[float, dict]] = {}
+_inflight: dict[str, asyncio.Future[dict]] = {}
+
+
+def _cache_key(prompt: str, model: str | None, preset: str | None, mode: str) -> str:
+    normalized = prompt.strip().lower()
+    raw = f"{normalized}::{model or ''}::{preset or ''}::{mode}"
+    return hashlib.md5(raw.encode()).hexdigest()
+
+
+def _get_cached(key: str) -> dict | None:
+    now = time.time()
+    entry = _result_cache.get(key)
+    if entry is None:
+        return None
+    ts, result = entry
+    if now - ts > _CACHE_TTL_SECONDS:
+        del _result_cache[key]
+        return None
+    log.info("WizPrompt: cache hit")
+    return result
+
+
+def _set_cached(key: str, result: dict) -> None:
+    _result_cache[key] = (time.time(), result)
+    # Prune old entries if cache grows beyond 50 items
+    if len(_result_cache) > 50:
+        now = time.time()
+        for k in list(_result_cache.keys()):
+            if now - _result_cache[k][0] > _CACHE_TTL_SECONDS:
+                del _result_cache[k]
+
+
+# =============================================================
+#  DEEP MODE: MULTI-AGENT (legacy, slower)
+# =============================================================
+
+def _deduct_actual_tokens(feature: str, resp, model: str | None = None) -> int:
+    """
+    Extract actual token usage from an API response and deduct exact credits.
+    Returns the number of credits deducted.
+    Allows a grace overdraft of up to 2 credits to avoid failing mid-session.
+    """
+    try:
+        from core.credit_system import (
+            calculate_api_cost,
+            calculate_credits,
+            deduct,
+            get_current_user_id,
+            get_balance,
+            refill,
+        )
+        usage = getattr(resp, "usage", None)
+        if usage is None:
+            return 0
+        user_id = get_current_user_id()
+        actual_input = getattr(usage, "prompt_tokens", 0)
+        actual_output = getattr(usage, "completion_tokens", 0)
+        api_cost = calculate_api_cost(model or WIZPROMPT_MODEL, actual_input, actual_output)
+        credits = calculate_credits(api_cost)
+        if credits <= 0:
+            return 0
+
+        # Primary deduction
+        if deduct(user_id, feature, credits, model=model or WIZPROMPT_MODEL):
+            log.info("%s: deducted %d credits for %d in / %d out tokens (%s)",
+                     feature, credits, actual_input, actual_output, model or WIZPROMPT_MODEL)
+            return credits
+
+        # Grace overdraft: allow up to 2 credits negative balance
+        balance = get_balance(user_id)
+        shortfall = credits - balance
+        if shortfall <= 2:
+            # Force deduct by temporarily refilling the shortfall, then deduct full amount
+            refill(user_id, shortfall, source=f"{feature}_grace_overdraft")
+            if deduct(user_id, feature, credits, model=model or WIZPROMPT_MODEL):
+                log.info("%s: deducted %d credits with %d grace overdraft (balance was %d)",
+                         feature, credits, shortfall, balance)
+                return credits
+    except Exception as e:
+        log.warning("Token credit deduction failed: %s", e)
+    return 0
+
+
 def _call_agent(agent_type: str, user_prompt: str, model: str | None = None) -> str:
+    # Kept as sync for run_in_executor compatibility in deep mode
+    from openai import OpenAI
+    client = OpenAI(
+        api_key=os.getenv("OPENROUTER_API_KEY", ""),
+        base_url="https://openrouter.ai/api/v1",
+        default_headers={"HTTP-Referer": "https://whiztant.com", "X-Title": "Wiztant"},
+    )
     system = AGENTS[agent_type]
     msg = f"Critique this prompt for {agent_type.replace('_',' ')} issues:\n{user_prompt}"
     messages = [{"role": "system", "content": system}, {"role": "user", "content": msg}]
     try:
-        resp = _openrouter_client.chat.completions.create(
+        resp = client.chat.completions.create(
             model=model or WIZPROMPT_MODEL,
             messages=messages,
             temperature=WIZPROMPT_TEMP,
             max_tokens=MAX_TOKENS,
             extra_body={"include_reasoning": False}
         )
+        _deduct_actual_tokens("reprompt_deep_agent", resp, model)
         return resp.choices[0].message.content or ""
     except Exception as e:
         log.error("Agent %s failed: %s", agent_type, e)
@@ -175,19 +336,171 @@ def _synthesize(user_prompt: str, critiques: dict, emotional: Optional[dict], mo
         parts.append(f"EMOTIONAL DIRECTIVE:\nEMOTION: {emotional['emotion']}\nFRAMING_DIRECTIVE: {emotional['framing_directive']}\n")
     parts.append(f"ORIGINAL PROMPT:\n{user_prompt}")
     messages = [{"role": "system", "content": synthesis_prompt}, {"role": "user", "content": "\n".join(parts)}]
+    from openai import OpenAI
+    client = OpenAI(
+        api_key=os.getenv("OPENROUTER_API_KEY", ""),
+        base_url="https://openrouter.ai/api/v1",
+        default_headers={"HTTP-Referer": "https://whiztant.com", "X-Title": "Wiztant"},
+    )
     try:
-        resp = _openrouter_client.chat.completions.create(
+        resp = client.chat.completions.create(
             model=model or WIZPROMPT_MODEL,
             messages=messages,
             temperature=WIZPROMPT_TEMP,
             max_tokens=SYNTH_MAX_TOKENS,
             extra_body={"include_reasoning": False}
         )
+        _deduct_actual_tokens("reprompt_deep_synth", resp, model)
         return resp.choices[0].message.content or ""
     except Exception as e:
         log.error("Synthesis failed: %s", e)
         raise e
 
+
+async def _optimize_deep(
+    user_prompt: str,
+    model: str | None = None,
+    preset: str | None = None,
+    selected: list[str] | None = None,
+    config: dict | None = None,
+) -> dict:
+    """Original multi-agent pipeline. 3–5 LLM calls."""
+    loop = asyncio.get_event_loop()
+    coros = [(a, loop.run_in_executor(None, _call_agent, a, user_prompt, model)) for a in selected]
+    critiques = {a: await c for a, c in coros}
+    emotional = parse_emotional(critiques.get("emotional", "")) if "emotional" in critiques else None
+    try:
+        optimized = await loop.run_in_executor(None, _synthesize, user_prompt, critiques, emotional, model, preset)
+        synthesis_failed = False
+    except Exception as e:
+        optimized = ""
+        synthesis_failed = True
+
+    return {
+        "optimized_prompt": optimized,
+        "agent_count": len(selected),
+        "prompt_size": config["size_category"] if config else "unknown",
+        "emotional_state": emotional["emotion"] if emotional else None,
+        "framing_directive": emotional["framing_directive"] if emotional else None,
+        "critiques": critiques,
+        "line_count": len(user_prompt.split("\n")),
+        "synthesis_failed": synthesis_failed,
+        "preset_used": preset,
+        "examples_used": 0,
+        "example_ids": [],
+        "cluster_id": None,
+    }
+
+
+# =============================================================
+#  FAST MODE: SINGLE-SHOT
+# =============================================================
+
+_TAG_RE = re.compile(r"<(optimized_prompt|emotion|framing|critique_structure|critique_semantic|critique_edge)>(.*?)</\1>", re.DOTALL | re.IGNORECASE)
+
+
+def _parse_fast_response(text: str) -> dict:
+    """Extract structured fields from single-shot XML-like tagged output."""
+    tags: dict[str, str] = {}
+    for match in _TAG_RE.finditer(text):
+        tags[match.group(1).lower()] = match.group(2).strip()
+
+    optimized = tags.get("optimized_prompt", "").strip()
+    emotion = tags.get("emotion", "").strip().lower()
+    framing = tags.get("framing", "").strip()
+    critique_structure = tags.get("critique_structure", "N/A")
+    critique_semantic = tags.get("critique_semantic", "N/A")
+    critique_edge = tags.get("critique_edge", "N/A")
+
+    # Fallback: if tags missing, treat entire response as optimized prompt
+    if not optimized:
+        optimized = text.strip()
+        critique_structure = critique_semantic = critique_edge = "N/A"
+        emotion = ""
+        framing = ""
+
+    # Clean up common markdown artifacts the model may have ignored
+    optimized = re.sub(r"^```\w*\n?|```\s*$", "", optimized, flags=re.MULTILINE)
+
+    critiques: dict[str, str] = {
+        "structure": critique_structure,
+        "semantic": critique_semantic,
+    }
+    if critique_edge and critique_edge.lower() != "n/a":
+        critiques["edge_case"] = critique_edge
+    if emotion:
+        critiques["emotional"] = f"EMOTION: {emotion}\nFRAMING_DIRECTIVE: {framing}"
+
+    return {
+        "optimized_prompt": optimized,
+        "emotional_state": emotion if emotion else None,
+        "framing_directive": framing if framing else None,
+        "critiques": critiques,
+    }
+
+
+async def _optimize_fast(
+    user_prompt: str,
+    model: str | None = None,
+    preset: str | None = None,
+    line_count: int = 1,
+) -> dict:
+    """Single LLM call optimization. Target latency ~1–2s."""
+    mem = _get_memory()
+    examples, cluster_id, style_bias = await mem.retrieve_examples_for_prompt(user_prompt, preset, limit=3)
+    example_ids = [ex["id"] for ex in examples]
+
+    few_shot_block = mem.format_few_shot_block(examples)
+    system = FAST_SINGLE_SHOT
+    if preset:
+        system = system + "\n\nADDITIONAL OPTIMIZATION FOCUS:\n" + preset
+    if few_shot_block:
+        system = few_shot_block + "\n" + system
+    if style_bias:
+        system = system + "\n\n" + style_bias
+
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": f"Optimize this prompt:\n{user_prompt}"},
+    ]
+
+    client = _get_async_client()
+    resp = await client.chat.completions.create(
+        model=model or WIZPROMPT_MODEL,
+        messages=messages,
+        temperature=WIZPROMPT_TEMP,
+        max_tokens=FAST_MAX_TOKENS,
+        extra_body={"include_reasoning": False},
+    )
+    content = resp.choices[0].message.content or ""
+
+    # Deduct exact credits based on actual token usage
+    _deduct_actual_tokens("reprompt_fast", resp, model)
+
+    parsed = _parse_fast_response(content)
+
+    config = select_agents_by_size(line_count)
+    selected = config["selected_agents"]
+
+    return {
+        "optimized_prompt": parsed["optimized_prompt"],
+        "agent_count": len(selected),
+        "prompt_size": config["size_category"],
+        "emotional_state": parsed["emotional_state"],
+        "framing_directive": parsed["framing_directive"],
+        "critiques": parsed["critiques"],
+        "line_count": line_count,
+        "synthesis_failed": not parsed["optimized_prompt"],
+        "preset_used": preset,
+        "examples_used": len(examples),
+        "example_ids": example_ids,
+        "cluster_id": cluster_id,
+    }
+
+
+# =============================================================
+#  VALIDATION
+# =============================================================
 
 _GREETINGS = {"hello", "hi", "hey", "test", "testing", "ok", "okay", "yes", "no", "yep", "nope", "lol", "haha"}
 _URL_RE = re.compile(r"^\s*https?://\S+\s*$", re.IGNORECASE)
@@ -260,12 +573,26 @@ def _apply_persona_weights(selected: list, persona_weights: dict) -> list:
     return [a for a, _ in scored]
 
 
+# =============================================================
+#  PUBLIC API
+# =============================================================
+
 async def optimize_prompt_with_dynamic_agents(
     user_prompt: str,
     model: str | None = None,
     feature_input: dict | None = None,
     preset: str | None = None,
+    mode: str = "fast",
 ) -> dict:
+    """Optimize a prompt.
+
+    Args:
+        user_prompt: The raw prompt text to optimize.
+        model: Optional override model ID.
+        feature_input: Optional TuneHub feature input.
+        preset: Optional preset ID or system prompt addendum string.
+        mode: "fast" (single-shot, default) or "deep" (multi-agent legacy).
+    """
     if not user_prompt or not user_prompt.strip():
         raise ValueError("Prompt cannot be empty")
 
@@ -283,26 +610,71 @@ async def optimize_prompt_with_dynamic_agents(
         selected = _apply_persona_weights(selected, persona_weights)
         log.info("WizPrompt: persona weights applied, agent order: %s", selected)
 
-    log.info("WizPrompt: %s prompt (%d lines), %d agents, model=%s, preset=%s", config["size_category"], line_count, len(selected), model or WIZPROMPT_MODEL, preset if preset else "none")
-    loop = asyncio.get_event_loop()
-    coros = [(a, loop.run_in_executor(None, _call_agent, a, user_prompt, model)) for a in selected]
-    critiques = {a: await c for a, c in coros}
-    emotional = parse_emotional(critiques.get("emotional", "")) if "emotional" in critiques else None
-    try:
-        optimized = await loop.run_in_executor(None, _synthesize, user_prompt, critiques, emotional, model, preset)
-        synthesis_failed = False
-    except Exception as e:
-        optimized = ""
-        synthesis_failed = True
+    # Resolve preset addendum if an ID was passed
+    preset_addendum: str | None = None
+    if preset:
+        try:
+            from core.presets import get_preset_by_id
+            p = get_preset_by_id(preset)
+            if p:
+                preset_addendum = p.system_prompt_addendum
+            else:
+                preset_addendum = preset  # treat as raw addendum string
+        except Exception:
+            preset_addendum = preset
 
-    return {
-        "optimized_prompt": optimized,
-        "agent_count": len(selected),
-        "prompt_size": config["size_category"],
-        "emotional_state": emotional["emotion"] if emotional else None,
-        "framing_directive": emotional["framing_directive"] if emotional else None,
-        "critiques": critiques,
-        "line_count": line_count,
-        "synthesis_failed": synthesis_failed,
-        "preset_used": preset,
-    }
+    cache_key = _cache_key(user_prompt, model, preset_addendum, mode)
+
+    # Check cache
+    cached = _get_cached(cache_key)
+    if cached is not None:
+        return cached
+
+    # Check in-flight deduplication
+    future = _inflight.get(cache_key)
+    if future is not None and not future.done():
+        log.info("WizPrompt: dedup — waiting for in-flight request")
+        return await future
+
+    # Create future for deduplication
+    loop = asyncio.get_event_loop()
+    future = loop.create_future()
+    _inflight[cache_key] = future
+
+    log.info(
+        "WizPrompt: %s prompt (%d lines), mode=%s, model=%s, preset=%s",
+        config["size_category"], line_count, mode, model or WIZPROMPT_MODEL, preset if preset else "none"
+    )
+
+    # Credit pre-check for RePrompt (actual deduction happens post-call based on real tokens)
+    try:
+        from core.credit_system import (
+            calculate_reprompt_credits,
+            can_afford,
+            get_current_user_id,
+        )
+        user_id = get_current_user_id()
+        max_estimate = calculate_reprompt_credits(model or WIZPROMPT_MODEL)
+        if not can_afford(user_id, max_estimate):
+            raise RuntimeError(f"Insufficient credits for RePrompt. Need up to {max_estimate} credits.")
+        log.info("WizPrompt: pre-authorized %d credits for user %s", max_estimate, user_id)
+    except RuntimeError:
+        raise
+    except Exception as e:
+        log.warning("WizPrompt credit pre-check failed (continuing): %s", e)
+
+    try:
+        if mode == "deep":
+            result = await _optimize_deep(user_prompt, model=model, preset=preset_addendum, selected=selected, config=config)
+        else:
+            result = await _optimize_fast(user_prompt, model=model, preset=preset_addendum, line_count=line_count)
+    except Exception as e:
+        log.error("WizPrompt optimization failed: %s", e)
+        future.set_exception(e)
+        del _inflight[cache_key]
+        raise
+
+    _set_cached(cache_key, result)
+    future.set_result(result)
+    del _inflight[cache_key]
+    return result

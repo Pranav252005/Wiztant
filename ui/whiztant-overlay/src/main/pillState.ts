@@ -2,6 +2,8 @@ import { BrowserWindow, screen } from 'electron';
 import { IPC } from '../renderer/shared/ipc';
 import type { AppState, PillNoticePayload } from '../renderer/shared/ipc';
 import { getCursorDisplay, getPillBounds } from './positioning';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import path from 'node:path';
 
 // Single source of truth for pill state in the main process.
 // Renderer is a pure projection — it only ever receives SET_STATE.
@@ -23,6 +25,45 @@ const PREVIEW_H = 200;
 
 let restoreTimer: ReturnType<typeof setTimeout> | null = null;
 let notificationSized = false;
+
+// ─── Pill notifications toggle ─────────────────────────────
+let pillNotificationsEnabled = true;
+
+function _loadPillNotificationsSetting(): boolean {
+  try {
+    const settingsPath = path.join(process.cwd(), 'data', 'settings.json');
+    if (!existsSync(settingsPath)) return true;
+    const raw = readFileSync(settingsPath, 'utf-8');
+    const data = JSON.parse(raw);
+    return data.pill_notifications !== false;
+  } catch {
+    return true;
+  }
+}
+
+pillNotificationsEnabled = _loadPillNotificationsSetting();
+
+export function setPillNotificationsEnabled(enabled: boolean): void {
+  pillNotificationsEnabled = enabled;
+  // Persist to settings.json so it survives app restarts
+  try {
+    const settingsPath = path.join(process.cwd(), 'data', 'settings.json');
+    const dir = path.dirname(settingsPath);
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    let data: Record<string, unknown> = {};
+    if (existsSync(settingsPath)) {
+      data = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+    }
+    data.pill_notifications = enabled;
+    writeFileSync(settingsPath, JSON.stringify(data, null, 2));
+  } catch {
+    // Non-fatal — setting just won't persist across restarts
+  }
+}
+
+export function isPillNotificationsEnabled(): boolean {
+  return pillNotificationsEnabled;
+}
 
 export function bindPill(win: BrowserWindow): void {
   pillWin = win;
@@ -55,6 +96,7 @@ function resizePill(width: number, height: number): void {
 }
 
 export function showPillNotice(payload: PillNoticePayload): void {
+  if (!pillNotificationsEnabled) return;
   if (!pillWin || pillWin.isDestroyed()) return;
   try {
     // Don't clobber a persistent notification with an ephemeral notice.
@@ -97,6 +139,7 @@ export function restorePillSize(): void {
 export function setPillNotificationSize(
   size: { width: number; height: number } | null,
 ): void {
+  if (!pillNotificationsEnabled) return;
   if (!pillWin || pillWin.isDestroyed()) return;
   try {
     if (restoreTimer) {

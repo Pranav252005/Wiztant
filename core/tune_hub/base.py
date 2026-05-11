@@ -46,6 +46,12 @@ class ValidationError(Exception):
     pass
 
 
+class InsufficientCreditsError(Exception):
+    """Raised when a learning session exceeds its credit budget."""
+
+    pass
+
+
 # =============================================================
 #  DATA CLASSES
 # =============================================================
@@ -98,6 +104,29 @@ class LearnedModel:
             parent_version=data.get("parent_version"),
             created_at=datetime.fromisoformat(data["created_at"]),
             metadata=data.get("metadata", {}),
+        )
+
+
+@dataclass(frozen=True)
+class CreditBudget:
+    """Immutable credit allocation for a learning session."""
+
+    approved: int
+    consumed: int = 0
+    reserved: int = 0
+
+    def can_spend(self, amount: int) -> bool:
+        return (self.consumed + self.reserved + amount) <= self.approved
+
+    def spend(self, amount: int) -> "CreditBudget":
+        if not self.can_spend(amount):
+            raise InsufficientCreditsError(
+                f"Requested {amount}, only {self.approved - self.consumed - self.reserved} available"
+            )
+        return CreditBudget(
+            approved=self.approved,
+            consumed=self.consumed + amount,
+            reserved=self.reserved,
         )
 
 

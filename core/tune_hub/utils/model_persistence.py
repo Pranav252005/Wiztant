@@ -20,11 +20,13 @@ class TuneModelPersistence:
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
     def _path(self, user_id: str, feature_name: str, task_signature: str, suffix: str) -> Path:
-        """Build a safe file path from identifiers."""
-        safe_sig = task_signature.replace("/", "_").replace("\\", "_")[:64]
-        safe_user = user_id.replace("/", "_").replace("\\", "_")[:32]
-        filename = f"{safe_user}_{feature_name}_{safe_sig}{suffix}"
-        return self.base_dir / filename
+        """Build a safe file path from identifiers using boundary guard."""
+        # Lazy import to avoid circular dependency at module load time
+        from ..guardrails import TuneBoundaryGuard
+
+        return TuneBoundaryGuard.sanitize_persistence_path(
+            self.base_dir, user_id, feature_name, task_signature, suffix
+        )
 
     def save_observations(
         self,
@@ -84,7 +86,7 @@ class TuneModelPersistence:
         feature_name: str,
         task_signature: str,
         data: Dict[str, Any],
-        suffix: str = "_data.json",
+        suffix: str = ".json",
     ) -> Path:
         """Save arbitrary JSON data."""
         path = self._path(user_id, feature_name, task_signature, suffix)
@@ -93,7 +95,7 @@ class TuneModelPersistence:
         return path
 
     def load_json(
-        self, user_id: str, feature_name: str, task_signature: str, suffix: str = "_data.json"
+        self, user_id: str, feature_name: str, task_signature: str, suffix: str = ".json"
     ) -> Optional[Dict[str, Any]]:
         """Load arbitrary JSON data."""
         path = self._path(user_id, feature_name, task_signature, suffix)

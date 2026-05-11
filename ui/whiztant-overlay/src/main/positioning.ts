@@ -14,7 +14,70 @@ const PILL_BOTTOM_PAD = 14;
 const PILL_GAP = 16;
 
 // Hysteresis margin (px) to avoid flickering when cursor is on display edge.
-const DISPLAY_EDGE_MARGIN = 100;
+const DISPLAY_EDGE_MARGIN = 60;
+
+// ── Custom smooth animation ─────────────────────────────────────
+const ACTIVE_ANIMATIONS = new Map<number, ReturnType<typeof setTimeout>>();
+
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+/**
+ * Smoothly tween a BrowserWindow from its current bounds to target bounds
+ * using a custom ease-out-cubic curve. Cancels any existing animation on
+ * the same window so transitions never fight each other.
+ */
+function animateWindowBounds(
+  win: BrowserWindow,
+  target: Rectangle,
+  durationMs: number = 350,
+): void {
+  if (win.isDestroyed()) return;
+
+  const winId = win.id;
+  const existing = ACTIVE_ANIMATIONS.get(winId);
+  if (existing) {
+    clearTimeout(existing);
+    ACTIVE_ANIMATIONS.delete(winId);
+  }
+
+  const start = win.getBounds();
+  const startTime = Date.now();
+
+  const tick = (): void => {
+    if (win.isDestroyed()) {
+      ACTIVE_ANIMATIONS.delete(winId);
+      return;
+    }
+
+    const elapsed = Date.now() - startTime;
+    const rawProgress = Math.min(elapsed / durationMs, 1);
+    const progress = easeOutCubic(rawProgress);
+
+    const next: Rectangle = {
+      x: Math.round(start.x + (target.x - start.x) * progress),
+      y: Math.round(start.y + (target.y - start.y) * progress),
+      width: Math.round(start.width + (target.width - start.width) * progress),
+      height: Math.round(start.height + (target.height - start.height) * progress),
+    };
+
+    if (process.platform === 'linux') {
+      win.setPosition(next.x, next.y, false);
+      win.setSize(next.width, next.height, false);
+    } else {
+      win.setBounds(next, false);
+    }
+
+    if (rawProgress < 1) {
+      ACTIVE_ANIMATIONS.set(winId, setTimeout(tick, 16));
+    } else {
+      ACTIVE_ANIMATIONS.delete(winId);
+    }
+  };
+
+  tick();
+}
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -64,13 +127,18 @@ export function setWindowBounds(
 ): void {
   if (win.isDestroyed()) return;
 
+  if (animate) {
+    animateWindowBounds(win, bounds, 350);
+    return;
+  }
+
   if (process.platform === 'linux') {
     // setBounds on Wayland can be ignored by the compositor.
     // setPosition + setSize is more reliable for frameless windows.
-    win.setPosition(bounds.x, bounds.y, animate);
-    win.setSize(bounds.width, bounds.height, animate);
+    win.setPosition(bounds.x, bounds.y, false);
+    win.setSize(bounds.width, bounds.height, false);
   } else {
-    win.setBounds(bounds, animate);
+    win.setBounds(bounds, false);
   }
 }
 
@@ -80,7 +148,8 @@ export function repositionPill(
   disp: Display,
   animate: boolean = false,
 ): void {
-  setWindowBounds(win, getPillBounds(disp), animate);
+  const currentBounds = win.getBounds();
+  setWindowBounds(win, getPillBounds(disp, currentBounds.width, currentBounds.height), animate);
 }
 
 /** Move overlay above the pill on a given display, optionally animating. */
@@ -91,7 +160,12 @@ export function repositionOverlay(
   animate: boolean = false,
 ): void {
   if (pill.isDestroyed() || overlay.isDestroyed()) return;
-  const pillBounds = pill.getBounds();
+  const currentBounds = pill.getBounds();
+  // When animating to a new display, compute the target pill bounds at its
+  // current size so the overlay animates to the correct final position.
+  const pillBounds = animate
+    ? getPillBounds(disp, currentBounds.width, currentBounds.height)
+    : currentBounds;
   setWindowBounds(overlay, getOverlayBounds(disp, pillBounds), animate);
 }
 

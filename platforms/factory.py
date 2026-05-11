@@ -88,15 +88,21 @@ def get_window_mgmt() -> "BaseWindowMgmt":
         return WindowsWindowMgmt()
 
 
+_system_access_instance = None
+
+
 def get_system_access() -> "BaseSystemAccess":
-    """Return the platform-specific system access driver."""
-    platform = get_platform_name()
-    if platform == "linux":
-        from platforms.linux.system_access import LinuxSystemAccess
-        return LinuxSystemAccess()
-    else:
-        from platforms.windows.system_access import WindowsSystemAccess
-        return WindowsSystemAccess()
+    """Return the platform-specific system access driver (cached)."""
+    global _system_access_instance
+    if _system_access_instance is None:
+        platform = get_platform_name()
+        if platform == "linux":
+            from platforms.linux.system_access import LinuxSystemAccess
+            _system_access_instance = LinuxSystemAccess()
+        else:
+            from platforms.windows.system_access import WindowsSystemAccess
+            _system_access_instance = WindowsSystemAccess()
+    return _system_access_instance
 
 
 def get_agent_runtime():

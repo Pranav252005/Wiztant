@@ -203,6 +203,117 @@
         "success_rate": 1.0,
         "episodes": 10
       }
+    },
+    "agent_automate_file_open_51e8b1a0": {
+      "recipe_id": "agent_automate_file_open_51e8b1a0",
+      "name": "Learned Recipe",
+      "description": "automate file open",
+      "target_app": "unknown",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "unknown"
+          }
+        },
+        {
+          "action": "menu_select",
+          "params": {
+            "path": [
+              "File",
+              "Open"
+            ]
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 6
+      }
+    },
+    "agent_automate_file_open_6f0f1f97": {
+      "recipe_id": "agent_automate_file_open_6f0f1f97",
+      "name": "Learned Recipe",
+      "description": "automate file open",
+      "target_app": "unknown",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "unknown"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 10
+      }
+    },
+    "agent_automate_file_open_4ddffe1d": {
+      "recipe_id": "agent_automate_file_open_4ddffe1d",
+      "name": "Learned Recipe",
+      "description": "automate file open",
+      "target_app": "unknown",
+      "actions": [
+        {
+          "action": "open_app",
+          "params": {
+            "target": "unknown"
+          }
+        }
+      ],
+      "parameters": [
+        {
+          "name": "input_path",
+          "type": "file_path",
+          "required": false
+        },
+        {
+          "name": "output_path",
+          "type": "file_path",
+          "required": false
+        }
+      ],
+      "causal_graph": {
+        "edges": [],
+        "variables": []
+      },
+      "validation_results": {
+        "success_rate": 1.0,
+        "episodes": 4
+      }
     }
   },
   "causal_model": {

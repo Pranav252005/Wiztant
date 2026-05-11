@@ -10,6 +10,11 @@ from core.tune_hub.orchestrator import TuneHub, TuneRequest
 from core.tune_hub.quality.judge import SimpleJudge
 from core.tune_hub.storage.sqlite_store import SQLiteTuneStore
 
+# Import tuners to trigger TuneBase registration
+from core.tune_hub.tuners.agent_tuner import AgentTuner  # noqa: F401
+from core.tune_hub.tuners.dictation_tuner import DictationTuner  # noqa: F401
+from core.tune_hub.tuners.reprompt_tuner import RePromptTuner  # noqa: F401
+
 
 class TestMiddleware:
     def setup_method(self):
@@ -40,8 +45,7 @@ class TestMiddleware:
             user_id="u1",
             feature_name="reprompt",
             task="coding",
-            approved_credits=50,
-            tier="pro",
+            budget_limit=50,
         )
         self.hub.tune_feature(req)
 
@@ -70,8 +74,7 @@ class TestMiddleware:
             user_id="u3",
             feature_name="reprompt",
             task="coding",
-            approved_credits=50,
-            tier="pro",
+            budget_limit=50,
         )
         self.hub.tune_feature(req)
 

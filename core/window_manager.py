@@ -33,9 +33,13 @@ class WindowManager:
             return {}
 
     def _find_id_for_app(self, app_name: str) -> Optional[Any]:
-        from core.app_detector import get_window_title_hints
+        try:
+            from core.app_detector import get_window_title_hints
+            app_name_lower = app_name.lower().strip()
+            hints = [h.lower() for h in get_window_title_hints(app_name_lower)]
+        except Exception:
+            hints = []
         app_name_lower = app_name.lower().strip()
-        hints = [h.lower() for h in get_window_title_hints(app_name_lower)]
         if not hints:
             hints = [app_name_lower]
 
@@ -73,7 +77,10 @@ class WindowManager:
         return self._bring_to_front(wid)
 
     def open_app(self, app_name: str) -> bool:
-        from core.app_detector import get_launch_path
+        try:
+            from core.app_detector import get_launch_path
+        except Exception:
+            get_launch_path = None
         app_name_lower = app_name.lower().strip()
         logger.info("[WindowManager] open_app('%s')", app_name)
 
@@ -81,7 +88,7 @@ class WindowManager:
             logger.info("[WindowManager] '%s' already running — switching", app_name)
             return self.switch_to_app(app_name_lower)
 
-        path = get_launch_path(app_name_lower)
+        path = get_launch_path(app_name_lower) if get_launch_path else None
         if not path:
             logger.error("[WindowManager] No launch path in app_config.json for '%s'", app_name)
             return False
@@ -115,8 +122,11 @@ class WindowManager:
             return "Unknown"
 
     def detect_app_in_instruction(self, instruction: str) -> Optional[str]:
-        from core.app_detector import detect_app_from_request
-        return detect_app_from_request(instruction)
+        try:
+            from core.app_detector import detect_app_from_request
+            return detect_app_from_request(instruction)
+        except Exception:
+            return None
 
 
 # ── Singleton ───────────────────────────────────────────────────────────────

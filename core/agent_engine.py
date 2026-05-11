@@ -24,8 +24,22 @@ _client = OpenAI(
     default_headers={"HTTP-Referer": "https://whiztant.com", "X-Title": "Wiztant"},
 )
 
-OMNI_MODEL = os.getenv("AGENT_OMNI_MODEL", "xiaomi/mimo-v2-omni")
-EXECUTOR_MODEL = os.getenv("AGENT_EXECUTOR_MODEL", "bytedance/ui-tars-1.5-7b")
+def _load_model_setting(key: str, default: str) -> str:
+    try:
+        import json
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            val = data.get(key)
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+    except Exception:
+        pass
+    return os.getenv(key, default)
+
+OMNI_MODEL = _load_model_setting("AGENT_OMNI_MODEL", "google/gemini-3-flash-preview")
+EXECUTOR_MODEL = _load_model_setting("AGENT_EXECUTOR_MODEL", "bytedance/ui-tars-1.5-7b")
 
 TEMP_THINK = float(os.getenv("QWEN_THINK_TEMP", "0.1"))
 TEMP_PLAN = float(os.getenv("QWEN_PLANNING_TEMP", "0.1"))

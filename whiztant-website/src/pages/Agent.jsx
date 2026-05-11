@@ -100,130 +100,150 @@ function AgentDemo() {
 
 export default function Agent() {
   return (
-    <div>
-      {/* Hero */}
-      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
-        <div className="absolute inset-0 z-[1]">
-          <Grainient
-            color1="#c08179"
-            color2="#fecd89"
-            color3="#07070f"
-            timeSpeed={0.25}
-            colorBalance={0.25}
-            warpStrength={1.5}
-            warpFrequency={3}
-            warpSpeed={1.8}
-            warpAmplitude={55}
-            blendAngle={25}
-            blendSoftness={0.1}
-            rotationAmount={350}
-            noiseScale={1.5}
-            grainAmount={0.1}
-            grainScale={2.5}
-            grainAnimated={false}
-            contrast={1.6}
-            gamma={0.95}
-            saturation={1.5}
-            centerX={0.02}
-            centerY={-0.02}
-            zoom={0.8}
-          />
-        </div>
-        <Particles count={20} />
-        <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+    <div className="relative h-screen overflow-hidden">
+      {/* Content - grayed out */}
+      <div className="pointer-events-none select-none grayscale opacity-40">
+        {/* Hero */}
+        <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
+          <div className="absolute inset-0 z-[1]">
+            <Grainient
+              color1="#c08179"
+              color2="#fecd89"
+              color3="#07070f"
+              timeSpeed={0.25}
+              colorBalance={0.25}
+              warpStrength={1.5}
+              warpFrequency={3}
+              warpSpeed={1.8}
+              warpAmplitude={55}
+              blendAngle={25}
+              blendSoftness={0.1}
+              rotationAmount={350}
+              noiseScale={1.5}
+              grainAmount={0.1}
+              grainScale={2.5}
+              grainAnimated={false}
+              contrast={1.6}
+              gamma={0.95}
+              saturation={1.5}
+              centerX={0.02}
+              centerY={-0.02}
+              zoom={0.8}
+            />
+          </div>
+          <Particles count={20} />
+          <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
 
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
+            className="relative z-10 max-w-4xl"
+          >
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 mb-8">
+              <Bot size={14} className="text-primary" />
+              <span className="text-xs font-medium text-primary">F9 x2</span>
+            </div>
+            <h1 className="font-display text-5xl font-bold leading-tight text-text-primary md:text-7xl">
+              Your AI{' '}
+              <span className="text-gradient-primary">does the work</span>
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-text-secondary drop-shadow-lg">
+              Autonomous multi-step task automation with vision-based GUI control. Tell it what to do, watch it happen.
+            </p>
+          </motion.div>
+        </section>
+
+        {/* Demo */}
+        <section className="mx-auto max-w-7xl px-6 py-20">
+          <div className="grid gap-12 lg:grid-cols-2 items-center">
+            <AnimatedSection direction="left">
+              <AgentDemo />
+            </AnimatedSection>
+
+            <AnimatedSection direction="right">
+              <h2 className="font-display text-3xl font-bold text-text-primary md:text-4xl">
+                Vision-powered autonomy
+              </h2>
+              <p className="mt-4 text-text-secondary leading-relaxed">
+                Agent sees your screen, understands the UI, and takes action. No APIs, no integrations, no setup. It works with any Windows application.
+              </p>
+              <ul className="mt-8 space-y-4">
+                {[
+                  'Vision-based GUI control with UI-TARS model',
+                  'Three access tiers, Standard, System, and Deep',
+                  'Works across any Windows app without integration',
+                  'Multi-step task automation with natural language',
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-text-secondary">
+                    <Check size={18} className="mt-0.5 shrink-0 text-primary" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link to="/download" className="btn-primary mt-8">
+                Try Agent <ArrowRight size={16} />
+              </Link>
+            </AnimatedSection>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="mx-auto max-w-7xl px-6 py-20">
+          <AnimatedSection className="text-center mb-16">
+            <h2 className="font-display text-3xl font-bold text-text-primary">How it works</h2>
+          </AnimatedSection>
+          <div className="grid gap-8 md:grid-cols-3">
+            {[
+              { step: '01', title: 'Describe the task', desc: 'Tell Agent what you need in plain English.' },
+              { step: '02', title: 'AI analyzes', desc: 'It scans your screen and plans the actions needed.' },
+              { step: '03', title: 'Watch it work', desc: 'Agent clicks, types, and navigates autonomously.' },
+            ].map((item, i) => (
+              <AnimatedSection key={item.step} delay={i * 0.15}>
+                <div className="card text-center">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-primary/20 bg-primary/5 text-primary font-display font-bold mb-4">
+                    {item.step}
+                  </div>
+                  <h3 className="font-display text-lg font-semibold text-text-primary">{item.title}</h3>
+                  <p className="mt-2 text-sm text-text-secondary">{item.desc}</p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="mx-auto max-w-7xl px-6 py-20 text-center">
+          <AnimatedSection>
+            <h2 className="font-display text-2xl font-bold text-text-primary">
+              Agent unlocks with Pro
+            </h2>
+            <p className="mt-3 text-text-secondary">
+              50 agent tasks per month on Pro, 200 on Power.
+            </p>
+            <Link to="/pricing" className="btn-primary mt-8">
+              View Pricing <ArrowRight size={16} />
+            </Link>
+          </AnimatedSection>
+        </section>
+      </div>
+
+      {/* Coming Soon overlay */}
+      <div className="absolute inset-0 z-50 flex items-end justify-start pointer-events-none">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-          className="relative z-10 max-w-4xl"
+          transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="font-display text-[12vw] font-bold leading-none tracking-tighter text-text-primary/10 md:text-[10vw] lg:text-[8vw]"
+          style={{
+            transform: 'rotate(-12deg) translate(5%, -20%)',
+            transformOrigin: 'bottom left',
+            textWrap: 'nowrap',
+          }}
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 mb-8">
-            <Bot size={14} className="text-primary" />
-            <span className="text-xs font-medium text-primary">F9 x2</span>
-          </div>
-          <h1 className="font-display text-5xl font-bold leading-tight text-text-primary md:text-7xl">
-            Your AI{' '}
-            <span className="text-gradient-primary">does the work</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-text-secondary drop-shadow-lg">
-            Autonomous multi-step task automation with vision-based GUI control. Tell it what to do, watch it happen.
-          </p>
+          Coming Soon
         </motion.div>
-      </section>
-
-      {/* Demo */}
-      <section className="mx-auto max-w-7xl px-6 py-20">
-        <div className="grid gap-12 lg:grid-cols-2 items-center">
-          <AnimatedSection direction="left">
-            <AgentDemo />
-          </AnimatedSection>
-
-          <AnimatedSection direction="right">
-            <h2 className="font-display text-3xl font-bold text-text-primary md:text-4xl">
-              Vision-powered autonomy
-            </h2>
-            <p className="mt-4 text-text-secondary leading-relaxed">
-              Agent sees your screen, understands the UI, and takes action. No APIs, no integrations, no setup. It works with any Windows application.
-            </p>
-            <ul className="mt-8 space-y-4">
-              {[
-                'Vision-based GUI control with UI-TARS model',
-                'Three access tiers, Standard, System, and Deep',
-                'Works across any Windows app without integration',
-                'Multi-step task automation with natural language',
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-3 text-text-secondary">
-                  <Check size={18} className="mt-0.5 shrink-0 text-primary" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            <Link to="/download" className="btn-primary mt-8">
-              Try Agent <ArrowRight size={16} />
-            </Link>
-          </AnimatedSection>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="mx-auto max-w-7xl px-6 py-20">
-        <AnimatedSection className="text-center mb-16">
-          <h2 className="font-display text-3xl font-bold text-text-primary">How it works</h2>
-        </AnimatedSection>
-        <div className="grid gap-8 md:grid-cols-3">
-          {[
-            { step: '01', title: 'Describe the task', desc: 'Tell Agent what you need in plain English.' },
-            { step: '02', title: 'AI analyzes', desc: 'It scans your screen and plans the actions needed.' },
-            { step: '03', title: 'Watch it work', desc: 'Agent clicks, types, and navigates autonomously.' },
-          ].map((item, i) => (
-            <AnimatedSection key={item.step} delay={i * 0.15}>
-              <div className="card text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-primary/20 bg-primary/5 text-primary font-display font-bold mb-4">
-                  {item.step}
-                </div>
-                <h3 className="font-display text-lg font-semibold text-text-primary">{item.title}</h3>
-                <p className="mt-2 text-sm text-text-secondary">{item.desc}</p>
-              </div>
-            </AnimatedSection>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="mx-auto max-w-7xl px-6 py-20 text-center">
-        <AnimatedSection>
-          <h2 className="font-display text-2xl font-bold text-text-primary">
-            Agent unlocks with Pro
-          </h2>
-          <p className="mt-3 text-text-secondary">
-            50 agent tasks per month on Pro, 200 on Power.
-          </p>
-          <Link to="/pricing" className="btn-primary mt-8">
-            View Pricing <ArrowRight size={16} />
-          </Link>
-        </AnimatedSection>
-      </section>
+      </div>
     </div>
   )
 }

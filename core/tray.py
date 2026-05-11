@@ -27,9 +27,9 @@ def _usage_label(item) -> str:
     try:
         from core.usage import get_remaining, get_tier, TIER_LIMITS
         tier = get_tier()
-        remaining = get_remaining("chat", tier)
-        limit = TIER_LIMITS.get(tier, {}).get("chat", 0)
-        return f"Tunes left: {remaining} / {limit}  •  {tier.upper()}"
+        remaining = get_remaining("agent", tier)
+        limit = TIER_LIMITS.get(tier, {}).get("agent", 0)
+        return f"Agent tasks left: {remaining} / {limit}  •  {tier.upper()}"
     except Exception:
         return "Wiztant"
 
@@ -91,10 +91,13 @@ def _on_set_dictation_mode(icon, item):
         try:
             import core as state
             from core.toast import show_toast
+            from core.ws_bridge import send_wave_state, broadcast_sync
             if getattr(state, "_agent_running", False) and getattr(state, "_agent_stop_event", None):
                 state._agent_stop_event.set()
             state.agent_mode = False
             show_toast("Dictation mode ready", "Wiztant")
+            broadcast_sync({"type": "agent_mode", "enabled": False})
+            send_wave_state("idle")
         except Exception as e:
             print(f"[Tray] Dictation mode error: {e}")
     threading.Thread(target=_run, daemon=True).start()
@@ -105,8 +108,11 @@ def _on_set_agent_mode(icon, item):
         try:
             import core as state
             from core.toast import show_toast
+            from core.ws_bridge import send_wave_state, broadcast_sync
             state.agent_mode = True
             show_toast("Agent mode ready", "Wiztant")
+            broadcast_sync({"type": "agent_mode", "enabled": True})
+            send_wave_state("agent")
         except Exception as e:
             print(f"[Tray] Agent mode error: {e}")
     threading.Thread(target=_run, daemon=True).start()

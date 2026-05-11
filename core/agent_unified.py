@@ -109,11 +109,14 @@ async def run_unified_agent(
     append_chat_fn: Callable | None = None,
     stop_event=None,
     max_steps: int = 0,
+    credit_check_fn: Callable | None = None,
+    steps_taken_ref: list | None = None,
 ) -> str:
     """Run the unified agent loop. Returns a status message."""
     speak_fn = speak_fn or (lambda *_a, **_k: None)
     set_wave_state_fn = set_wave_state_fn or (lambda *_a, **_k: None)
     append_chat_fn = append_chat_fn or (lambda *_a, **_k: None)
+    credit_check_fn = credit_check_fn or (lambda *_a, **_k: True)
     if max_steps <= 0:
         max_steps = MAX_LOOP_STEPS
 
@@ -210,6 +213,16 @@ async def run_unified_agent(
             if stop_event and stop_event.is_set():
                 return "Stopped by user"
 
+            # Mid-flight credit exhaustion check (skip on first step — pre-paid)
+            if step > 1 and not credit_check_fn(step):
+                msg = "Agent stopped: credits exhausted. Upgrade at whiztant.app/pricing"
+                append_chat_fn("assistant", f"[Agent] {msg}")
+                set_wave_state_fn("idle")
+                _send_done(msg, success=False)
+                if steps_taken_ref is not None:
+                    steps_taken_ref.append(step - 1)
+                return msg
+
             set_wave_state_fn("thinking")
 
             try:
@@ -269,6 +282,8 @@ async def run_unified_agent(
                 append_chat_fn("assistant", f"[Agent] Complete: {result}")
                 set_wave_state_fn("idle")
                 _send_done(result, success=True)
+                if steps_taken_ref is not None:
+                    steps_taken_ref.append(step)
                 return result
 
             if action_type == "failed":
@@ -276,6 +291,8 @@ async def run_unified_agent(
                 append_chat_fn("assistant", f"[Agent] Failed: {reason}")
                 set_wave_state_fn("idle")
                 _send_done(reason, success=False)
+                if steps_taken_ref is not None:
+                    steps_taken_ref.append(step)
                 return f"Agent failed: {reason}"
 
             # ── Guardrails ──────────────────────────────────────────────────
@@ -342,6 +359,8 @@ async def run_unified_agent(
 
     limit_msg = f"Reached {max_steps}-step limit — task may be incomplete"
     _send_done(limit_msg, success=False)
+    if steps_taken_ref is not None:
+        steps_taken_ref.append(max_steps)
     return limit_msg
 
 
@@ -528,20 +547,14 @@ def _build_step_history(loop_history: List[Tuple[str, str]], verified: int) -> s
 
 def _detect_app(task: str) -> Optional[str]:
     """Detect target app from the task string."""
-    try:
-        from core.app_detector import detect_app_from_request
-        return detect_app_from_request(task)
-    except Exception:
-        return None
+    # app_detector module was removed in cleanup; return None for now
+    return None
 
 
 def _build_nav_context(target_app: str, task: str) -> str:
     """Load navigation spec for the target app and build a context string."""
-    try:
-        from core.app_detector import build_nav_context_for_prompt
-        return build_nav_context_for_prompt(target_app, task) or ""
-    except Exception:
-        return ""
+    # app_detector module was removed in cleanup; return empty for now
+    return ""
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

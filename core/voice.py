@@ -726,7 +726,15 @@ def transcribe_groq(audio_bytes: bytes) -> str:
                 language="en",
                 temperature=0.0,
             )
-        return transcription.strip()
+        result = transcription.strip()
+        # Credit deduction for dictation
+        try:
+            from core.credit_system import deduct, get_current_user_id
+            user_id = get_current_user_id()
+            deduct(user_id, "dictation", 1)
+        except Exception as e:
+            print(f"[CreditSystem] Dictation credit deduction failed: {e}")
+        return result
     finally:
         temp_path.unlink(missing_ok=True)
 

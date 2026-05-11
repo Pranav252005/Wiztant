@@ -1,10 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { Theme } from '../shared/themes';
 import { sendBridgeMessage, useBridgeMessage } from '../shared/useBridge';
+import CustomDropdown from '../shared/CustomDropdown';
+
+type ProcessStatus = 'idle' | 'active' | 'completed' | 'error';
 
 type Props = {
   theme: Theme['panel'];
+  onProcessChange?: (status: ProcessStatus) => void;
 };
 
 type TuneStats = {
@@ -23,12 +27,6 @@ type TuneItem = {
   created_at: string;
 };
 
-type CreditInfo = {
-  available: number;
-  consumed: number;
-  reserved: number;
-};
-
 const FEATURE_LABELS: Record<string, string> = {
   reprompt: 'RePrompt',
   dictation: 'Dictation',
@@ -43,24 +41,59 @@ const FEATURE_DESC: Record<string, string> = {
 
 const TUNE_MODELS: { id: string; label: string; description: string }[] = [
   {
-    id: 'anthropic/claude-sonnet-4-20250514',
-    label: 'Claude Sonnet 4',
+    id: 'anthropic/claude-sonnet-4.6',
+    label: 'Claude Sonnet 4.6',
     description: 'Best overall quality for tuning tasks',
   },
   {
-    id: 'thudm/glm-4-plus',
-    label: 'GLM-4 Plus',
-    description: 'Strong reasoning, efficient for iterative tuning',
+    id: 'anthropic/claude-haiku-4.5',
+    label: 'Claude Haiku 4.5',
+    description: 'Fast and cost-effective for tuning iterations',
   },
   {
-    id: 'moonshotai/kimi-k2.5',
-    label: 'Kimi K2.5',
-    description: 'Excellent long-context understanding',
+    id: 'openai/gpt-5.5',
+    label: 'GPT 5.5',
+    description: 'Top-tier general reasoning and tuning',
   },
   {
-    id: 'openai/gpt-4o',
-    label: 'GPT-4o',
+    id: 'openai/gpt-5.4',
+    label: 'GPT 5.4',
+    description: 'Strong general-purpose tuning model',
+  },
+  {
+    id: 'openai/gpt-5.5-mini',
+    label: 'GPT 5.5 mini',
     description: 'Fast and reliable general-purpose tuning',
+  },
+  {
+    id: 'openai/gpt-5.4-mini',
+    label: 'GPT 5.4 mini',
+    description: 'Efficient tuning for smaller tasks',
+  },
+  {
+    id: 'x-ai/grok-4.3',
+    label: 'Grok 4.3',
+    description: 'Strong reasoning with tool-use capabilities',
+  },
+  {
+    id: 'google/gemini-3.1-pro-preview',
+    label: 'Gemini 3.1 Pro',
+    description: 'Excellent multimodal and long-context tuning',
+  },
+  {
+    id: 'google/gemini-3-flash-preview',
+    label: 'Gemini 3 Flash',
+    description: 'Fast and efficient for batch tuning tasks',
+  },
+  {
+    id: 'qwen/qwen3.5-plus-20260420',
+    label: 'Qwen 3.5 Plus',
+    description: 'Strong coding and reasoning for technical tuning',
+  },
+  {
+    id: 'moonshotai/kimi-k2.6',
+    label: 'Kimi K2.6',
+    description: 'Excellent long-context understanding',
   },
 ];
 
@@ -89,21 +122,22 @@ function saveSettings(settings: { model: string }) {
   }
 }
 
-export default function TuneHubPanel({ theme }: Props) {
+export default function TuneHubPanel({ theme, onProcessChange }: Props) {
   const [stats, setStats] = useState<TuneStats | null>(null);
   const [tunes, setTunes] = useState<TuneItem[]>([]);
-  const [credits, setCredits] = useState<CreditInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [learnTask, setLearnTask] = useState('');
+
+  useEffect(() => {
+    onProcessChange?.(loading ? 'active' : 'idle');
+  }, [loading]);
   const [learnFeature, setLearnFeature] = useState<'reprompt' | 'dictation' | 'agent'>('reprompt');
   const [learnResult, setLearnResult] = useState<{ success: boolean; message: string } | null>(null);
   const [settings, setSettings] = useState(loadSettings);
-  const [showSettings, setShowSettings] = useState(false);
 
   const refresh = useCallback(() => {
     sendBridgeMessage({ type: 'tunehub/stats' });
     sendBridgeMessage({ type: 'tunehub/list' });
-    sendBridgeMessage({ type: 'tunehub/credits' });
   }, []);
 
   useEffect(() => {
@@ -122,9 +156,6 @@ export default function TuneHubPanel({ theme }: Props) {
     }
     if (msg.type === 'tunehub/list') {
       setTunes((msg.tunes as TuneItem[]) ?? []);
-    }
-    if (msg.type === 'tunehub/credits') {
-      setCredits((msg.credits as CreditInfo) ?? null);
     }
     if (msg.type === 'tunehub/learn_result') {
       setLoading(false);
@@ -190,94 +221,15 @@ export default function TuneHubPanel({ theme }: Props) {
         gap: 12,
       }}
     >
-      {/* Header row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Tune Hub</div>
-        <button
-          onClick={() => setShowSettings((s) => !s)}
-          style={{
-            padding: '4px 10px',
-            borderRadius: 6,
-            border: `1px solid ${theme.border}`,
-            background: 'transparent',
-            color: theme.textMuted,
-            fontSize: 11,
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-          }}
-        >
-          {showSettings ? 'Close' : 'Settings'}
-        </button>
       </div>
 
-      {/* Settings panel */}
-      <AnimatePresence>
-        {showSettings && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            style={{
-              border: `1px solid ${theme.border}`,
-              borderRadius: 12,
-              padding: 12,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 10,
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ fontSize: 12, fontWeight: 600, color: theme.text }}>Tuning Model</div>
-            <div style={{ fontSize: 11, color: theme.textMuted, lineHeight: 1.4 }}>
-              Select the AI model used for quality scoring and optimization during tuning.
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {TUNE_MODELS.map((m) => {
-                const active = m.id === settings.model;
-                return (
-                  <button
-                    key={m.id}
-                    onClick={() => handleModelChange(m.id)}
-                    style={{
-                      textAlign: 'left',
-                      padding: '8px 10px',
-                      borderRadius: 8,
-                      border: `1px solid ${active ? theme.aiAccent : theme.border}`,
-                      background: active ? `${theme.aiAccent}15` : 'transparent',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    <div style={{ fontSize: 12, fontWeight: 600, color: active ? theme.aiAccent : theme.text }}>
-                      {m.label}
-                    </div>
-                    <div style={{ fontSize: 10, color: theme.textMuted, marginTop: 2 }}>
-                      {m.description}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: theme.textMuted,
-                padding: '6px 8px',
-                borderRadius: 6,
-                background: `${theme.aiAccent}08`,
-              }}
-            >
-              Active: <strong style={{ color: theme.aiAccent }}>{selectedModel.label}</strong>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Stats cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <StatCard label="Tunes" value={stats?.total_tunes ?? 0} theme={theme} />
         <StatCard label="Active" value={stats?.active_tunes ?? 0} theme={theme} />
-        <StatCard label="Credits" value={credits?.available ?? 0} theme={theme} />
       </div>
 
       {/* Learn section */}
@@ -296,17 +248,45 @@ export default function TuneHubPanel({ theme }: Props) {
           {FEATURE_DESC[learnFeature]}
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          {(['reprompt', 'dictation', 'agent'] as const).map((f) => (
-            <button key={f} onClick={() => setLearnFeature(f)} style={btnStyle(learnFeature === f)}>
-              {FEATURE_LABELS[f]}
-            </button>
-          ))}
+          {(['reprompt', 'dictation', 'agent'] as const).map((f) => {
+            const isAgent = f === 'agent';
+            const active = learnFeature === f;
+            return (
+              <button
+                key={f}
+                onClick={isAgent ? undefined : () => setLearnFeature(f)}
+                disabled={isAgent}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  border: `1px solid ${active && !isAgent ? theme.aiAccent : theme.border}`,
+                  background: active && !isAgent ? `${theme.aiAccent}26` : 'transparent',
+                  color: isAgent ? theme.textMuted : active ? theme.text : theme.textMuted,
+                  fontSize: 12,
+                  fontWeight: active ? 700 : 500,
+                  fontFamily: 'inherit',
+                  cursor: isAgent ? 'not-allowed' : 'pointer',
+                  opacity: isAgent ? 0.5 : 1,
+                  transition: 'all 0.14s',
+                }}
+              >
+                {isAgent ? `${FEATURE_LABELS[f]} (Soon)` : FEATURE_LABELS[f]}
+              </button>
+            );
+          })}
         </div>
-        <input
+        <textarea
           value={learnTask}
-          onChange={(e) => setLearnTask(e.target.value)}
+          onChange={(e) => {
+            setLearnTask(e.target.value);
+            e.target.style.height = 'auto';
+            e.target.style.height = `${Math.min(e.target.scrollHeight, 240)}px`;
+          }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') handleLearn();
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleLearn();
+            }
           }}
           placeholder={`Describe what you want to tune (e.g. "${
             learnFeature === 'reprompt'
@@ -315,6 +295,7 @@ export default function TuneHubPanel({ theme }: Props) {
               ? 'Correct my project names'
               : 'Automate my morning checklist'
           }")`}
+          rows={1}
           style={{
             width: '100%',
             padding: '8px 10px',
@@ -325,6 +306,11 @@ export default function TuneHubPanel({ theme }: Props) {
             fontSize: 12,
             fontFamily: 'inherit',
             outline: 'none',
+            resize: 'none',
+            overflowY: 'auto',
+            overflowWrap: 'break-word',
+            whiteSpace: 'pre-wrap',
+            minHeight: 36,
           }}
         />
         <button
@@ -362,6 +348,15 @@ export default function TuneHubPanel({ theme }: Props) {
           </motion.div>
         )}
       </div>
+
+      {/* Compact model selector */}
+      <CustomDropdown
+        value={settings.model}
+        onChange={(v) => handleModelChange(v)}
+        options={TUNE_MODELS.map((m) => ({ value: m.id, label: m.label }))}
+        theme={theme}
+        label="Tuning Model"
+      />
 
       {/* Active tunes list */}
       {tunes.length > 0 && (

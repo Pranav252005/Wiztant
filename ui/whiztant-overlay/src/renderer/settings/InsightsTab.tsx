@@ -253,7 +253,7 @@ function Heatmap({ data, theme }: { data: DailyRow[]; theme: Theme['panel'] }) {
 // ─── InsightsTab ──────────────────────────────────────────────
 export default function InsightsTab({ theme }: { theme: Theme['panel'] }) {
   const [insights, setInsights] = useState<InsightsPayload>({});
-  const [subTab, setSubTab] = useState<'usage' | 'voice' | 'leaderboard'>('usage');
+  const [subTab] = useState<'usage'>('usage');
   const [daily, setDaily] = useState<DailyRow[]>([]);
 
   // Listen for WebSocket insights updates
@@ -346,37 +346,6 @@ export default function InsightsTab({ theme }: { theme: Theme['panel'] }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, overflowY: 'auto', minHeight: 0 }}>
-      {/* Sub-tabs */}
-      <div style={{ display: 'flex', gap: 0, borderBottom: `1px solid ${theme.border}`, marginBottom: 4 }}>
-        {([
-          { id: 'usage', label: 'Your Usage' },
-          { id: 'voice', label: 'Your Voice' },
-          { id: 'leaderboard', label: 'Leaderboard' },
-        ] as const).map((t) => {
-          const active = subTab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setSubTab(t.id)}
-              style={{
-                padding: '6px 10px',
-                fontSize: 11,
-                fontWeight: active ? 600 : 500,
-                color: active ? theme.text : theme.textMuted,
-                background: active ? `${accent}12` : 'transparent',
-                border: 'none',
-                borderBottom: `2px solid ${active ? accent : 'transparent'}`,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                marginBottom: -1,
-              }}
-            >
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
-
       {subTab === 'usage' && (
         <>
           {/* Top stats row */}
@@ -405,7 +374,7 @@ export default function InsightsTab({ theme }: { theme: Theme['panel'] }) {
           </div>
 
           {/* Desktop usage + Streak */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
@@ -503,29 +472,7 @@ export default function InsightsTab({ theme }: { theme: Theme['panel'] }) {
         </>
       )}
 
-      {subTab === 'voice' && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center', paddingTop: 20 }}
-        >
-          <div style={{ fontSize: 12, color: theme.textMuted, textAlign: 'center' }}>
-            Your Voice insights coming soon — accuracy trends, vocabulary growth, and pronunciation analytics.
-          </div>
-        </motion.div>
-      )}
 
-      {subTab === 'leaderboard' && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center', paddingTop: 20 }}
-        >
-          <div style={{ fontSize: 12, color: theme.textMuted, textAlign: 'center' }}>
-            Leaderboard coming soon — compete with friends and the global Wiztant community.
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }
