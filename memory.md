@@ -1,8 +1,8 @@
 # Wiztant — Application Memory
 
-> **Last updated:** 2026-05-04 (post-cleanup: TuneHub credit system removed, WizType removed, old UI purged, preset system added, feature toggles active, snooze implemented).  
+> **Last updated:** Post-cleanup (TuneHub credit system removed, WizType removed, all old UI purged).  
 > **Owner:** Pranav (solo project).  
-> **Root directory:** `C:\whis\` (Windows), `/home/user/whis/` or similar (Linux dev)
+> **Root directory:** `C:\whis\`
 
 ---
 
@@ -19,7 +19,7 @@
 ## 2. Architecture (3 Apps)
 
 ### 2.1 Python Backend (headless)
-- **Entry point:** `main.py` → delegates to `app/main.py` → `run_app()`
+- **Entry point:** `main.py` → delegates to `app/main.py`
 - **What it does:**
   - Starts FastAPI server on **port 8765**
   - Starts WebSocket bridge on **port 9120**
@@ -30,18 +30,18 @@
 
 ### 2.2 Electron Overlay (active UI)
 - **Location:** `ui/whiztant-overlay/`
-- **Stack:** Electron 33 + React 19 + TypeScript + Tailwind CSS + Framer Motion + electron-vite
+- **Stack:** Electron + React 19 + TypeScript + Tailwind CSS + Framer Motion + electron-vite
 - **Windows:**
   - **Pill** — bottom-center always-on-top wave indicator (`Pill.tsx`)
   - **Overlay** — 340×420 main panel, toggled with `Ctrl+Space`
-  - **Settings** — configuration window (theme + feature toggles)
+  - **Settings** — configuration window
   - **TaskPanel** — on-demand frameless windows, one per task, 340×420, positioned to the right of the overlay
 - **IPC mechanism:** Electron ↔ Python via WebSocket `ws://localhost:9120` (implemented in `core/ws_bridge.py` ↔ `renderer/shared/useBridge.ts`)
 - **Direct FS access:** Electron main process reads/writes `memory/tasks.json` via Node `fs` module (canonical task storage)
 
 ### 2.3 Marketing Website
 - **Location:** `whiztant-website/`
-- **Stack:** React 19 + Vite + Tailwind CSS v3
+- **Stack:** React + Vite + Tailwind CSS v3
 - **Deploy:** `deploy.bat` → Netlify (currently manual)
 - **PostCSS config:** `postcss.config.cjs` (CJS because `package.json` has `"type": "module"`)
 
@@ -51,10 +51,10 @@
 
 | Layer | Technologies |
 |---|---|
-| **Backend** | Python 3.11, FastAPI, WebSocket (port 9120), SQLite, Supabase client |
+| **Backend** | Python 3, FastAPI, WebSocket (port 9120), SQLite, Supabase client |
 | **AI/ML** | Custom STT engine, VLM (vision-language model), agent engine, task classifier |
-| **Desktop UI** | Electron 33, React 19, TypeScript, Tailwind CSS, Framer Motion, electron-vite |
-| **Website** | React 19, Vite, Tailwind CSS v3 |
+| **Desktop UI** | Electron, React 19, TypeScript, Tailwind CSS, Framer Motion, electron-vite |
+| **Website** | React, Vite, Tailwind CSS v3 |
 | **System integration** | Global hotkeys, system tray (PyQt6 minimal), window manager |
 | **Data** | JSON files (`memory/`, `data/`), SQLite (`data/tune_hub.db`) |
 
@@ -63,10 +63,8 @@
 - `core/wiztype/` — entire subsystem removed
 - `ui/wiztant-clui/` — does not exist
 - `ui/wiztant-app/` — does not exist
-- `core/tts.py` — removed (Conversation mode removed with it)
-- `core/tune_hub/credit_system/` — removed entirely
-- `ui/chat_overlay.py`, `ui/toast.py` — removed
-- `core/action_optimizer.py`, `core/agent_s3_wrapper.py`, `core/app_detector.py`, `core/intent_compiler.py`, `core/learning_agent.py`, `core/shortcuts_loader.py`, `core/system_task_executor.py`, `core/workflow_recorder.py`
+- `core/tts.py` — removed
+- Credit system in TuneHub — removed entirely
 
 ---
 
@@ -147,55 +145,47 @@ C:\whis\
 │   ├── memory.json              # General memory
 │   └── overlay_position.json    # Overlay window position
 ├── ui/
-│   ├── whiztant-overlay/        # Electron overlay app
-│   │   └── src/
-│   │       ├── main/
-│   │       │   └── index.ts     # Electron main process
-│   │       └── renderer/
-│   │           ├── shared/
-│   │           │   ├── ipc.ts
-│   │           │   ├── themes.ts
-│   │           │   ├── types.ts
-│   │           │   ├── useBridge.ts     # WebSocket hook ↔ ws_bridge.py
-│   │           │   ├── usePillNotifications.ts
-│   │           │   └── notifications/   # Notification components
-│   │           ├── components/
-│   │           │   ├── AgentPanel.tsx
-│   │           │   ├── MemoriesPanel.tsx
-│   │           │   ├── MemoryPanel.tsx
-│   │           │   ├── Overlay.tsx
-│   │           │   ├── Pill.tsx
-│   │           │   ├── StreakPanel.tsx
-│   │           │   ├── TaskPanel.tsx
-│   │           │   ├── TaskTile.tsx
-│   │           │   ├── TasksPanel.tsx
-│   │           │   ├── TopTabBar.tsx
-│   │           │   ├── TopTabContent.tsx
-│   │           │   ├── TuneHubPanel.tsx
-│   │           │   ├── VocabCorrectModal.tsx
-│   │           │   └── WizPromptPanel.tsx   # Has preset dropdown
-│   │           ├── settings/
-│   │           │   ├── Settings.tsx
-│   │           │   └── InsightsTab.tsx
-│   │           └── ...
-│   └── react_overlay.py         # React overlay launcher
+│   └── whiztant-overlay/        # Electron overlay app
+│       └── src/
+│           ├── main/
+│           │   └── index.ts     # Electron main process
+│           └── renderer/
+│               ├── shared/
+│               │   ├── ipc.ts
+│               │   ├── themes.ts
+│               │   ├── types.ts
+│               │   ├── useBridge.ts     # WebSocket hook ↔ ws_bridge.py
+│               │   ├── usePillNotifications.ts
+│               │   └── notifications/   # Notification components
+│               ├── components/
+│               │   ├── AgentPanel.tsx
+│               │   ├── MemoriesPanel.tsx
+│               │   ├── MemoryPanel.tsx
+│               │   ├── Overlay.tsx
+│               │   ├── Pill.tsx
+│               │   ├── StreakPanel.tsx
+│               │   ├── TaskPanel.tsx
+│               │   ├── TaskTile.tsx
+│               │   ├── TasksPanel.tsx
+│               │   ├── TopTabBar.tsx
+│               │   ├── TopTabContent.tsx
+│               │   ├── TuneHubPanel.tsx
+│               │   ├── VocabCorrectModal.tsx
+│               │   └── WizPromptPanel.tsx   # Has preset dropdown
+│               ├── settings/
+│               │   ├── Settings.tsx
+│               │   └── InsightsTab.tsx
+│               └── ...
 ├── whiztant-website/            # Marketing website
 │   ├── deploy.bat               # Manual deploy to Netlify
 │   └── postcss.config.cjs       # CJS config (package.json is ESM)
-├── platforms/                   # OS abstraction layer
+├── platforms/
 ├── scripts/
-│   ├── stress_test_stt.py
-│   └── test_with_real_voice.py
-├── tests/                       # Root-level tests (~313 cases across 24 files)
+├── tests/                       # Root-level tests
 ├── vendor/
 ├── build.bat
 ├── requirements.txt
-├── .windsurfrules
-├── AGENTS.md
-├── CLAUDE.md
-├── PROJECT_SUMMARY.md
-├── memory.md
-└── WHISrules.md
+└── .windsurfrules, AGENTS.md, CLAUDE.md, etc.
 ```
 
 ---
@@ -228,7 +218,6 @@ C:\whis\
 - Backend: `core/presets.py` defines defaults
 - API: `GET /presets` in `core/server.py`
 - Presets: `product_review`, `idea_review`, `code_review`, `code_creation`, `general`
-- Integration: `core/wizprompt.py` consumes the selected preset's `system_prompt_addendum` + `agent_focus`
 
 ### Task System
 - Full CRUD in `core/tasks.py`
@@ -236,17 +225,12 @@ C:\whis\
 - Storage: `memory/tasks.json`
 - Reminders: 15-minute check cycle
 - Snooze: 4 presets (15min, 30min, 1hr, 1440min)
-- Pre-due warning: 30 minutes before due
-- Overdue repeats: Every 15 minutes after overdue
-- Carry-over: Tasks can be carried over to next day
-- Failed state: Tasks marked failed after second miss at 18:00
 
 ### TuneHub Tuning
 - `DictationTuner.apply()` → calls `process_transcription()`, sets `feature_input["text"]`
 - `AgentTuner.apply()` → modifies task, sets `feature_input["task"]`
 - `RePromptTuner` → provides `persona_weights` consumed by `core/wizprompt.py`
 - `middleware.py` has `_enabled` flag with `enable()`/`disable()` methods
-- Currently Phase 1: manual/seed tuning only
 
 ---
 
@@ -261,33 +245,9 @@ C:\whis\
 - WebSocket bridge: `core/ws_bridge.py` (Python) ↔ `renderer/shared/useBridge.ts` (Electron renderer)
 - HTTP API: `core/server.py` (FastAPI)
 
-### WebSocket Broadcast Types
-- `due_alert` — 6pm first miss
-- `due_reminder` — every 4h for carried-over tasks
-- `tasks_failed` — 6pm second miss → tasks get `failed=true`
-- `task_saved` — task saved via voice or "save this for tomorrow"
-- `pill/notice` — generic pill flash
-
 ---
 
-## 7. Notification System (Fully Implemented)
-
-### How it works
-- `usePillNotifications.ts` in `renderer/shared/` manages notification queue
-- `NotificationRenderer.tsx` dispatches to 4 typed components:
-  - `TaskSavedNotification` — task title + Edit/Save/Decline (5s auto-save)
-  - `DueAlertNotification` — persistent red banner, per-task Reschedule Tomorrow
-  - `DueReminderNotification` — gold reminder banner, dismiss-only
-  - `DuplicateTaskNotification` — gold duplicate warning
-
-### Python timer logic (`app/main.py`)
-- `_due_check()` fires at 18:00 daily via `seconds_until(18,0)` threading.Timer
-- `_due_reminder()` fires every 4h when carried-over tasks exist
-- Startup nudge fires 8s after boot via `get_yesterday_pending_summary()`
-
----
-
-## 8. TuneHub Architecture (Post-Cleanup)
+## 7. TuneHub Architecture (Post-Cleanup)
 
 TuneHub is the adaptive tuning subsystem. After cleanup, it contains:
 
@@ -318,7 +278,7 @@ core/tune_hub/
 
 ### Key Behaviors
 - **Phase 1 (current):** Manual/seed tuning — no actual model training yet
-- **Phase 2 (future):** Actual model training pipeline (specs in `TuneHubSpecifications/`)
+- **Phase 2 (future):** Actual model training pipeline
 - **Credit system:** REMOVED — no `CreditBudget`, no `InsufficientCreditsError`, no pricing tiers enforced in TuneHub
 - **Middleware:** Can be globally enabled/disabled via `enable()`/`disable()`
 
@@ -329,12 +289,12 @@ core/tune_hub/
 
 ---
 
-## 9. Feature Toggles System
+## 8. Feature Toggles System
 
 ### 4 Features
 | Key | Description | Default |
 |---|---|---|
-| `agent` | Agent mode (F9 ×2+) | `true` |
+| `agent` | Agent mode (F9 ×2) | `true` |
 | `tunehub` | TuneHub adaptive tuning | `true` |
 | `tasks` | Task system | `true` |
 | `reprompt` | RePrompt / WizPrompt | `true` |
@@ -357,7 +317,7 @@ core/tune_hub/
 
 ---
 
-## 10. Preset System (RePrompt)
+## 9. Preset System (RePrompt)
 
 - **File:** `core/presets.py` (new addition)
 - **Default presets:** `product_review`, `idea_review`, `code_review`, `code_creation`, `general`
@@ -367,7 +327,7 @@ core/tune_hub/
 
 ---
 
-## 11. Task System & Reminders (with Snooze)
+## 10. Task System & Reminders (with Snooze)
 
 ### Storage
 - **Canonical file:** `memory/tasks.json`
@@ -380,26 +340,6 @@ parent_id, content, task_type (large/small), carried_over, failed,
 progress, reminder_sent, snoozed_until
 ```
 
-### Python Backend (`core/tasks.py`)
-- Full CRUD: `add_task`, `mark_done`, `delete_task`, `toggle_status`, `get_tasks`, `get_task_history`
-- Voice parsing: `parse_task_command()` with regex + Levenshtein fuzzy matching
-- Task refiner: calls OpenRouter LLM to clean up voice-spoken task text
-- Session continuity: `save_session_as_task()` saves last 10 messages + title
-- Due-alert helpers: `get_due_today_undone`, `get_carried_over_undone`, `reschedule_to_tomorrow`, `mark_failed`
-- Daily suggestion: `get_daily_task_suggestion()` from last 10 days of history
-- Snooze functions:
-  - `snooze_task(task_id, minutes)`
-  - `is_snoozed(task)`
-  - `clear_snooze(task_id)`
-
-### Electron Overlay (`ipc.ts` + renderer)
-- All IPC handlers wired: `task:getAll`, `task:save`, `task:update`, `task:delete`, `task:markDone`, `task:openPanel`, `task:reschedule`, `task:undoSave`
-- `useTasks.ts` hook wraps IPC with local state + refresh
-- `TasksPanel.tsx` — full UI with add-form, due-time pickers, Today/Undone/history sections
-- `TaskTile.tsx` — LARGE/SMALL badge, due label, overdue/failed styling, opens panel on click
-- `TaskPanel.tsx` — side window with title input, content textarea, due pickers, Save button
-- TaskPanel window: hash-routed (`#/task-panel?task=...`), positioned right of overlay
-
 ### Reminders
 - **Check cycle:** Every 15 minutes
 - **30-minute pre-due warning:** Alerts before task is due
@@ -408,6 +348,10 @@ progress, reminder_sent, snoozed_until
 
 ### Snooze
 - **4 presets:** 15min, 30min, 1hr, 1440min (tomorrow)
+- **Functions in `core/tasks.py`:**
+  - `snooze_task(task_id, minutes)`
+  - `is_snoozed(task)`
+  - `clear_snooze(task_id)`
 
 ### Settings (tasks tab)
 - Reminder interval
@@ -418,7 +362,7 @@ progress, reminder_sent, snoozed_until
 
 ---
 
-## 12. Hotkeys & Shortcuts (Only Existing)
+## 11. Hotkeys & Shortcuts (Only Existing)
 
 | Trigger | Action |
 |---|---|
@@ -430,11 +374,9 @@ progress, reminder_sent, snoozed_until
 
 **Not yet built:** F10 task hotkey (voice-only task creation)
 
-**Note:** The old Conversation mode (F9×2 voice loop with GPT + TTS) was removed when `core/tts.py` was deleted.
-
 ---
 
-## 13. Design System (Verified)
+## 12. Design System (Verified)
 
 ### Themes (5)
 | Theme | Status |
@@ -457,46 +399,9 @@ progress, reminder_sent, snoozed_until
 - Text: `#e2e2e2`
 - Muted: `#6b7280`
 
-### Wave States
-- Idle: `#7B2241` (burgundy)
-- Recording: mic-reactive (animated)
-- Thinking: `#C4956A` (cappuccino)
-- Speaking: `#1a3a6b` (dark blue)
-- Agent: `#2d6e3e` (green)
-
 ---
 
-## 14. Pricing
-
-| Plan | Monthly | Annual | Limits |
-|---|---|---|---|
-| Free | $0 | — | 15 chats/mo |
-| Pro | $15 | $165/yr | 300 chats, 50 agent, 30 UI-TARS |
-| Power | $25 | $275/yr | 500 chats, 200 agent, 200 UI-TARS |
-
-- Trial: 3 days, 30 msgs, 3 agent tasks, no credit card required
-- Annual saves 1 month vs monthly
-
----
-
-## 15. Authentication & Backend Services
-
-| Service | Purpose |
-|---|---|
-| **Supabase** | Auth (email/password + Google OAuth), user data, insights tables |
-| **Helicone** | Usage guard, cost tracking, request logging |
-| **OpenRouter** | LLM gateway (GPT-5.4, UI-TARS 1.5 7B) |
-| **Groq** | Whisper STT (cloud) |
-| **LemonSqueezy** | License validation |
-
-### Insights Schema
-- `user_insights_lifetime` — lifetime counters per user (words dictated, fixes made, streaks, etc.)
-- Daily insights table (implied by schema comments)
-- Row Level Security (RLS) policies ensure users can only read/upsert their own data.
-
----
-
-## 16. File Quick Reference (Accurate Paths)
+## 13. File Quick Reference (Accurate Paths)
 
 ### Entry & Bootstrap
 | File | Role |
@@ -545,7 +450,7 @@ progress, reminder_sent, snoozed_until
 
 ---
 
-## 17. Recent Changes (What Was Just Done)
+## 14. Recent Changes (What Was Just Done)
 
 1. **WizType subsystem removed** — entire `core/wiztype/` directory deleted; no longer part of the app
 2. **Old UI purged** — `ui/wiztant-clui/`, `ui/wiztant-app/` do not exist; `ui/chat_overlay.py`, `ui/toast.py` removed
@@ -560,13 +465,10 @@ progress, reminder_sent, snoozed_until
    - `middleware.py` has `_enabled` flag with `enable()`/`disable()` methods
 8. **Preset system added:** `core/presets.py` with 5 default presets, integrated into `WizPromptPanel.tsx` and `core/server.py`
 9. **Backend clarified as headless** — no PyQt6 main window; tray-only
-10. **Feature toggle system active** — 4 features gated in Settings + backend
-11. **Task snooze implemented** — 4 presets, functions in `core/tasks.py`
-12. **RePrompt engine integrated** — `core/wizprompt.py` + `core/wizprompt2.py`
 
 ---
 
-## 18. What Still Needs Building
+## 15. What Still Needs Building
 
 | Item | Status |
 |---|---|
@@ -578,81 +480,19 @@ progress, reminder_sent, snoozed_until
 
 ---
 
-## 19. Definition of Done
+## 16. Definition of Done
 
-1. Code compiles / imports without errors
-2. The specific behavior requested works
+1. Code compiles/imports without errors
+2. Specific behavior requested works
 3. No regressions in:
    - F9 modes (dictation + agent toggle)
    - Overlay toggle (Ctrl+Space)
    - Pill notifications
    - Task system (CRUD + reminders + snooze)
 4. No new files unless necessary
-5. Build artifact is up to date:
+5. Build artifact up to date:
    - `npm run build` for UI
    - `python main.py` starts cleanly for backend
-
----
-
-## 20. Testing Instructions
-
-**Framework:** `pytest` (with `pytest-asyncio` and `pytest-cov`).
-
-**Test inventory:** ~313 test cases across 24 Python files in `tests/`.
-
-**Run all tests:**
-```bash
-pytest tests/
-```
-
-**Run a specific test file:**
-```bash
-pytest tests/test_tasks.py
-pytest tests/stt_tests/test_integration.py
-```
-
-**Testing patterns observed:**
-- Use `unittest.mock.patch` and `pytest.monkeypatch` to isolate external APIs (OpenRouter, Groq, screenshots).
-- Use `tmp_path` fixtures for hermetic file I/O (tasks.json, agent memory).
-- Integration tests launch actual subprocesses (React overlay lifecycle, WebSocket bridge roundtrip).
-- No `pytest.ini`, `pyproject.toml`, or `conftest.py` in the project root — tests rely on default pytest discovery and manual `sys.path.insert(0, ...)` at the top of test files.
-
-**Manual / stress test scripts:**
-- `scripts/stress_test_stt.py` — runs 100 iterations of the full STT pipeline and reports latency p95.
-- `scripts/test_with_real_voice.py` — interactive REPL for manually typing phrases through the STT pipeline.
-
-**No E2E tests** exist for the overlay IPC protocol. Add pytest-based tests when modifying bridge code.
-
----
-
-## 21. Security Considerations
-
-- **`.env` contains secrets** — API keys for OpenAI, OpenRouter, Groq, Supabase, Helicone, and LemonSqueezy. Never commit `.env` to git.
-- **Agent guardrails** — `core/guardrails.py` blocks destructive actions via regex (delete files, format drives, drop tables, shutdown, etc.), validates screen coordinates, and detects no-progress loops via screenshot hashing.
-- **Isolated input** — background agent tasks use `AgentInputContext` (`core/agent_isolation.py`) to send input to background windows without stealing focus.
-- **No sandbox escape** — the agent runs with the user's permissions. Do not add elevation prompts or UAC bypasses.
-- **Tasks file** — both Python (`core/tasks.py`) and Electron main (`ipc.ts`) read/write `memory/tasks.json`. Ensure file locking or atomic writes if concurrency issues arise.
-
----
-
-## 22. Code Style Guidelines
-
-### Python
-- Use `from __future__ import annotations` at the top of every module.
-- Use type hints where practical.
-- Use snake_case for functions/variables, PascalCase for classes, UPPER_CASE for module-level constants.
-- Write module-level docstrings describing the file's purpose.
-- Use section headers for logical groups.
-- **Lazy imports for platform-specific modules:** always import inside functions so cross-platform imports never crash at startup.
-- **Defensive coding:** wrap optional subsystems in `try/except` so missing API keys or unavailable platforms degrade gracefully rather than crash the app.
-- Prefer `pathlib.Path` over `os.path` for new code.
-- Keep the project root on `sys.path` in entry-point files.
-
-### TypeScript / React
-- Use explicit types; avoid `any`.
-- Use functional components with hooks.
-- Tailwind classes for styling; do not use inline styles for theming (use theme context + CSS variables).
-- The overlay uses `setOpacity(0/1)` for show/hide — never use `hide()/show()` on BrowserWindow.
 
 ---
 
@@ -668,4 +508,3 @@ The following were removed during cleanup and must not be referenced in new code
 - `ui/chat_overlay.py`, `ui/toast.py`
 - `main_old.py`, root `package-lock.json`, `docs/WIZTYPE.md`, `data/wiztype_config.json`
 - "Whiztant" branding (old name)
-- Conversation mode (F9×2 voice loop with TTS) — removed with `tts.py`
