@@ -138,6 +138,37 @@ class SmartPasteEngine:
             logger.error(f"Copy to clipboard error: {e}")
             return self._linux_clipboard_copy(text)
 
+    def _safe_keyboard_paste(self) -> bool:
+        """Use the keyboard library with explicit safety releases.
+
+        On Wayland this is often the ONLY method that works for native
+        Wayland windows (evdev injection bypasses the display server).
+        We add explicit release calls + a small delay to reduce the
+        chance of stuck modifiers.
+        """
+        try:
+            import keyboard as _kb
+            _kb.press("ctrl")
+            _kb.press("v")
+            time.sleep(0.05)
+            _kb.release("v")
+            _kb.release("ctrl")
+            time.sleep(0.05)
+            # Safety net: extra release in case the first keyup was dropped
+            try:
+                _kb.release("v")
+            except Exception:
+                pass
+            try:
+                _kb.release("ctrl")
+            except Exception:
+                pass
+            print("[Paste] keyboard library ctrl+v succeeded")
+            return True
+        except Exception as e:
+            print(f"[Paste] keyboard library failed: {e}")
+            return False
+
     def paste_via_hotkey(self, window_id: Optional[str] = None) -> bool:
         """Paste via Ctrl+V simulation.
 
@@ -155,27 +186,30 @@ class SmartPasteEngine:
         # retry it every single attempt (saves ~2s on GNOME etc.).
         _wtype_broken = getattr(self, "_wtype_broken", False)
 
-        # If we have a specific window ID, try sending directly to it first.
-        # This bypasses focus issues caused by overlays or window managers.
-        if window_id and shutil.which("xdotool"):
-            try:
-                subprocess.run(
-                    ["xdotool", "key", "--window", window_id, "ctrl+v"],
-                    timeout=2,
-                    check=True,
-                )
-                print(f"[Paste] xdotool --window {window_id} ctrl+v succeeded")
-                return True
-            except Exception as e:
-                print(f"[Paste] xdotool --window failed: {e}")
-
-        # Fallback: display-server-native tools first to avoid pynput
-        # permission dialogs that silently fail on Wayland / some X11.
-        # Only try a tool if it is actually installed (shutil.which).
-
+        # ═════════════════════════════════════════════════════════════════════
+        #  WAYLAND: keyboard library first — it's the only method that reliably
+        #  injects into native Wayland windows (evdev bypass). xdotool without
+        #  --window returns exit 0 but does NOTHING on native Wayland, so we
+        #  must not trust it as a primary method.
+        # ═════════════════════════════════════════════════════════════════════
         if _is_wayland:
-            # Wayland: prefer tools that don't need virtual_keyboard protocol.
-            # dotool is a modern single-binary alternative to ydotool.
+            if self._safe_keyboard_paste():
+                return True
+
+            # If we have a specific XWayland window ID, xdotool can target it.
+            if window_id and shutil.which("xdotool"):
+                try:
+                    subprocess.run(
+                        ["xdotool", "key", "--window", window_id, "ctrl+v"],
+                        timeout=2,
+                        check=True,
+                    )
+                    print(f"[Paste] xdotool --window {window_id} ctrl+v succeeded")
+                    return True
+                except Exception as e:
+                    print(f"[Paste] xdotool --window failed: {e}")
+
+            # dotool / ydotool (Wayland-native, no X11 needed)
             if shutil.which("dotool"):
                 try:
                     proc = subprocess.run(
@@ -198,7 +232,7 @@ class SmartPasteEngine:
                 except Exception as e:
                     print(f"[Paste] ydotool failed: {e}")
 
-            # wtype — only if not known-broken on this compositor
+            # wtype — only if compositor supports virtual_keyboard protocol
             if shutil.which("wtype") and not _wtype_broken:
                 try:
                     result = subprocess.run(
@@ -220,16 +254,13 @@ class SmartPasteEngine:
                 except Exception as e:
                     print(f"[Paste] wtype failed: {e}")
 
-            # xdotool fallback via XWayland (reads X11 clipboard — may be stale)
-            if shutil.which("xdotool"):
-                try:
-                    subprocess.run(["xdotool", "key", "ctrl+v"], timeout=2, check=True)
-                    print("[Paste] xdotool ctrl+v succeeded")
-                    return True
-                except Exception as e:
-                    print(f"[Paste] xdotool failed: {e}")
+            # DO NOT use plain xdotool on Wayland — it returns exit 0 but
+            # cannot target native Wayland windows, causing false positives.
+
+        # ═════════════════════════════════════════════════════════════════════
+        #  X11: xdotool is rock-solid here. keyboard library as fallback.
+        # ═════════════════════════════════════════════════════════════════════
         else:
-            # X11: xdotool first, then Wayland fallbacks
             if shutil.which("xdotool"):
                 try:
                     subprocess.run(["xdotool", "key", "ctrl+v"], timeout=2, check=True)
@@ -260,6 +291,9 @@ class SmartPasteEngine:
                 except Exception as e:
                     print(f"[Paste] ydotool failed: {e}")
 
+            if self._safe_keyboard_paste():
+                return True
+
         # Final fallback: use the cached platform system access instead of
         # creating a fresh pynput Controller (which re-triggers accessibility
         # approval dialogs every single time).
@@ -272,17 +306,6 @@ class SmartPasteEngine:
                 return True
         except Exception as e:
             print(f"[Paste] system access hotkey failed: {e}")
-
-        # ABSOLUTE LAST RESORT: keyboard library — known to occasionally leave
-        # modifiers stuck because it sends keydown/keyup with zero delay.
-        # Only use this when every other method has failed.
-        try:
-            import keyboard as _kb
-            _kb.press_and_release("ctrl+v")
-            print("[Paste] keyboard library ctrl+v succeeded")
-            return True
-        except Exception:
-            pass
 
         print("[Paste] No input backend available for Ctrl+V")
         return False

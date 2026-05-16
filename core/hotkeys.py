@@ -936,25 +936,31 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
                 formatted, format_type="plain", window_id=_saved_window_id
             )
             if not paste_ok:
-                # Don't chain another Ctrl+V attempt — if the primary paste path
-                # failed it likely means keys are already stuck or focus is lost.
-                # Copy to clipboard so the user can paste manually instead of
-                # compounding a stuck-key situation.
+                # Fallback: legacy smart_paste provides an additional set of
+                # paste strategies (type_text, etc.).  A small delay lets any
+                # stuck keys from the previous attempt settle before we try
+                # another injection method.
+                time.sleep(0.15)
+                paste_ok = smart_paste(text, window_id=_saved_window_id)
+                if not paste_ok:
+                    if _copy_to_clipboard_robust(text):
+                        from core.ws_bridge import send_pill_notice
+                        send_pill_notice("added", "Copied to clipboard", text[:60])
+                    else:
+                        from core.ws_bridge import send_pill_notice
+                        send_pill_notice("error", "Clipboard failed", "Could not copy dictation text")
+        except Exception as e:
+            print(f"[STT] Pipeline error: {e}")
+            # Fallback to raw text with a small safety delay
+            time.sleep(0.15)
+            paste_ok = smart_paste(text, window_id=_saved_window_id)
+            if not paste_ok:
                 if _copy_to_clipboard_robust(text):
                     from core.ws_bridge import send_pill_notice
                     send_pill_notice("added", "Copied to clipboard", text[:60])
                 else:
                     from core.ws_bridge import send_pill_notice
                     send_pill_notice("error", "Clipboard failed", "Could not copy dictation text")
-        except Exception as e:
-            print(f"[STT] Pipeline error: {e}")
-            # Same safety rule: no chained Ctrl+V attempts on error.
-            if _copy_to_clipboard_robust(text):
-                from core.ws_bridge import send_pill_notice
-                send_pill_notice("added", "Copied to clipboard", text[:60])
-            else:
-                from core.ws_bridge import send_pill_notice
-                send_pill_notice("error", "Clipboard failed", "Could not copy dictation text")
 
         if paste_ok:
             print(f"\n✅ PASTED: {text[:100]}")
