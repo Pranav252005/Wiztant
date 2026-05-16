@@ -242,6 +242,7 @@ _due_check_timer: threading.Timer | None = None
 _due_reminder_timer: threading.Timer | None = None
 _startup_nudge_thread: threading.Thread | None = None
 _overlay_thread: threading.Thread | None = None
+_credit_reset_timer: threading.Timer | None = None
 
 # Reminder tracking: task_id -> {"pre_due_warned": bool, "due_warned": bool, "overdue_reminder_count": int, "last_overdue_reminder": float}
 # Used to implement the aggressive multi-stage reminder schedule without spamming.
@@ -299,6 +300,22 @@ def _cleanup_stale_tracker(tasks: list):
     global _reminder_tracker
     valid_ids = {t.get("id", "") for t in tasks}
     _reminder_tracker = {k: v for k, v in _reminder_tracker.items() if k in valid_ids}
+
+
+def _monthly_credit_reset_check():
+    """Periodic check to apply monthly credit resets. Runs every hour."""
+    global _credit_reset_timer
+    try:
+        from core.credit_system import check_monthly_reset, get_current_user_id
+        user_id = get_current_user_id()
+        if check_monthly_reset(user_id):
+            print(f"[Credits] Monthly reset applied for {user_id}")
+    except Exception as e:
+        print(f"[Credits] Monthly reset check error: {e}")
+    finally:
+        _credit_reset_timer = threading.Timer(3600, _monthly_credit_reset_check)
+        _credit_reset_timer.daemon = True
+        _credit_reset_timer.start()
 
 
 def _due_check():
@@ -505,6 +522,18 @@ if PLATFORM == "linux":
     else:
         print("[Hotkeys/Linux/X11] Skipping pynput fallback — Electron globalShortcut active")
 
+# Pre-warm microphone stream in the background so first F9/F10 is instant.
+# Only the initial PortAudio init takes time; subsequent presses reuse the stream.
+def _prewarm_mic():
+    try:
+        from core.hotkeys import _ensure_audio_stream
+        _ensure_audio_stream()
+        print("[Audio] Microphone stream pre-warmed")
+    except Exception as e:
+        print(f"[Audio] Mic pre-warm skipped: {e}")
+
+threading.Thread(target=_prewarm_mic, daemon=True, name="mic-prewarm").start()
+
 # Start WS bridge for Electron overlay IPC
 try:
     start_ws_bridge()
@@ -586,7 +615,7 @@ def update_feature_flags(features: dict) -> dict:
 # =============================================================
 
 def run_app():
-    global _startup_nudge_thread, _overlay_thread, _due_check_timer, _due_reminder_timer
+    global _startup_nudge_thread, _overlay_thread, _due_check_timer, _due_reminder_timer, _credit_reset_timer
     _tier = os.getenv("CURRENT_TIER", "free")
     _model = agent.get_model()
 
@@ -626,6 +655,12 @@ def run_app():
     if _startup_nudge_thread is None or not _startup_nudge_thread.is_alive():
         _startup_nudge_thread = threading.Thread(target=_startup_nudge, daemon=True, name="startup-nudge")
         _startup_nudge_thread.start()
+
+    # Start monthly credit reset checker (every hour)
+    if _credit_reset_timer is None or not _credit_reset_timer.is_alive():
+        _credit_reset_timer = threading.Timer(60, _monthly_credit_reset_check)
+        _credit_reset_timer.daemon = True
+        _credit_reset_timer.start()
 
     if _FEATURE_FLAGS.get("tasks", True):
         try:

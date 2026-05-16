@@ -12,7 +12,7 @@ import json
 import math
 import os
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -27,6 +27,63 @@ _CREDITS_LOCAL_PATH = _PROJECT_ROOT / "data" / "credits.json"
 # Default fallback values if registry is missing
 _DEFAULT_MARKUP = 5
 _DEFAULT_COST_PER_CREDIT = 0.006
+
+# =============================================================
+#  TIER DEFAULTS
+# =============================================================
+
+# Monthly credit allocations per tier
+TIER_ALLOCATIONS: Dict[str, int] = {
+    "free": 50,
+    "pro": 1_000,
+    "power": 5_000,
+    "trial": 50,
+}
+
+# How many days before a monthly reset happens
+_RESET_DAYS = 30
+
+
+def get_default_tier() -> str:
+    """Return the default tier for new users.
+
+    - If WIZTANT_DEV_MODE=true, default to 'power' for developer testing.
+    - If CURRENT_TIER is set explicitly, use that.
+    - Otherwise default to 'free' (published app behaviour).
+    """
+    dev_mode = os.getenv("WIZTANT_DEV_MODE", "").lower().strip()
+    if dev_mode in ("1", "true", "yes"):
+        return "power"
+    env_tier = os.getenv("CURRENT_TIER", "").lower().strip()
+    if env_tier in TIER_ALLOCATIONS:
+        return env_tier
+    return "free"
+
+
+def _parse_iso(dt_str: str) -> Optional[datetime]:
+    """Safely parse an ISO datetime string."""
+    if not dt_str:
+        return None
+    try:
+        # Handle both with and without timezone
+        s = str(dt_str).replace("Z", "+00:00")
+        return datetime.fromisoformat(s)
+    except Exception:
+        return None
+
+
+def _is_reset_due(reset_at_str: Optional[str]) -> bool:
+    """Check if 30 days have passed since the last reset."""
+    if not reset_at_str:
+        return True
+    reset_at = _parse_iso(reset_at_str)
+    if reset_at is None:
+        return True
+    now = datetime.now(timezone.utc)
+    # Make reset_at timezone-aware if it isn't
+    if reset_at.tzinfo is None:
+        reset_at = reset_at.replace(tzinfo=timezone.utc)
+    return (now - reset_at).days >= _RESET_DAYS
 
 
 # =============================================================
@@ -303,8 +360,35 @@ class CreditBalanceManager:
 
     # -- Balance operations --
 
+    def _check_monthly_reset(self, user_id: str, user_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Reset balance if 30 days have passed since last reset. Returns possibly-mutated user_data."""
+        reset_at = user_data.get("reset_at")
+        if _is_reset_due(reset_at):
+            tier = self.get_tier(user_id)
+            allocation = self.get_tier_credits(tier)
+            old_balance = user_data.get("balance", allocation)
+            user_data["balance"] = allocation
+            user_data["tier"] = tier
+            user_data["reset_at"] = datetime.now(timezone.utc).isoformat()
+            # Record the reset as a transaction for auditability
+            transactions = user_data.get("transactions", [])
+            transactions.append({
+                "feature": "monthly_reset",
+                "model": None,
+                "amount": 0,
+                "balance_after": allocation,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "note": f"Monthly reset: {old_balance} → {allocation} ({tier} plan)",
+            })
+            user_data["transactions"] = transactions[-100:]
+            self._set_user_data(user_id, user_data)
+            self._broadcast_update(user_id)
+            print(f"[CreditSystem] Monthly reset applied for {user_id}: {old_balance} → {allocation} ({tier})")
+        return user_data
+
     def get_balance(self, user_id: str) -> int:
-        """Get current credit balance for a user. Initializes new users with full tier allocation."""
+        """Get current credit balance for a user. Initializes new users with full tier allocation.
+        Automatically applies monthly reset if 30 days have passed."""
         # Try Supabase first
         try:
             from core.supabase_client import is_configured, get_client
@@ -313,12 +397,24 @@ class CreditBalanceManager:
                 if client:
                     result = (
                         client.table("credits")
-                        .select("balance")
+                        .select("balance, reset_at, tier")
                         .eq("user_id", user_id)
                         .execute()
                     )
                     if result.data:
-                        return result.data[0].get("balance", 0)
+                        row = result.data[0]
+                        reset_at = row.get("reset_at")
+                        if _is_reset_due(reset_at):
+                            tier = self.get_tier(user_id)
+                            allocation = self.get_tier_credits(tier)
+                            client.table("credits").update({
+                                "balance": allocation,
+                                "reset_at": datetime.now(timezone.utc).isoformat(),
+                            }).eq("user_id", user_id).execute()
+                            self._broadcast_update(user_id)
+                            print(f"[CreditSystem] Monthly reset applied (Supabase) for {user_id}: {row.get('balance')} → {allocation} ({tier})")
+                            return allocation
+                        return row.get("balance", 0)
                     else:
                         # Auto-init new Supabase user with tier allocation
                         tier = self.get_tier(user_id)
@@ -330,6 +426,8 @@ class CreditBalanceManager:
 
         # Fallback to local
         user_data = self._get_user_data(user_id)
+        # Check monthly reset BEFORE returning balance
+        user_data = self._check_monthly_reset(user_id, user_data)
         balance = user_data.get("balance")
         if balance is None:
             # Initialize new user with full tier allocation
@@ -337,6 +435,7 @@ class CreditBalanceManager:
             allocation = self.get_tier_credits(tier)
             user_data["balance"] = allocation
             user_data["tier"] = tier
+            user_data["reset_at"] = datetime.now(timezone.utc).isoformat()
             self._set_user_data(user_id, user_data)
             return allocation
         return balance
@@ -344,7 +443,7 @@ class CreditBalanceManager:
     def get_tier(self, user_id: str) -> str:
         """Get user's tier. Checks env var first, then Supabase, then local."""
         env_tier = os.getenv("CURRENT_TIER", "").lower().strip()
-        if env_tier in ("free", "pro", "power", "trial"):
+        if env_tier in TIER_ALLOCATIONS:
             return env_tier
 
         try:
@@ -359,21 +458,16 @@ class CreditBalanceManager:
                         .execute()
                     )
                     if result.data:
-                        return result.data[0].get("tier", "free")
+                        return result.data[0].get("tier", get_default_tier())
         except Exception:
             pass
 
         user_data = self._get_user_data(user_id)
-        return user_data.get("tier", "free")
+        return user_data.get("tier", get_default_tier())
 
     def get_tier_credits(self, tier: str) -> int:
         """Get monthly credit allocation for a tier."""
-        return {
-            "free": 50,
-            "pro": 1_000,
-            "power": 5_000,
-            "trial": 50,
-        }.get(tier.lower(), 0)
+        return TIER_ALLOCATIONS.get(tier.lower(), 0)
 
     def can_afford(self, user_id: str, amount: int) -> bool:
         """Check if user has enough credits."""
@@ -481,6 +575,7 @@ class CreditBalanceManager:
         """Reset credits to tier allocation (call on billing anniversary)."""
         tier = self.get_tier(user_id)
         allocation = self.get_tier_credits(tier)
+        now_iso = datetime.now(timezone.utc).isoformat()
 
         try:
             from core.supabase_client import is_configured, get_client
@@ -489,9 +584,10 @@ class CreditBalanceManager:
                 if client:
                     client.table("credits").update({
                         "balance": allocation,
-                        "reset_at": datetime.utcnow().isoformat(),
+                        "reset_at": now_iso,
                     }).eq("user_id", user_id).execute()
                     self._cache[user_id] = {"balance": allocation, "tier": tier}
+                    self._broadcast_update(user_id)
                     return
         except Exception:
             pass
@@ -499,12 +595,14 @@ class CreditBalanceManager:
         user_data = self._get_user_data(user_id)
         user_data["balance"] = allocation
         user_data["tier"] = tier
-        user_data["reset_at"] = datetime.utcnow().isoformat()
+        user_data["reset_at"] = now_iso
         self._set_user_data(user_id, user_data)
+        self._broadcast_update(user_id)
 
     def initialize_user(self, user_id: str, tier: str = "free") -> None:
         """Set up a new user with their tier allocation."""
         allocation = self.get_tier_credits(tier)
+        now_iso = datetime.now(timezone.utc).isoformat()
 
         try:
             from core.supabase_client import is_configured, get_client
@@ -515,7 +613,7 @@ class CreditBalanceManager:
                         "user_id": user_id,
                         "balance": allocation,
                         "tier": tier,
-                        "reset_at": datetime.utcnow().isoformat(),
+                        "reset_at": now_iso,
                     }).execute()
                     self._cache[user_id] = {"balance": allocation, "tier": tier}
                     return
@@ -526,6 +624,7 @@ class CreditBalanceManager:
         if user_data.get("balance", 0) == 0:
             user_data["balance"] = allocation
             user_data["tier"] = tier
+            user_data["reset_at"] = now_iso
             self._set_user_data(user_id, user_data)
 
 
@@ -579,6 +678,20 @@ def reset_monthly(user_id: str) -> None:
 
 def initialize_user(user_id: str, tier: str = "free") -> None:
     _get_manager().initialize_user(user_id, tier)
+
+
+def get_reset_at(user_id: str) -> Optional[str]:
+    """Return the ISO datetime of the last monthly reset for a user."""
+    user_data = _get_manager()._get_user_data(user_id)
+    return user_data.get("reset_at")
+
+
+def check_monthly_reset(user_id: str) -> bool:
+    """Explicitly check and apply monthly reset if due. Returns True if reset was applied."""
+    user_data = _get_manager()._get_user_data(user_id)
+    old_reset = user_data.get("reset_at")
+    updated = _get_manager()._check_monthly_reset(user_id, user_data)
+    return updated.get("reset_at") != old_reset
 
 
 def true_up_credits(

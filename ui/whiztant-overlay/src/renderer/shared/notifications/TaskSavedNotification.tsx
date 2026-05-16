@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
 import type { Task } from '../ipc';
+import TaskActionBar from './TaskActionBar';
 
 interface Props {
   task: Task;
@@ -58,96 +58,12 @@ export default function TaskSavedNotification({ task, compact, onSave, onDecline
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
-        <IconButton color="#22C55E" onClick={onSave} title="Approve">
-          <CheckIcon />
-        </IconButton>
-        <IconButton color="#EF4444" onClick={onDecline} title="Decline">
-          <XIcon />
-        </IconButton>
-        <IconButton color="#3B82F6" onClick={() => onEdit(task)} title="Edit">
-          <PencilIcon />
-        </IconButton>
-      </div>
+      <TaskActionBar
+        onApprove={onSave}
+        onDeny={onDecline}
+        onEdit={() => onEdit(task)}
+        compact={compact}
+      />
     </div>
-  );
-}
-
-function IconButton({
-  color,
-  onClick,
-  title,
-  children,
-}: {
-  color: string;
-  onClick: () => void;
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      style={{
-        flex: 1,
-        border: 'none',
-        background: color,
-        color: '#FFFFFF',
-        borderRadius: 8,
-        padding: '6px 0',
-        fontSize: 11,
-        fontWeight: 700,
-        cursor: 'pointer',
-        letterSpacing: 0.2,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 4,
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-      <path
-        d="M3 8.5l3.5 3.5L13 4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-      <path
-        d="M4 4l8 8M12 4l-8 8"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function PencilIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-      <path
-        d="M2 14l3-1 8-8-2-2-8 8-1 3z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }

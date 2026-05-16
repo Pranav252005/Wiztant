@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+import TaskActionBar from './TaskActionBar';
 
 interface DueAlertTask {
   id: string;
@@ -9,13 +10,16 @@ interface Props {
   tasks: DueAlertTask[];
   onReschedule: (id: string) => void | Promise<void>;
   onDismissAll: () => void | Promise<void>;
+  onSnooze: (id: string, minutes: number) => void;
+  onToggleDone: (id: string) => void;
+  onEdit: (id: string, title: string) => void;
   compact?: boolean;
 }
 
-export default function DueAlertNotification({ tasks, onReschedule, onDismissAll, compact }: Props) {
+export default function DueAlertNotification({ tasks, onReschedule, onDismissAll, onSnooze, onToggleDone, onEdit, compact }: Props) {
   const [expanded, setExpanded] = useState(false);
   const count = tasks.length;
-  const label = useMemo(() => `${count} task${count === 1 ? '' : 's'} due — not done`, [count]);
+  const label = `${count} task${count === 1 ? '' : 's'} due — not done`;
 
   if (!count) return null;
 
@@ -61,7 +65,7 @@ export default function DueAlertNotification({ tasks, onReschedule, onDismissAll
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 6,
+            gap: 8,
             padding: '0 10px 10px',
             maxHeight: 160,
             overflowY: 'auto',
@@ -92,23 +96,13 @@ export default function DueAlertNotification({ tasks, onReschedule, onDismissAll
               >
                 {task.title}
               </div>
-              <button
-                type="button"
-                onClick={() => void onReschedule(task.id)}
-                style={{
-                  border: 'none',
-                  background: '#EF4444',
-                  color: '#FAF6F1',
-                  borderRadius: 999,
-                  padding: '5px 10px',
-                  fontSize: 10,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                }}
-              >
-                Reschedule
-              </button>
+              <TaskActionBar
+                onApprove={() => onToggleDone(task.id)}
+                onDeny={() => void onReschedule(task.id)}
+                onSnooze={(minutes) => onSnooze(task.id, minutes)}
+                onEdit={() => onEdit(task.id, task.title)}
+                compact
+              />
             </div>
           ))}
         </div>

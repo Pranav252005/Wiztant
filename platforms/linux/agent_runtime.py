@@ -100,6 +100,57 @@ class LinuxAgentRuntime(BaseAgentRuntime):
     def get_foreground_app(self) -> str:
         return self._sys().get_foreground_app()
 
+    # ── Window Finding & Focus ────────────────────────────────────────────────
+
+    def find_window_by_title(self, substring: str) -> Optional[str]:
+        """Find a window whose title contains substring. Returns window ID or None."""
+        try:
+            result = subprocess.run(
+                ["xdotool", "search", "--name", substring],
+                capture_output=True, text=True, timeout=3,
+            )
+            if result.returncode == 0:
+                lines = result.stdout.strip().splitlines()
+                return lines[0].strip() if lines else None
+        except Exception:
+            pass
+        # Fallback: wmctrl list + manual match
+        try:
+            result = subprocess.run(
+                ["wmctrl", "-l"], capture_output=True, text=True, timeout=3,
+            )
+            if result.returncode == 0:
+                for line in result.stdout.strip().split("\n"):
+                    parts = line.split(None, 3)
+                    if len(parts) >= 4 and substring.lower() in parts[3].lower():
+                        return parts[0]
+        except Exception:
+            pass
+        return None
+
+    def focus_window_by_title(self, substring: str) -> Tuple[bool, str]:
+        """Find and focus a window by title substring."""
+        wid = self.find_window_by_title(substring)
+        if not wid:
+            return False, f"window_not_found:{substring}"
+        try:
+            subprocess.run(
+                ["xdotool", "windowactivate", "--sync", wid],
+                capture_output=True, timeout=5,
+            )
+            return True, f"focused_window:{wid}"
+        except Exception as e:
+            return False, f"focus_failed:{e}"
+
+    def clear_input_field(self) -> Tuple[bool, str]:
+        """Clear focused input via Ctrl+A + Delete."""
+        try:
+            self.hotkey("ctrl", "a")
+            self.press_key("delete")
+            return True, "cleared_input"
+        except Exception as e:
+            return False, f"clear_failed:{e}"
+
     # ── Display / Cursor ──────────────────────────────────────────────────────
 
     def screen_size(self) -> Tuple[int, int]:

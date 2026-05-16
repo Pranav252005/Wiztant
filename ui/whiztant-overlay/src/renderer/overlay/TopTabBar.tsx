@@ -5,8 +5,7 @@ import type { FeatureFlags } from '../settings/Settings';
 const ALL_TABS: { id: TopTabId; label: string; featureKey?: keyof FeatureFlags }[] = [
   { id: 'chat', label: 'Tune' },
   { id: 'wizprompt', label: 'RePrompt', featureKey: 'reprompt' },
-  { id: 'agent', label: 'Agent', featureKey: 'agent' },
-  { id: 'builder', label: 'Builder' },
+  { id: 'agent', label: 'Builder', featureKey: 'agent' },
   { id: 'tasks', label: 'TaskStack', featureKey: 'tasks' },
   { id: 'memories', label: 'Memories' },
 ];

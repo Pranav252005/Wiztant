@@ -303,6 +303,11 @@ _SYMBOL_REPLACEMENTS: List[Tuple[re.Pattern, str]] = [
     (re.compile(r"\bplus sign\b", re.IGNORECASE), "+"),
     # Equals
     (re.compile(r"\bequals sign\b", re.IGNORECASE), "="),
+    # Standalone symbols that may slip through or appear in non-email contexts
+    (re.compile(r"\bslash\b", re.IGNORECASE), "/"),
+    # NOTE: "\but\b" → "@" was removed because it destroys normal English sentences.
+    # Email @ conversion is already handled by the dedicated email scanner above.
+    (re.compile(r"\bat\s+the\s+rate\b", re.IGNORECASE), "@"),
 ]
 
 
@@ -434,6 +439,31 @@ def convert_entities(text: str) -> Tuple[str, int, List[str]]:
     return result, count, changes
 
 
+# ── Re-glue spaced sequences ─────────────────────────────────
+# Fixes cases where upstream _smart_punctuation() split apart glued tokens.
+_REGLUE_PATTERNS: List[Tuple[re.Pattern, str]] = [
+    # File extensions / TLDs
+    (re.compile(r'\.\s+(com|org|net|io|ai|py|js|ts|json|txt|md|html|css|env|exe|git|yml|yaml)', re.IGNORECASE), r'.\1'),
+    # @ symbol glued to domain/email local part
+    (re.compile(r'@\s+(\w+)'), r'@\1'),
+    # Slash glued to path
+    (re.compile(r'/\s+(\S+)'), r'/\1'),
+]
+
+
+def _reglue_spaced_sequences(text: str) -> Tuple[str, int]:
+    """Fix spaced-out extensions, URLs, and symbols. Returns (fixed_text, count)."""
+    if not text or not text.strip():
+        return text, 0
+    count = 0
+    for pattern, replacement in _REGLUE_PATTERNS:
+        new_text, n = pattern.subn(replacement, text)
+        if n:
+            text = new_text
+            count += n
+    return text, count
+
+
 def smart_dictate(text: str) -> dict:
     """
     Full smart dictation pipeline.
@@ -443,6 +473,7 @@ def smart_dictate(text: str) -> dict:
       2. entity fixes  (AI names, frameworks, file extensions)
       3. email conversion
       4. symbol conversion
+      5. re-glue       (fix spaced-out extensions / paths)
 
     Returns:
         {
@@ -463,6 +494,7 @@ def smart_dictate(text: str) -> dict:
             "entities_fixed": 0,
             "emails_converted": 0,
             "symbols_converted": 0,
+            "reglued": 0,
             "changes": [],
         }
 
@@ -481,6 +513,7 @@ def smart_dictate(text: str) -> dict:
                 "entities_fixed": 0,
                 "emails_converted": 0,
                 "symbols_converted": 0,
+                "reglued": 0,
                 "changes": changes,
             }
 
@@ -500,6 +533,11 @@ def smart_dictate(text: str) -> dict:
     if sym_count:
         changes.append(f"symbol: converted {sym_count} spoken symbol(s)")
 
+    # Step 5: re-glue spaced-out extensions / paths / emails
+    text, glue_count = _reglue_spaced_sequences(text)
+    if glue_count:
+        changes.append(f"re-glue: fixed {glue_count} spaced sequence(s)")
+
     return {
         "text": text,
         "original": original,
@@ -507,6 +545,7 @@ def smart_dictate(text: str) -> dict:
         "entities_fixed": entity_count,
         "emails_converted": email_count,
         "symbols_converted": sym_count,
+        "reglued": glue_count,
         "changes": changes,
     }
 

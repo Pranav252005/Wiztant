@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Tuple
 
 
 class ToolAdapter(ABC):
@@ -18,3 +18,8 @@ class ToolAdapter(ABC):
     @abstractmethod
     def is_available(self) -> bool:
         """Check if the target tool is installed/running."""
+
+    def _get_runtime(self):
+        """Lazy-load the platform agent runtime."""
+        from platforms.factory import get_agent_runtime
+        return get_agent_runtime()

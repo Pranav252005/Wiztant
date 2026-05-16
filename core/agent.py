@@ -654,7 +654,17 @@ def tool_paste_text(text="", **_):
     def _do():
         pyperclip.copy(str(text))
         time.sleep(0.25)
-        keyboard.press_and_release("ctrl+v")
+        # Use platform system access for reliable Ctrl+V instead of the
+        # keyboard library which can leave modifiers stuck.
+        try:
+            from platforms.factory import get_system_access
+            system = get_system_access()
+            ok, _ = system.hotkey("ctrl", "v")
+            if not ok:
+                # Final fallback — only if system access is unavailable
+                keyboard.press_and_release("ctrl+v")
+        except Exception:
+            keyboard.press_and_release("ctrl+v")
     threading.Thread(target=_do, daemon=True).start()
     return "Pasted."
 
@@ -1184,7 +1194,23 @@ def _transcribe_once_for_agent() -> str:
 
 def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool = False):
     import core.system_access as sys_access
-    
+
+    # ── Intent Gate: reject off-topic requests before any LLM call ──
+    try:
+        from core.agent_v2.intent_gate import gate_check
+        permitted, reason, confidence = gate_check(user_text, use_llm_fallback=True)
+        if not permitted:
+            print(f"[IntentGate] BLOCKED (confidence={confidence}): {reason[:80]}")
+            add_history_message("assistant", reason)
+            try:
+                from core.ws_bridge import send_pill_notice
+                send_pill_notice("error", "Off-topic request blocked", reason[:60])
+            except Exception:
+                pass
+            return
+    except Exception as e:
+        print(f"[IntentGate] Error (fail-open): {e}")
+
     # Handle undo commands directly
     low = user_text.lower().strip()
     if low in ["undo", "undo last"]:
@@ -1195,7 +1221,7 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
         res = sys_access.undo_all_actions()
         add_history_message("assistant", res)
         return
-        
+
     tier = usage.get_tier()
     model = get_model(tier)
 

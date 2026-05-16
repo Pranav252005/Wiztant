@@ -28,7 +28,7 @@ function easeOutCubic(t: number): number {
  * using a custom ease-out-cubic curve. Cancels any existing animation on
  * the same window so transitions never fight each other.
  */
-function animateWindowBounds(
+export function animateWindowBounds(
   win: BrowserWindow,
   target: Rectangle,
   durationMs: number = 350,
@@ -190,6 +190,47 @@ export function hasCursorChangedDisplay(prevId: number | null): number | null {
   }
 
   return disp.id !== prevId ? disp.id : prevId;
+}
+
+/**
+ * Animate a window sliding in from off-screen in a given direction.
+ * The window is first snapped to an off-screen start position, then
+ * eased to the target bounds using the existing tween engine.
+ */
+export function animateSlideIn(
+  win: BrowserWindow,
+  target: Rectangle,
+  direction: 'from-left' | 'from-right' | 'from-top' | 'from-bottom',
+  durationMs: number = 300,
+): void {
+  if (win.isDestroyed()) return;
+
+  const start: Rectangle = { ...target };
+  const pad = 20;
+
+  switch (direction) {
+    case 'from-left':
+      start.x = target.x - target.width - pad;
+      break;
+    case 'from-right': {
+      const disp = screen.getDisplayMatching(target);
+      start.x = disp.workArea.x + disp.workArea.width + pad;
+      break;
+    }
+    case 'from-top':
+      start.y = target.y - target.height - pad;
+      break;
+    case 'from-bottom': {
+      const disp = screen.getDisplayMatching(target);
+      start.y = disp.workArea.y + disp.workArea.height + pad;
+      break;
+    }
+  }
+
+  // Snap to off-screen start (no animation)
+  setWindowBounds(win, start, false);
+  // Tween to final position
+  animateWindowBounds(win, target, durationMs);
 }
 
 /** Get the Display object for the given id, or fallback to primary. */

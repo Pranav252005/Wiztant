@@ -227,9 +227,21 @@ def deactivate_license() -> bool:
 def get_current_tier() -> str:
     """
     Returns the active tier string ("free" / "pro" / "power").
-    Reads from the 24-hour cache; revalidates against LS if stale.
+
+    Priority:
+      1. CURRENT_TIER env var (dev mode / explicit override)
+      2. 24-hour cache (fast path)
+      3. Lemon Squeezy API revalidation
+      4. Cached tier fallback (graceful degradation)
+      5. "free" (ultimate fallback)
+
     Never raises — always returns a string.
     """
+    # 1. Respect explicit env override (dev mode, build flags, etc.)
+    env_tier = os.environ.get("CURRENT_TIER", "").lower().strip()
+    if env_tier in ("free", "pro", "power", "trial"):
+        return env_tier
+
     saved = _load_license_file()
     key = saved.get("key", "")
     if not key:

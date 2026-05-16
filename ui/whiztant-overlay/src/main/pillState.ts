@@ -1,7 +1,7 @@
 import { BrowserWindow, screen } from 'electron';
 import { IPC } from '../renderer/shared/ipc';
 import type { AppState, PillNoticePayload } from '../renderer/shared/ipc';
-import { getCursorDisplay, getPillBounds } from './positioning';
+import { getCursorDisplay, getPillBounds, animateWindowBounds } from './positioning';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 
@@ -84,12 +84,16 @@ export function setPillState(state: AppState): void {
   }
 }
 
-function resizePill(width: number, height: number): void {
+function resizePill(width: number, height: number, animate: boolean = true): void {
   if (!pillWin || pillWin.isDestroyed()) return;
   try {
     const disp = getCursorDisplay();
-    const bounds = getPillBounds(disp, width, height);
-    pillWin.setBounds(bounds, false);
+    const target = getPillBounds(disp, width, height);
+    if (animate) {
+      animateWindowBounds(pillWin, target, 280);
+    } else {
+      pillWin.setBounds(target, false);
+    }
   } catch {
     // Window may be in a bad state on Linux/Wayland.
   }
@@ -109,13 +113,13 @@ export function showPillNotice(payload: PillNoticePayload): void {
     clearTimeout(restoreTimer);
     restoreTimer = null;
   }
-    resizePill(EXPANDED_W, EXPANDED_H);
+    resizePill(EXPANDED_W, EXPANDED_H, true);
     pillWin.webContents.send(IPC.PILL_NOTICE, payload);
 
     const duration = Math.max(800, payload.duration_ms || 2600);
     restoreTimer = setTimeout(() => {
       restoreTimer = null;
-      if (!notificationSized) resizePill(BASE_W, BASE_H);
+      if (!notificationSized) resizePill(BASE_W, BASE_H, true);
     }, duration);
   } catch {
     // Renderer frame may be disposed on Linux/Wayland — ignore.
@@ -128,7 +132,7 @@ export function restorePillSize(): void {
     restoreTimer = null;
   }
   notificationSized = false;
-  resizePill(BASE_W, BASE_H);
+  resizePill(BASE_W, BASE_H, true);
 }
 
 /**
@@ -148,13 +152,13 @@ export function setPillNotificationSize(
     }
     if (!size) {
       notificationSized = false;
-      resizePill(BASE_W, BASE_H);
+      resizePill(BASE_W, BASE_H, true);
       return;
     }
     notificationSized = true;
     const w = Math.max(BASE_W, Math.min(MAX_NOTIF_W, Math.round(size.width)));
     const h = Math.max(BASE_H, Math.min(MAX_NOTIF_H, Math.round(size.height)));
-    resizePill(w, h);
+    resizePill(w, h, true);
   } catch {
     // Renderer frame may be disposed on Linux/Wayland — ignore.
   }
@@ -174,11 +178,11 @@ export function setDictationPreviewSize(active: boolean): void {
     }
     if (!active) {
       notificationSized = false;
-      resizePill(BASE_W, BASE_H);
+      resizePill(BASE_W, BASE_H, true);
       return;
     }
     notificationSized = true;
-    resizePill(PREVIEW_W, PREVIEW_H);
+    resizePill(PREVIEW_W, PREVIEW_H, true);
   } catch {
     // Renderer frame may be disposed on Linux/Wayland — ignore.
   }

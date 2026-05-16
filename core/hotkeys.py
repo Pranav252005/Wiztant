@@ -117,7 +117,6 @@ def _save_setting(key: str, value) -> None:
 
 
 _audio_stream = None
-recording_active = False
 _last_pasted_text: list = [""]  # single-element mutable cell for last dictation result
 _active_stt: StreamingSTT | None = None
 _last_stt_text: str = ""
@@ -358,10 +357,14 @@ def _start_mic_publisher():
 
 
 def _stop_mic_publisher():
-    global _mic_publisher_stop
+    global _mic_publisher_stop, _mic_publisher_thread
     if _mic_publisher_stop is not None:
         _mic_publisher_stop.set()
         _mic_publisher_stop = None
+    # Defensive: also clear the thread handle so the next start isn't
+    # blocked by a dying thread that hasn't exited yet.
+    if _mic_publisher_thread is not None:
+        _mic_publisher_thread = None
     # Push a final 0 so the pill wave settles immediately.
     _try_ws_send("mic", 0.0)
 
@@ -381,6 +384,29 @@ def audio_callback(indata, frames, time_info, status):
                 _active_stt.append_frame(audio_np.copy())
     except Exception as e:
         print(f"[Audio] callback error: {e}")
+
+
+def _ensure_audio_stream():
+    """Create or reuse the permanent microphone stream so F9/F10 is instant."""
+    global _audio_stream
+    import sounddevice as sd
+    if _audio_stream is None:
+        _audio_stream = sd.RawInputStream(
+            samplerate=16000,
+            blocksize=1024,
+            dtype="int16",
+            channels=1,
+            callback=audio_callback,
+            latency="low",
+        )
+    if not getattr(_audio_stream, "active", False):
+        try:
+            _audio_stream.start()
+        except Exception as e:
+            print(f"[Audio] Failed to start microphone stream: {e}")
+            _audio_stream = None
+            raise RuntimeError("Microphone unavailable") from e
+
 
 # =============================================================
 #  TRANSCRIBE + DISPATCH
@@ -910,26 +936,25 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
                 formatted, format_type="plain", window_id=_saved_window_id
             )
             if not paste_ok:
-                # Fallback: legacy smart_paste + clipboard
-                paste_ok = smart_paste(text, window_id=_saved_window_id)
-                if not paste_ok:
-                    if _copy_to_clipboard_robust(text):
-                        from core.ws_bridge import send_pill_notice
-                        send_pill_notice("added", "Copied to clipboard", text[:60])
-                    else:
-                        from core.ws_bridge import send_pill_notice
-                        send_pill_notice("error", "Clipboard failed", "Could not copy dictation text")
-        except Exception as e:
-            print(f"[STT] Pipeline error: {e}")
-            # Fallback to raw text
-            paste_ok = smart_paste(text, window_id=_saved_window_id)
-            if not paste_ok:
+                # Don't chain another Ctrl+V attempt — if the primary paste path
+                # failed it likely means keys are already stuck or focus is lost.
+                # Copy to clipboard so the user can paste manually instead of
+                # compounding a stuck-key situation.
                 if _copy_to_clipboard_robust(text):
                     from core.ws_bridge import send_pill_notice
                     send_pill_notice("added", "Copied to clipboard", text[:60])
                 else:
                     from core.ws_bridge import send_pill_notice
                     send_pill_notice("error", "Clipboard failed", "Could not copy dictation text")
+        except Exception as e:
+            print(f"[STT] Pipeline error: {e}")
+            # Same safety rule: no chained Ctrl+V attempts on error.
+            if _copy_to_clipboard_robust(text):
+                from core.ws_bridge import send_pill_notice
+                send_pill_notice("added", "Copied to clipboard", text[:60])
+            else:
+                from core.ws_bridge import send_pill_notice
+                send_pill_notice("error", "Clipboard failed", "Could not copy dictation text")
 
         if paste_ok:
             print(f"\n✅ PASTED: {text[:100]}")
@@ -969,7 +994,7 @@ _stop_recording_lock = threading.Lock()
 
 
 def start_recording():
-    global _audio_stream, recording_active, _active_stt, _last_stt_text, _last_start_time
+    global _audio_stream, _active_stt, _last_stt_text, _last_start_time
 
     # Credit gate for pure dictation (not agent voice input)
     if not state.agent_mode and not getattr(state, "_agent_running", False):
@@ -979,12 +1004,15 @@ def start_recording():
             if not can_afford(user_id, 1):
                 from core.toast import show_toast
                 from core.ws_bridge import send_pill_notice
-                show_toast("Dictation blocked: 0 credits", "Wiztant")
+                show_toast("Dictation blocked — out of credits", "Wiztant")
                 _try_ws_send("state", "error", "Insufficient credits for dictation. Upgrade at whiztant.app/pricing")
                 send_pill_notice("error", "0 Credits", "Dictation blocked. Upgrade at whiztant.app/pricing", duration_ms=4000)
                 return
-        except Exception:
-            pass
+        except Exception as e:
+            # Log the error but do not silently bypass the gate.
+            # If the credit system is broken, we allow dictation to fail-open
+            # so the user is not locked out of basic functionality.
+            print(f"[Hotkeys] Credit gate error (allowing dictation): {e}")
 
     cancel_pending_f9_taps()
 
@@ -998,25 +1026,17 @@ def start_recording():
             print(f"[Hotkeys] start_recording debounced ({now - _last_start_time:.2f}s)")
             return
         _last_start_time = now
-        state.recording = True
 
     # ═══════════════════════════════════════════════════════════════════════
-    #  IMMEDIATE FEEDBACK — user knows it's working before heavy audio init
-    #  (sd.RawInputStream creation can take 50-300 ms; feedback must not wait)
+    #  PRE-RECORDING SETUP — all heavy/slow work BEFORE state.recording = True
+    #  so the first 1–2 seconds of speech are never lost to init lag.
     # ═══════════════════════════════════════════════════════════════════════
-    print("\n🎙️  RECORDING STARTED — speak now, press F9 to stop")
-    print("[Hotkeys] start_recording called")
-    _try_ws_send("state", "listening")
-    if state.overlay:
-        state.overlay.set_listening()
-    _start_mic_publisher()
-
-    # ═══════════════════════════════════════════════════════════════════════
-    #  AUDIO SETUP — happens after feedback so F9 feels instant
-    # ═══════════════════════════════════════════════════════════════════════
-    state.audio_frames = []
-    recording_active = False
-    _last_stt_text = ""
+    try:
+        _ensure_audio_stream()
+    except Exception as e:
+        print(f"[Audio] Failed to open microphone: {e}")
+        _try_ws_send("state", "error", "Microphone unavailable")
+        return
 
     # Remember where the user was typing so paste lands on the right screen/field.
     _save_recording_focus()
@@ -1025,38 +1045,26 @@ def start_recording():
     _active_stt = StreamingSTT()
     _active_stt.start()
 
-    # Clean up any stale stream handle left by a previous crash
-    if _audio_stream is not None:
-        try:
-            _audio_stream.stop()
-            _audio_stream.close()
-        except Exception:
-            pass
-        _audio_stream = None
+    # Clear buffers atomically with the recording flag
+    state.audio_frames = []
+    _last_stt_text = ""
 
-    import sounddevice as sd
-    try:
-        _audio_stream = sd.RawInputStream(
-            samplerate=16000,
-            blocksize=1024,
-            dtype="int16",
-            channels=1,
-            callback=audio_callback,
-            latency="low",
-        )
-        _audio_stream.start()
-    except Exception as e:
-        print(f"[Audio] Failed to open microphone: {e}")
-        _try_ws_send("state", "error", "Microphone unavailable")
-        state.recording = False
-        _audio_stream = None
-        if _active_stt is not None:
-            _active_stt.request_stop()
-            _active_stt = None
+    # ═══════════════════════════════════════════════════════════════════════
+    #  START RECORDING — from this point the audio callback captures frames
+    # ═══════════════════════════════════════════════════════════════════════
+    state.recording = True
+
+    # Immediate feedback
+    print("\n🎙️  RECORDING STARTED — speak now, press F9 to stop")
+    print("[Hotkeys] start_recording called")
+    _try_ws_send("state", "listening")
+    if state.overlay:
+        state.overlay.set_listening()
+    _start_mic_publisher()
 
 
 def _stop_recording(process_audio: bool):
-    global _audio_stream, recording_active, _active_stt, _last_stt_text, _last_stop_time
+    global _audio_stream, _active_stt, _last_stt_text, _last_stop_time
 
     cancel_pending_f9_taps()
 
@@ -1070,12 +1078,9 @@ def _stop_recording(process_audio: bool):
             return
         _last_stop_time = now
         state.recording = False
-        recording_active = False
 
-    if _audio_stream is not None:
-        _audio_stream.stop()
-        _audio_stream.close()
-        _audio_stream = None
+    # Keep the microphone stream alive so the next F9 is instant.
+    # The callback ignores frames when state.recording is False.
 
     # Always stop the mic publisher so the pill wave settles.
     _stop_mic_publisher()
@@ -1279,42 +1284,34 @@ def _maybe_show_carry_over_digest():
 
 def _start_task_recording():
     """F10: Start a voice capture session that will be saved as a task."""
-    global _audio_stream, recording_active
+    global _audio_stream
 
     if state.recording:
         return
 
     _maybe_show_carry_over_digest()
 
+    try:
+        _ensure_audio_stream()
+    except Exception as e:
+        print(f"[Audio] Failed to open microphone: {e}")
+        _try_ws_send("state", "error", "Microphone unavailable")
+        return
+
     state.audio_frames = []
-    state.recording = True
     state._task_recording = True
-    recording_active = False
+
+    # Start recording atomically so no frames are lost during setup
+    state.recording = True
 
     if state.overlay:
         state.overlay.set_listening()
 
-    import sounddevice as sd
-    try:
-        _audio_stream = sd.RawInputStream(
-            samplerate=16000,
-            blocksize=1024,
-            dtype="int16",
-            channels=1,
-            callback=audio_callback,
-        )
-        _audio_stream.start()
-        time.sleep(0.05)
-        print("\n🎙️  RECORDING TASK — speak now, press F10 to save")
-        # Pass a "task" hint so the overlay can render the Add Task label variant.
-        _try_ws_send("state", "listening", "task")
-        _start_mic_publisher()
-    except Exception as e:
-        print(f"[Audio] Failed to open microphone: {e}")
-        _try_ws_send("state", "error", "Microphone unavailable")
-        state.recording = False
-        state._task_recording = False
-        _audio_stream = None
+    time.sleep(0.05)
+    print("\n🎙️  RECORDING TASK — speak now, press F10 to save")
+    # Pass a "task" hint so the overlay can render the Add Task label variant.
+    _try_ws_send("state", "listening", "task")
+    _start_mic_publisher()
 
 
 _TASK_JUNK_TOKENS = {

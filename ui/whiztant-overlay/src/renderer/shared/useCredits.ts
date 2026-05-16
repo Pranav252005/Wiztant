@@ -26,6 +26,8 @@ const TIER_ALLOCATIONS: Record<string, number> = {
   power: 5000,
 };
 
+const POLL_INTERVAL_MS = 10_000; // Poll every 10 seconds for real-time sync
+
 function getAuthHeaders(): Record<string, string> {
   try {
     const token = localStorage.getItem('whiztant.session_token');
@@ -120,6 +122,26 @@ export function useCredits() {
     fetchedRef.current = true;
     fetchBalance();
     refreshHistory();
+  }, [fetchBalance, refreshHistory]);
+
+  // Poll every 10 seconds so the UI stays in sync even if WebSocket messages are missed
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      fetchBalance();
+    }, POLL_INTERVAL_MS);
+    return () => window.clearInterval(id);
+  }, [fetchBalance]);
+
+  // Refetch when the overlay becomes visible (user re-opens after days)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        fetchBalance();
+        refreshHistory();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [fetchBalance, refreshHistory]);
 
   // Listen for real-time WebSocket updates

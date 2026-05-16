@@ -257,7 +257,6 @@ def license_tier():
     try:
         from core.license import get_current_tier
         tier = get_current_tier()
-        os.environ["CURRENT_TIER"] = tier
     except Exception:
         tier = os.environ.get("CURRENT_TIER", "free")
     return {"tier": tier}
@@ -368,17 +367,21 @@ async def wizprompt_examples(prompt: str, preset: str | None = None, limit: int 
 @app.get("/credits/balance")
 def credits_balance():
     try:
-        from core.credit_system import get_balance, get_tier, get_tier_credits, get_current_user_id
+        from core.credit_system import (
+            get_balance, get_tier, get_tier_credits, get_current_user_id, get_reset_at
+        )
         user_id = get_current_user_id()
         balance = get_balance(user_id)
         tier = get_tier(user_id)
         allocation = get_tier_credits(tier)
+        reset_at = get_reset_at(user_id)
         return {
             "ok": True,
             "user_id": user_id,
             "balance": balance,
             "tier": tier,
             "monthly_allocation": allocation,
+            "reset_at": reset_at,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -443,12 +446,14 @@ try:
     from core.agent_v2.phase_engine import PhaseEngine
     from core.agent_v2.memory import AgentMemoryV2
     from core.agent_v2.models import MasterPlan
+    from core.agent_v2.plan_executor import PlanExecutor
     _agent_v2_available = True
 except Exception as _e:
     print(f"[server] Agent v2 not available: {_e}")
     _agent_v2_available = False
 
 _agent_v2_engines: dict[str, PhaseEngine] = {}
+_agent_v2_executors: dict[str, PlanExecutor] = {}
 _agent_v2_memory = AgentMemoryV2() if _agent_v2_available else None
 
 
@@ -456,6 +461,19 @@ _agent_v2_memory = AgentMemoryV2() if _agent_v2_available else None
 async def agent_project_start(req: ProjectStartRequest):
     if not _agent_v2_available:
         raise HTTPException(status_code=503, detail="Agent v2 not available")
+
+    # ── Intent Gate: validate the build request ──
+    try:
+        from core.agent_v2.intent_gate import gate_check
+        permitted, reason, confidence = gate_check(req.description, use_llm_fallback=True)
+        if not permitted:
+            print(f"[IntentGate] BLOCKED build request (confidence={confidence}): {reason[:80]}")
+            raise HTTPException(status_code=400, detail=reason)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[IntentGate] Error in project start (fail-open): {e}")
+
     import uuid
     project_id = f"proj_{uuid.uuid4().hex[:8]}"
     planner = MasterPlanner()
@@ -472,13 +490,26 @@ async def agent_project_start(req: ProjectStartRequest):
     run_dir = _agent_v2_memory.ensure_run_dir(project_id, f"run_{project_id}")
     _agent_v2_memory.write_run_artifact(f"run_{project_id}", "master_plan.json", plan.model_dump())
     engine = PhaseEngine(plan)
+    executor = PlanExecutor(plan)
+
+    # Wire executor events to WebSocket bridge
+    def _bridge_emit(event_type: str, payload: dict) -> None:
+        try:
+            from core.ws_bridge import broadcast_sync
+            broadcast_sync({"type": event_type, "project_id": project_id, **payload})
+        except Exception:
+            pass
+
+    executor._emit = _bridge_emit
     _agent_v2_engines[project_id] = engine
+    _agent_v2_executors[project_id] = executor
     return {"project_id": project_id, "plan": plan.model_dump(), "run_dir": str(run_dir)}
 
 
 @app.get("/agent/project/{project_id}/status")
 async def agent_project_status(project_id: str):
     engine = _agent_v2_engines.get(project_id)
+    executor = _agent_v2_executors.get(project_id)
     if not engine:
         raise HTTPException(status_code=404, detail="Project not found")
     return {
@@ -488,25 +519,39 @@ async def agent_project_status(project_id: str):
         "current_phase": engine.plan.current_phase_id,
         "current_subphase": engine.plan.current_subphase_id,
         "plan": engine.plan.model_dump(),
+        "ui_score": getattr(executor, '_last_ui_score', None) if executor else None,
+        "needs_approval": engine.state.name in ("PAUSED", "CHECKPOINT"),
+        "approval_reason": getattr(executor, '_last_approval_reason', None) if executor else None,
     }
 
 
 @app.post("/agent/project/{project_id}/approve")
 async def agent_project_approve(project_id: str, req: ProjectActionRequest):
     engine = _agent_v2_engines.get(project_id)
+    executor = _agent_v2_executors.get(project_id)
     if not engine:
         raise HTTPException(status_code=404, detail="Project not found")
     if req.action == "approve":
         if engine.state.name == "IDLE":
             engine.start()
+            # Kick off async execution
+            if executor:
+                import asyncio
+                asyncio.create_task(executor.execute())
         else:
             engine.advance()
+            if executor:
+                executor.resume()
         return {"status": "ok", "state": engine.state.name}
     if req.action == "pause":
         engine.pause()
+        if executor:
+            executor.pause()
         return {"status": "paused", "state": engine.state.name}
     if req.action == "resume":
         engine.resume()
+        if executor:
+            executor.resume()
         return {"status": "resumed", "state": engine.state.name}
     raise HTTPException(status_code=400, detail="Invalid action")
 

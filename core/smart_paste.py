@@ -49,16 +49,25 @@ class SmartPasteEngine:
         if not text:
             return ""
 
-        # Remove common filler words anywhere in text
+        # For longer prose, use a gentler formatter that preserves content
+        word_count = len(text.split())
+        if word_count > 25:
+            # Long-form dictation: only strip true disfluencies, keep everything else
+            fillers = [r"\bum\b", r"\buh\b"]
+            for pattern in fillers:
+                text = re.sub(pattern, "", text, flags=re.IGNORECASE)
+            text = re.sub(r"\s{2,}", " ", text).strip()
+            # Capitalize first letter only
+            if text:
+                text = text[0].upper() + text[1:]
+            return text
+
+        # Short text (task titles): be a bit more aggressive with filler words
         fillers = [
             r"\bum\b",
             r"\buh\b",
-            r"\blike\b",
             r"\byeah\b",
             r"\bokay\b",
-            r"\bso\b",
-            r"\bright\b",
-            r"\bcorrect\b",
         ]
         for pattern in fillers:
             text = re.sub(pattern, "", text, flags=re.IGNORECASE)
@@ -136,14 +145,6 @@ class SmartPasteEngine:
             window_id: If provided on Linux, xdotool will send the key
                        directly to this window via --window.
         """
-        # Try keyboard library first (works on Windows and some Linux setups)
-        try:
-            import keyboard as _kb
-            _kb.press_and_release("ctrl+v")
-            return True
-        except Exception:
-            pass
-
         # Detect Wayland so we paste from the same clipboard backend we copied to.
         _is_wayland = (
             os.environ.get("XDG_SESSION_TYPE") == "wayland"
@@ -271,6 +272,17 @@ class SmartPasteEngine:
                 return True
         except Exception as e:
             print(f"[Paste] system access hotkey failed: {e}")
+
+        # ABSOLUTE LAST RESORT: keyboard library — known to occasionally leave
+        # modifiers stuck because it sends keydown/keyup with zero delay.
+        # Only use this when every other method has failed.
+        try:
+            import keyboard as _kb
+            _kb.press_and_release("ctrl+v")
+            print("[Paste] keyboard library ctrl+v succeeded")
+            return True
+        except Exception:
+            pass
 
         print("[Paste] No input backend available for Ctrl+V")
         return False

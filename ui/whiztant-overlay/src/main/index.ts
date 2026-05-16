@@ -1,5 +1,5 @@
 import { app, BrowserWindow, globalShortcut, screen, session, type Display } from 'electron';
-import { createPillWindow, createOverlayWindow } from './windows';
+import { createPillWindow, createOverlayWindow, setLinuxSticky } from './windows';
 import { registerIpcHandlers } from './ipc';
 import { registerShortcuts } from './shortcuts';
 import { bindPill } from './pillState';
@@ -9,6 +9,9 @@ import {
   getDisplayById,
   repositionPill,
   repositionOverlay,
+  getPillBounds,
+  getOverlayBounds,
+  animateSlideIn,
 } from './positioning';
 import {
   loadSavedPosition,
@@ -24,6 +27,13 @@ import {
   getLastCursorDisplayId,
   setLastCursorDisplayId,
 } from './monitorState';
+import {
+  startWorkspaceWatcher,
+  stopWorkspaceWatcher,
+  getWindowDesktop,
+  moveAllWindowsToDesktop,
+  findWindowIdsByTitle,
+} from './workspaceWatcher';
 
 let pill: BrowserWindow;
 let overlay: BrowserWindow;
@@ -166,8 +176,16 @@ function bootstrap(): void {
   // apps or system panes that temporarily take priority. This does NOT create
   // extra windows — it only re-applies a flag on the existing windows.
   topReassertTimer = setInterval(() => {
-    if (!pill.isDestroyed()) pill.setAlwaysOnTop(true, 'screen-saver');
-    if (!overlay.isDestroyed()) overlay.setAlwaysOnTop(true, 'screen-saver');
+    if (!pill.isDestroyed()) {
+      pill.setAlwaysOnTop(true, 'screen-saver');
+      pill.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: false });
+      setLinuxSticky(pill, 'whiztant-pill');
+    }
+    if (!overlay.isDestroyed()) {
+      overlay.setAlwaysOnTop(true, 'screen-saver');
+      overlay.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: false });
+      setLinuxSticky(overlay, 'whiztant-overlay');
+    }
   }, 2000);
 
   // Follow the cursor across monitors: smoothly animate pill + overlay to the
@@ -180,6 +198,77 @@ function bootstrap(): void {
       moveToDisplay(disp, true); // animate for smooth multi-monitor transition
     }
   }, 250);
+
+  // Watch virtual-desktop changes on Linux and move pill + overlay to the
+  // active desktop with a slide-in animation when they get left behind.
+  console.log('[Main] Platform:', process.platform);
+  if (process.platform === 'linux') {
+    console.log('[Main] Starting workspace watcher on Linux...');
+    startWorkspaceWatcher(async (event) => {
+      console.log('[Main] Workspace event:', event);
+      if (pill.isDestroyed()) {
+        console.warn('[Main] Pill is destroyed, skipping');
+        return;
+      }
+
+      // Search by window title — more reliable than PID because Chromium
+      // creates X11 windows from child processes, not the main process.
+      const pillIds = await findWindowIdsByTitle('whiztant-pill');
+      console.log(`[Main] Pill window IDs:`, pillIds);
+      if (!pillIds.length) {
+        console.warn('[Main] No pill window found. Is Electron running on native Wayland?');
+        console.warn('[Main] Try running with: ELECTRON_OZONE_PLATFORM_HINT=x11');
+        return;
+      }
+
+      const pillDesktop = await getWindowDesktop(pillIds[0]);
+      console.log(`[Main] Pill window ${pillIds[0]} desktop: ${pillDesktop}, target: ${event.desktop}`);
+      if (pillDesktop === null) {
+        console.warn('[Main] Could not determine pill desktop');
+        return;
+      }
+
+      if (pillDesktop === event.desktop) {
+        console.log('[Main] Already on correct desktop, no move needed');
+        return;
+      }
+
+      console.log(`[Main] Moving windows from desktop ${pillDesktop} to ${event.desktop}`);
+
+      // Fade out to avoid flash during the move
+      pill.setOpacity(0);
+      if (!overlay.isDestroyed() && overlay.isVisible()) {
+        overlay.setOpacity(0);
+      }
+
+      // Move all whiztant windows to the new desktop
+      const moved = await moveAllWindowsToDesktop(event.desktop);
+      console.log('[Main] Move result:', moved);
+
+      // Compute target bounds on the current display
+      const disp = getCursorDisplay();
+      const pb = getPillBounds(disp, pill.getBounds().width, pill.getBounds().height);
+      const ob = !overlay.isDestroyed() && overlay.isVisible()
+        ? getOverlayBounds(disp, pb)
+        : null;
+
+      // Slide in from the direction the user swiped FROM.
+      // Swiped right (desktop index increased) → enter from left.
+      const slideDir = event.direction === 'right' ? 'from-left' : 'from-right';
+      console.log(`[Main] Animating slide-in from ${slideDir}`);
+      animateSlideIn(pill, pb, slideDir, 280);
+      if (ob) animateSlideIn(overlay, ob, slideDir, 280);
+
+      // Restore opacity after the off-screen snap has been applied
+      setTimeout(() => {
+        if (!pill.isDestroyed()) pill.setOpacity(1);
+        if (!overlay.isDestroyed() && overlay.isVisible()) overlay.setOpacity(1);
+        console.log('[Main] Opacity restored');
+      }, 60);
+    });
+  } else {
+    console.log('[Main] Not Linux, skipping workspace watcher');
+  }
 
   // Heartbeat to Python bridge so launcher knows we are alive
   startBridgeHeartbeat();
@@ -198,6 +287,7 @@ app.on('will-quit', () => {
   if (cmdWatchTimer) clearInterval(cmdWatchTimer);
   if (wsHeartbeatTimer) clearInterval(wsHeartbeatTimer);
   if (monitorFollowTimer) clearInterval(monitorFollowTimer);
+  stopWorkspaceWatcher();
   closeBridge();
   globalShortcut.unregisterAll();
 });

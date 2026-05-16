@@ -14,7 +14,7 @@ import type { ThemeName } from '../shared/ipc';
 import TopTabBar from './TopTabBar';
 import TopTabContent from './TopTabContent';
 import TasksPanel, { type TaskHistoryItem, type TaskItem, type SortMode } from './TasksPanel';
-import AgentPanel from './AgentPanel';
+
 import WizPromptPanel from './WizPromptPanel';
 import MemoriesPanel, { type DictationMemory } from './MemoriesPanel';
 import TuneHubPanel from './TuneHubPanel';
@@ -133,7 +133,7 @@ export default function Overlay() {
   const bridgeConnected = useBridgeConnected();
   const [activeTopTab, setActiveTopTab] = useState<TopTabId>(() => {
     const stored = localStorage.getItem('wiz-top-tab');
-    return stored === 'agent' || stored === 'builder' || stored === 'tasks' || stored === 'chat' || stored === 'wizprompt' || stored === 'memories' ? stored : 'chat';
+    return stored === 'agent' || stored === 'tasks' || stored === 'chat' || stored === 'wizprompt' || stored === 'memories' ? stored : 'chat';
   });
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [taskHistory, setTaskHistory] = useState<TaskHistoryItem[]>([]);
@@ -592,7 +592,7 @@ export default function Overlay() {
         <TopTabContent
           activeTab={activeTopTab}
           wizprompt={features.reprompt ? <WizPromptPanel theme={theme} preloaded={wizPromptPreloaded} pendingText={repromptPendingText} onProcessChange={(s) => updateProcess('wizprompt', s)} /> : null}
-          agent={features.agent ? <AgentPanel theme={theme} onProcessChange={(s) => updateProcess('agent', s)} /> : null}
+          agent={features.agent ? <ProjectBuilderPanel theme={theme} /> : null}
           tasks={features.tasks ? (
             <TasksPanel
               theme={theme}
@@ -620,7 +620,7 @@ export default function Overlay() {
           ) : null}
           memories={<MemoriesPanel theme={theme} memories={dictationMemories} filter={memoriesFilter} onFilterChange={setMemoriesFilter} />}
           chat={<TuneHubPanel theme={theme} onProcessChange={(s) => updateProcess('tunehub', s)} />}
-          builder={<ProjectBuilderPanel />}
+
         />
       </div>
 

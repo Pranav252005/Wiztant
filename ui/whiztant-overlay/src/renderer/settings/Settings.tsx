@@ -1105,7 +1105,7 @@ function CreditsTab({ theme }: { theme: Theme['panel'] }) {
         </div>
 
         {/* Zero-credits warning */}
-        {credits.balance === 0 && (
+        {credits.balance === 0 && !credits.loading && (
           <div
             style={{
               marginTop: 12,
@@ -1120,7 +1120,7 @@ function CreditsTab({ theme }: { theme: Theme['panel'] }) {
           >
             <strong>⚠️ 0 credits remaining</strong>
             <br />
-            Dictation, Agent, RePrompt, and TuneHub are blocked. Upgrade your plan to continue.
+            You have used all your credits for this period. Upgrade your plan to continue using AI features.
           </div>
         )}
       </section>

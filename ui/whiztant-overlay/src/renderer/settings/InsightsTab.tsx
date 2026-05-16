@@ -19,12 +19,14 @@ interface InsightsPayload {
   current_streak?: number;
   longest_streak?: number;
   today?: Record<string, number>;
+  daily_history?: DailyRow[];
 }
 
 interface DailyRow {
   date: string;
   activity_score: number;
-  [key: string]: number | string;
+  active_minutes?: number;
+  [key: string]: number | string | undefined;
 }
 
 // ─── useCountUp ───────────────────────────────────────────────
@@ -132,47 +134,15 @@ function StatCard({ value, label, sublabel, theme, delay = 0 }: {
   );
 }
 
-// ─── UsageBar ─────────────────────────────────────────────────
-function UsageBar({ label, value, total, color, theme, delay = 0 }: {
-  label: string;
-  value: number;
-  total: number;
-  color: string;
-  theme: Theme['panel'];
-  delay?: number;
-}) {
-  const pct = total > 0 ? (value / total) * 100 : 0;
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -12 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.35, delay }}
-      style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: theme.textMuted }}>
-        <span>{label}</span>
-        <span>{value.toLocaleString()}</span>
-      </div>
-      <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.8, delay: delay + 0.15, ease: 'easeOut' }}
-          style={{ height: '100%', borderRadius: 4, background: color }}
-        />
-      </div>
-    </motion.div>
-  );
-}
-
 // ─── Heatmap ──────────────────────────────────────────────────
 function Heatmap({ data, theme }: { data: DailyRow[]; theme: Theme['panel'] }) {
   // Build a 7×20 grid (≈ 5 months) sized to fit without horizontal scroll
   const weeks = 20;
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // Normalize activity_score to 0..4 for color intensity
-  const maxScore = Math.max(1, ...data.map((d) => d.activity_score || 0));
+  // Color intensity based on active_minutes (usage duration).
+  // 120 minutes (~2 hours) = max intensity (level 4).
+  const MAX_MINUTES = 120;
   const colorScale = [
     'rgba(255,255,255,0.04)',
     'rgba(255,255,255,0.12)',
@@ -216,15 +186,15 @@ function Heatmap({ data, theme }: { data: DailyRow[]; theme: Theme['panel'] }) {
             <div key={w} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {Array.from({ length: 7 }, (_, d) => {
                 const row = grid[d][w];
-                const score = row?.activity_score || 0;
-                const level = Math.min(4, Math.floor((score / maxScore) * 4));
+                const minutes = row?.active_minutes ?? row?.activity_score ?? 0;
+                const level = Math.min(4, Math.floor((minutes / MAX_MINUTES) * 4));
                 return (
                   <motion.div
                     key={d}
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.25, delay: (w * 7 + d) * 0.003 }}
-                    title={row ? `${row.date}: ${score} activity` : ''}
+                    title={row ? `${row.date}: ${minutes} min` : ''}
                     style={{
                       width: 8,
                       height: 8,
@@ -292,9 +262,11 @@ export default function InsightsTab({ theme }: { theme: Theme['panel'] }) {
     }
   }, [insights]);
 
-  // Build demo daily data if none (all zeros / empty heatmap)
+  // Populate daily history from backend payload, fallback to zero-fill
   useEffect(() => {
-    if (daily.length === 0) {
+    if (insights.daily_history && insights.daily_history.length > 0) {
+      setDaily(insights.daily_history);
+    } else if (daily.length === 0) {
       const rows: DailyRow[] = [];
       const today = new Date();
       for (let i = 0; i < 180; i++) {
@@ -303,30 +275,20 @@ export default function InsightsTab({ theme }: { theme: Theme['panel'] }) {
         rows.push({
           date: d.toISOString().slice(0, 10),
           activity_score: 0,
+          active_minutes: 0,
           words_dictated: 0,
           fixes_made: 0,
         });
       }
       setDaily(rows);
     }
-  }, [daily.length]);
+  }, [insights.daily_history, daily.length]);
 
   const totalWords = insights.total_words_dictated || 0;
   const totalFixes = insights.total_fixes_made || 0;
   const wordsRemoved = insights.total_words_removed || 0;
   const currentStreak = insights.current_streak || 0;
   const longestStreak = insights.longest_streak || 0;
-
-  // Desktop usage breakdown
-  const usageItems = [
-    { label: 'Work messages', value: insights.work_messages || 0, color: '#4A9B8E' },
-    { label: 'AI prompts', value: insights.ai_prompts || 0, color: '#4A9B8E' },
-    { label: 'Personal messages', value: insights.personal_messages || 0, color: '#4A9B8E' },
-    { label: 'Documents', value: insights.documents_touched || 0, color: '#6BB3A8' },
-    { label: 'Voice commands', value: insights.voice_commands || 0, color: '#8ECDC4' },
-    { label: 'Other tasks', value: insights.other_tasks || 0, color: '#8ECDC4' },
-  ];
-  const usageTotal = usageItems.reduce((s, i) => s + i.value, 0) || 1;
 
   const accent = theme.aiAccent;
 
@@ -373,41 +335,8 @@ export default function InsightsTab({ theme }: { theme: Theme['panel'] }) {
             />
           </div>
 
-          {/* Desktop usage + Streak */}
+          {/* Streak */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.24 }}
-              style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: `1px solid ${theme.border}`,
-                borderRadius: 12,
-                padding: 14,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 10,
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>Desktop usage</span>
-                <span style={{ fontSize: 10, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  Total apps used | {(insights.apps_used || 0).toLocaleString()}
-                </span>
-              </div>
-              {usageItems.map((item, i) => (
-                <UsageBar
-                  key={item.label}
-                  label={item.label}
-                  value={item.value}
-                  total={usageTotal}
-                  color={item.color}
-                  theme={theme}
-                  delay={0.3 + i * 0.06}
-                />
-              ))}
-            </motion.div>
-
             <motion.div
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}

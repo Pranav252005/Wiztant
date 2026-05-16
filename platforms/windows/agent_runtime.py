@@ -105,6 +105,49 @@ class WindowsAgentRuntime(BaseAgentRuntime):
     def get_foreground_app(self) -> str:
         return self._sys().get_foreground_app()
 
+    # ── Window Finding & Focus ────────────────────────────────────────────────
+
+    def find_window_by_title(self, substring: str) -> Optional[int]:
+        """Find a window whose title contains substring. Returns hwnd or None."""
+        try:
+            import win32gui
+            results: List[Tuple[str, int]] = []
+            def _cb(hwnd, _):
+                if win32gui.IsWindowVisible(hwnd):
+                    t = win32gui.GetWindowText(hwnd) or ""
+                    if substring.lower() in t.lower():
+                        results.append((t, hwnd))
+            win32gui.EnumWindows(_cb, None)
+            return results[0][1] if results else None
+        except Exception:
+            return None
+
+    def focus_window_by_title(self, substring: str) -> Tuple[bool, str]:
+        """Find and focus a window by title substring."""
+        hwnd = self.find_window_by_title(substring)
+        if not hwnd:
+            return False, f"window_not_found:{substring}"
+        try:
+            import win32gui, win32con
+            placement = win32gui.GetWindowPlacement(hwnd)
+            if placement[1] == win32con.SW_SHOWMINIMIZED:
+                win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+                time.sleep(0.3)
+            win32gui.SetForegroundWindow(hwnd)
+            time.sleep(0.4)
+            return True, f"focused_window:{hwnd}"
+        except Exception as e:
+            return False, f"focus_failed:{e}"
+
+    def clear_input_field(self) -> Tuple[bool, str]:
+        """Clear focused input via Ctrl+A + Delete."""
+        try:
+            self.hotkey("ctrl", "a")
+            self.press_key("delete")
+            return True, "cleared_input"
+        except Exception as e:
+            return False, f"clear_failed:{e}"
+
     # ── Display / Cursor ──────────────────────────────────────────────────────
 
     def screen_size(self) -> Tuple[int, int]:

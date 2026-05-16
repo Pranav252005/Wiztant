@@ -511,8 +511,22 @@ def execute_agent_undo(undo_id: str) -> bool:
 
         elif undo_action == "clear_text":
             try:
-                _keyboard.send("ctrl+a")
-                _keyboard.send("delete")
+                # Explicit press/release with safety net to avoid stuck keys.
+                # The keyboard library uses string names; release in reverse.
+                pressed = []
+                for k in ("ctrl", "a"):
+                    _keyboard.press(k)
+                    pressed.append(k)
+                for k in reversed(pressed):
+                    try:
+                        _keyboard.release(k)
+                    except Exception:
+                        pass
+                _keyboard.press("delete")
+                try:
+                    _keyboard.release("delete")
+                except Exception:
+                    pass
             except Exception:
                 pass
 

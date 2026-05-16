@@ -108,16 +108,20 @@ class STTRefiner:
 
         vocab_str = json.dumps(self.vocab_db, indent=2) if self.vocab_db else "{}"
 
+        # Dynamic max_tokens: generous headroom so long dictation never gets truncated
+        input_word_count = len(partial_text.split())
+        max_tokens = max(300, input_word_count * 3)
+
         # Strict prompt to prevent hallucination
-        prompt = f"""TASK: Fix speech-to-text errors in task title. ONLY fix actual errors.
+        prompt = f"""TASK: Fix speech-to-text errors in the transcript. ONLY fix actual errors.
 
 RULES (STRICT):
 1. ONLY apply vocabulary replacements below. NO other changes.
 2. Fix homophones (their/there), run-on words, missing punctuation.
 3. Convert spoken emails: "name at domain dot com" → "name@domain.com"
 4. Handle scratch-that: remove everything before "scratch that" / "delete that" / "no wait" / "actually i meant" and keep only what follows.
-5. Preserve original intent. No rewording.
-6. Keep under 50 words.
+5. Preserve original intent. No rewording, no summarizing, no shortening.
+6. PRESERVE FULL LENGTH — do NOT shorten, summarize, or truncate the text. The output must contain every idea and detail from the input.
 7. Return ONLY valid JSON. No markdown. No preamble.
 
 VOCABULARY (apply ONLY these):
@@ -138,7 +142,7 @@ OUTPUT JSON (no markdown, no backticks):
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
-                max_tokens=150,
+                max_tokens=max_tokens,
                 timeout=timeout,
             )
 
@@ -164,6 +168,17 @@ OUTPUT JSON (no markdown, no backticks):
             ) / n
 
             refined = result.get("refined", partial_text)
+
+            # Length guard: if the model shortened the text dramatically, reject it
+            original_words = len(partial_text.split())
+            refined_words = len(refined.split()) if refined else 0
+            if original_words > 10 and refined_words < original_words * 0.6:
+                logger.warning(
+                    f"Refiner shortened text too much ({original_words} -> {refined_words} words); "
+                    f"keeping original."
+                )
+                refined = partial_text
+
             logger.info(
                 f"Refined: '{partial_text[:40]}...' -> '{refined[:40]}...' ({latency:.0f}ms)"
             )

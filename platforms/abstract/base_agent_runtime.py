@@ -75,6 +75,20 @@ class BaseAgentRuntime(abc.ABC):
     def get_foreground_app(self) -> str:
         """Return the class name / title of the currently focused window."""
 
+    # ── Window Finding & Focus (for IDE adapters) ─────────────────────────────
+
+    @abc.abstractmethod
+    def find_window_by_title(self, substring: str) -> Optional[Any]:
+        """Find a window whose title contains substring. Returns window ID/handle or None."""
+
+    @abc.abstractmethod
+    def focus_window_by_title(self, substring: str) -> Tuple[bool, str]:
+        """Find and focus a window by title substring. Returns (success, message)."""
+
+    @abc.abstractmethod
+    def clear_input_field(self) -> Tuple[bool, str]:
+        """Clear the currently focused input field (Ctrl+A + Delete)."""
+
     # ── Display / Cursor ──────────────────────────────────────────────────────
 
     @abc.abstractmethod

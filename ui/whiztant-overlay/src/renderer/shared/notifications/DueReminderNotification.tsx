@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import TaskActionBar from './TaskActionBar';
 
 interface DueReminderTask {
   id: string;
@@ -9,10 +10,13 @@ interface DueReminderTask {
 interface Props {
   tasks: DueReminderTask[];
   onDismiss: () => void;
+  onSnooze: (id: string, minutes: number) => void;
+  onToggleDone: (id: string) => void;
+  onEdit: (id: string, title: string) => void;
   compact?: boolean;
 }
 
-export default function DueReminderNotification({ tasks, onDismiss, compact }: Props) {
+export default function DueReminderNotification({ tasks, onDismiss, onSnooze, onToggleDone, onEdit, compact }: Props) {
   const [expanded, setExpanded] = useState(false);
   if (!tasks.length) return null;
 
@@ -58,7 +62,7 @@ export default function DueReminderNotification({ tasks, onDismiss, compact }: P
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 6,
+            gap: 8,
             padding: '0 10px 10px',
             maxHeight: 160,
             overflowY: 'auto',
@@ -72,13 +76,30 @@ export default function DueReminderNotification({ tasks, onDismiss, compact }: P
                 border: '1px solid rgba(196,149,106,0.4)',
                 background: 'rgba(196,149,106,0.08)',
                 padding: '8px 8px',
-                color: '#FAF6F1',
-                fontSize: 11,
-                lineHeight: 1.4,
-                wordBreak: 'break-word',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
               }}
             >
-              {task.title}
+              <div
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  color: '#FAF6F1',
+                  fontSize: 11,
+                  lineHeight: 1.4,
+                  wordBreak: 'break-word',
+                }}
+              >
+                {task.title}
+              </div>
+              <TaskActionBar
+                onApprove={() => onToggleDone(task.id)}
+                onDeny={onDismiss}
+                onSnooze={(minutes) => onSnooze(task.id, minutes)}
+                onEdit={() => onEdit(task.id, task.title)}
+                compact
+              />
             </div>
           ))}
         </div>

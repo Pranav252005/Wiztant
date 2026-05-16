@@ -6,6 +6,7 @@ import type { ThemeName } from '../shared/ipc';
 interface DailyRow {
   date: string;
   activity_score: number;
+  active_minutes?: number;
   words_dictated?: number;
   fixes_made?: number;
   [key: string]: number | string | undefined;
@@ -60,7 +61,9 @@ export default function StreakPanel() {
   const weeks = 20;
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  const maxScore = Math.max(1, ...daily.map((d) => d.activity_score || 0));
+  // Color intensity based on active_minutes (usage duration).
+  // 120 minutes (~2 hours) = max intensity (level 4).
+  const MAX_MINUTES = 120;
   const colorScale = [
     'rgba(255,255,255,0.04)',
     'rgba(255,255,255,0.12)',
@@ -158,15 +161,15 @@ export default function StreakPanel() {
                 <div key={w} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {Array.from({ length: 7 }, (_, d) => {
                     const row = grid[d][w];
-                    const score = row?.activity_score || 0;
-                    const level = Math.min(4, Math.floor((score / maxScore) * 4));
+                    const minutes = row?.active_minutes ?? row?.activity_score ?? 0;
+                    const level = Math.min(4, Math.floor((minutes / MAX_MINUTES) * 4));
                     return (
                       <motion.div
                         key={d}
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.25, delay: (w * 7 + d) * 0.003 }}
-                        title={row ? `${row.date}: ${score} activity` : ''}
+                        title={row ? `${row.date}: ${minutes} min` : ''}
                         style={{
                           width: 8,
                           height: 8,
@@ -234,7 +237,7 @@ export default function StreakPanel() {
             Recent Activity
           </div>
           {daily
-            .filter((d) => d.activity_score > 0)
+            .filter((d) => (d.active_minutes ?? d.activity_score ?? 0) > 0)
             .slice(0, 14)
             .map((row, i) => (
               <motion.div
@@ -253,10 +256,10 @@ export default function StreakPanel() {
                 }}
               >
                 <span style={{ fontSize: 11, color: theme.text }}>{row.date}</span>
-                <span style={{ fontSize: 11, color: theme.textMuted }}>{row.activity_score} activity</span>
+                <span style={{ fontSize: 11, color: theme.textMuted }}>{row.active_minutes ?? row.activity_score ?? 0} min</span>
               </motion.div>
             ))}
-          {daily.filter((d) => d.activity_score > 0).length === 0 && (
+          {daily.filter((d) => (d.active_minutes ?? d.activity_score ?? 0) > 0).length === 0 && (
             <div style={{ fontSize: 11, color: theme.textMuted, textAlign: 'center', padding: 20 }}>
               No activity yet. Start using Wiztant to build your streak!
             </div>

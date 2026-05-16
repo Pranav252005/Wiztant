@@ -197,11 +197,12 @@ async def _handler(websocket):
 
                 elif msg_type == "request_insights":
                     try:
-                        from core.insights_tracker import load_insights
+                        from core.insights_tracker import load_insights, get_daily_summary
                         data = load_insights()
                         lifetime = data.get("lifetime", {})
                         today = datetime.now().strftime("%Y-%m-%d")
                         daily_today = data.get("daily", {}).get(today, {})
+                        daily_history = get_daily_summary(180)
                         await websocket.send(json.dumps({
                             "type": "insights_update",
                             "payload": {
@@ -219,6 +220,7 @@ async def _handler(websocket):
                                 "current_streak": data.get("current_streak", 0),
                                 "longest_streak": data.get("longest_streak", 0),
                                 "today": daily_today,
+                                "daily_history": daily_history,
                             }
                         }))
                     except Exception as e:

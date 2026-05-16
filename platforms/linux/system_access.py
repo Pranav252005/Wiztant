@@ -335,14 +335,22 @@ class LinuxSystemAccess(BaseSystemAccess):
         if self._pynput_ok and not is_wayland:
             try:
                 kobj = self._key_name_to_pynput(key)
-                if isinstance(kobj, str):
-                    self._keyboard.press(kobj)
-                    self._keyboard.release(kobj)
-                else:
-                    self._keyboard.press(kobj)
-                    self._keyboard.release(kobj)
-                time.sleep(0.12)
-                return True, f"pressed {key}"
+                pressed = []
+                try:
+                    if isinstance(kobj, str):
+                        self._keyboard.press(kobj)
+                        pressed.append(kobj)
+                    else:
+                        self._keyboard.press(kobj)
+                        pressed.append(kobj)
+                    time.sleep(0.12)
+                    return True, f"pressed {key}"
+                finally:
+                    for k in reversed(pressed):
+                        try:
+                            self._keyboard.release(k)
+                        except Exception:
+                            pass
             except Exception as e:
                 return False, f"press failed: {e}"
         if shutil.which("xdotool"):
@@ -355,14 +363,22 @@ class LinuxSystemAccess(BaseSystemAccess):
         if self._pynput_ok:
             try:
                 kobj = self._key_name_to_pynput(key)
-                if isinstance(kobj, str):
-                    self._keyboard.press(kobj)
-                    self._keyboard.release(kobj)
-                else:
-                    self._keyboard.press(kobj)
-                    self._keyboard.release(kobj)
-                time.sleep(0.12)
-                return True, f"pressed {key} (pynput fallback)"
+                pressed = []
+                try:
+                    if isinstance(kobj, str):
+                        self._keyboard.press(kobj)
+                        pressed.append(kobj)
+                    else:
+                        self._keyboard.press(kobj)
+                        pressed.append(kobj)
+                    time.sleep(0.12)
+                    return True, f"pressed {key} (pynput fallback)"
+                finally:
+                    for k in reversed(pressed):
+                        try:
+                            self._keyboard.release(k)
+                        except Exception:
+                            pass
             except Exception as e:
                 return False, f"press failed: {e}"
         return False, "no input backend available"
@@ -380,12 +396,21 @@ class LinuxSystemAccess(BaseSystemAccess):
         if self._pynput_ok and not is_wayland:
             try:
                 kobjs = [self._key_name_to_pynput(k) for k in keys]
-                for k in kobjs:
-                    self._keyboard.press(k)
-                for k in reversed(kobjs):
-                    self._keyboard.release(k)
-                time.sleep(0.12)
-                return True, f"hotkey {'+'.join(keys)}"
+                try:
+                    for k in kobjs:
+                        self._keyboard.press(k)
+                    for k in reversed(kobjs):
+                        self._keyboard.release(k)
+                    time.sleep(0.12)
+                    return True, f"hotkey {'+'.join(keys)}"
+                finally:
+                    # Safety net: ensure every key is released even if an
+                    # exception is thrown mid-sequence (prevents stuck modifiers).
+                    for k in reversed(kobjs):
+                        try:
+                            self._keyboard.release(k)
+                        except Exception:
+                            pass
             except Exception as e:
                 return False, f"hotkey failed: {e}"
         if shutil.which("xdotool"):
@@ -398,12 +423,19 @@ class LinuxSystemAccess(BaseSystemAccess):
         if self._pynput_ok:
             try:
                 kobjs = [self._key_name_to_pynput(k) for k in keys]
-                for k in kobjs:
-                    self._keyboard.press(k)
-                for k in reversed(kobjs):
-                    self._keyboard.release(k)
-                time.sleep(0.12)
-                return True, f"hotkey {'+'.join(keys)} (pynput fallback)"
+                try:
+                    for k in kobjs:
+                        self._keyboard.press(k)
+                    for k in reversed(kobjs):
+                        self._keyboard.release(k)
+                    time.sleep(0.12)
+                    return True, f"hotkey {'+'.join(keys)} (pynput fallback)"
+                finally:
+                    for k in reversed(kobjs):
+                        try:
+                            self._keyboard.release(k)
+                        except Exception:
+                            pass
             except Exception as e:
                 return False, f"hotkey failed: {e}"
         return False, "no input backend available"

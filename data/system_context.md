@@ -1,9 +1,9 @@
 # System Context — fedora
-Generated: 2026-05-08 20:14:26
-Last Updated: 2026-05-08 20:14:26
+Generated: 2026-05-17 01:56:31
+Last Updated: 2026-05-17 01:56:31
 Scan Type: Lightweight Update
-Next Hourly Update: 2026-05-08 21:14:26
-Next Daily Full Scan: 2026-05-09 00:00:00 (midnight)
+Next Hourly Update: 2026-05-17 02:56:31
+Next Daily Full Scan: 2026-05-18 00:00:00 (midnight)
 
 ## System Information
 - **OS**: Linux 6.19.12-200.fc43.x86_64
@@ -30,6 +30,7 @@ Next Daily Full Scan: 2026-05-09 00:00:00 (midnight)
 - **hermes-agent**: /home/pranavvv/hermes-agent
 - **outreach_results**: /home/pranavvv/outreach_results
 - **Wiztant**: /home/pranavvv/Wiztant
+- **nirvaan**: /home/pranavvv/nirvaan
 
 ## Environment Variables (PATH)
 /home/pranavvv/.pyenv/versions/3.11.12/bin
@@ -55,6 +56,7 @@ Next Daily Full Scan: 2026-05-09 00:00:00 (midnight)
 
 ## Running Processes (Desktop Apps Currently Active)
 - (sd-pam)
+- (udev-worker)
 - DiscoverNotifier
 - Isolated Servic
 - Isolated Web Co
@@ -93,7 +95,6 @@ Next Daily Full Scan: 2026-05-09 00:00:00 (midnight)
 - akonadi_migration_agent
 - akonadi_newmailnotifier_agent
 - akonadi_sendlater_agent
-- akonadi_unifiedmailbox_agent
 
 ## Quick Navigation Tips for Agent
 1. **Check browsers section** before opening a browser — use the path listed above.

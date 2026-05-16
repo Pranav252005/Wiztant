@@ -6,17 +6,15 @@ type Props = {
   chat: ReactNode;
   wizprompt: ReactNode;
   agent: ReactNode;
-  builder: ReactNode;
   tasks: ReactNode;
   memories: ReactNode;
 };
 
-export default function TopTabContent({ activeTab, chat, wizprompt, agent, builder, tasks, memories }: Props) {
+export default function TopTabContent({ activeTab, chat, wizprompt, agent, tasks, memories }: Props) {
   const tabs: [TopTabId, ReactNode][] = [
     ['chat', chat],
     ['wizprompt', wizprompt],
     ['agent', agent],
-    ['builder', builder],
     ['tasks', tasks],
     ['memories', memories],
   ];

@@ -218,15 +218,6 @@ def smart_paste(text: str, window_id: Optional[str] = None) -> bool:
     clipboard_delay = 0.5 if sys.platform != "win32" else 0.2
     time.sleep(clipboard_delay)
 
-    # Try keyboard library first (works on Windows and some Linux setups)
-    try:
-        import keyboard as _kb
-        _kb.press_and_release("ctrl+v")
-        print("[Paste] keyboard library ctrl+v succeeded")
-        return True
-    except Exception:
-        pass
-
     # If we have a specific window ID, send directly to it before trying
     # generic focus-dependent tools.
     if window_id and shutil.which("xdotool"):
@@ -362,6 +353,17 @@ def smart_paste(text: str, window_id: Optional[str] = None) -> bool:
                 return True
         except Exception as e:
             print(f"[Paste] type_text fallback failed: {e}")
+
+    # ABSOLUTE LAST RESORT: keyboard library — known to occasionally leave
+    # modifiers stuck because it sends keydown/keyup with zero delay.
+    # Only use this when every other method has failed.
+    try:
+        import keyboard as _kb
+        _kb.press_and_release("ctrl+v")
+        print("[Paste] keyboard library ctrl+v succeeded")
+        return True
+    except Exception:
+        pass
 
     print("[Paste] All paste methods exhausted — text is on clipboard")
     return False
@@ -584,19 +586,20 @@ def _transcribe_groq_with_prompt(audio_bytes: bytes, prompt: str) -> str:
         tmp.write(audio_bytes)
         tmp.close()
 
-        kwargs = {
-            "file": ("audio.wav", open(tmp.name, "rb").read()),
-            "model": WHISPER_MODEL,
-            "response_format": "text",
-            "language": "en",
-            "temperature": 0.0,
-        }
-        if prompt:
-            # Groq prompt max ~224 tokens; we cap at 1200 chars to be safe
-            kwargs["prompt"] = prompt[:1200]
+        with open(tmp.name, "rb") as _f:
+            kwargs = {
+                "file": ("audio.wav", _f.read()),
+                "model": WHISPER_MODEL,
+                "response_format": "text",
+                "language": "en",
+                "temperature": 0.0,
+            }
+            if prompt:
+                # Groq prompt max ~224 tokens; we cap at 1200 chars to be safe
+                kwargs["prompt"] = prompt[:1200]
 
-        transcription = client.audio.transcriptions.create(**kwargs)
-        return transcription.strip()
+            transcription = client.audio.transcriptions.create(**kwargs)
+        return transcription.text.strip() if hasattr(transcription, "text") else transcription.strip()
     finally:
         try:
             os.unlink(tmp.name)

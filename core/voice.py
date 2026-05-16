@@ -70,9 +70,12 @@ _SPOKEN_PATTERNS = [
     (r"\bhttps\s+colon\s+slash\s+slash\b", "https://"),
     (r"\bhttp\s+colon\s+slash\s+slash\b",  "http://"),
     (r"\bforward\s+slash\b",               "/"),
+    (r"\bslash\b",                          "/"),
     (r"\bback\s+slash\b",                  "BKSL"),
     (r"\bcolon\s+slash\s+slash\b",         "://"),
     (r"\bat\s+sign\b",       "@"),
+    (r"\but\b",               "@"),   # phonetic "at"
+    (r"\bat\s+the\s+rate\b",  "@"),
     (r"\bhash\s+hash\b",     "##"),
     (r"\bhash\s+sign\b",     "#"),
     (r"\bpound\s+sign\b",    "#"),
@@ -311,7 +314,7 @@ _TOOLS = {
     "vim": "Vim", "neovim": "Neovim", "nvim": "nvim",
     "emacs": "Emacs", "nano": "Nano", "pico": "Pico",
     "sublime": "Sublime Text", "atom": "Atom", "notepad++": "Notepad++",
-    "cursor": "Cursor", "windsurf": "Windsurf", "windsurfer": "Windsurf", "whis": "Whis",
+    "cursor": "Cursor", "windsurf": "Windsurf", "windsurfer": "Windsurf", "wind surf": "Windsurf", "whis": "Whis",
     "trae": "Trae", "zed": "Zed",
     "whiztant": "Wiztant", "wiztant": "Wiztant",
     "pranav": "Pranav", "venkatesh": "Venkatesh",
@@ -581,6 +584,11 @@ def _smart_punctuation(text: str) -> str:
     text = re.sub(r'\s+([.,!?;:/])', r'\1', text)  # Remove space before
     text = re.sub(r'([.,!?;:])([^\s])', r'\1 \2', text)  # Add space after
     text = re.sub(r'\.{3,}', '...', text)  # Normalize ellipsis
+    # Re-glue file extensions / TLDs that the space-after rule split apart
+    text = re.sub(
+        r'\.\s+(com|org|net|io|ai|py|js|ts|json|txt|md|html|css|env|exe|git|yml|yaml)',
+        r'.\1', text, flags=re.IGNORECASE
+    )
     # Collapse spaces in dot-slash path sequences (".windsurf /rules" → ".windsurf/rules")
     text = re.sub(r'(\.\w+)\s+(/[\w./-]+)', r'\1\2', text)
     
@@ -726,14 +734,7 @@ def transcribe_groq(audio_bytes: bytes) -> str:
                 language="en",
                 temperature=0.0,
             )
-        result = transcription.strip()
-        # Credit deduction for dictation
-        try:
-            from core.credit_system import deduct, get_current_user_id
-            user_id = get_current_user_id()
-            deduct(user_id, "dictation", 1)
-        except Exception as e:
-            print(f"[CreditSystem] Dictation credit deduction failed: {e}")
+        result = transcription.text.strip() if hasattr(transcription, "text") else transcription.strip()
         return result
     finally:
         temp_path.unlink(missing_ok=True)

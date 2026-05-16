@@ -252,18 +252,10 @@ def _ensure_ws_bridge():
 def _electron_flags_linux() -> list:
     """Return Electron CLI flags needed for reliable Linux startup."""
     flags = ["--no-sandbox", "--disable-setuid-sandbox"]
-    session = os.environ.get("XDG_SESSION_TYPE", "").lower()
-    if session == "wayland":
-        # Native Wayland with frameless always-on-top overlay windows can spin at
-        # 100% CPU on some compositors (Electron 33 + KDE Plasma). XWayland (X11)
-        # is stable and well-tested for this use-case, so we prefer it.
-        flags.append("--ozone-platform=x11")
-    elif session == "x11":
-        flags.append("--ozone-platform=x11")
-    else:
-        # Unknown or unset — let Electron auto-detect, but disable GPU
-        # sandbox issues that are common on headless / VM setups.
-        flags.append("--disable-gpu-sandbox")
+    # ALWAYS force XWayland (X11) on Linux. Native Wayland makes Electron
+    # windows invisible to xdotool/wmctrl, which breaks virtual-desktop
+    # follow, sticky hints, and window management.
+    flags.append("--ozone-platform=x11")
     return flags
 
 

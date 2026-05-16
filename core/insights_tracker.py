@@ -52,6 +52,7 @@ def _fresh_local() -> dict:
         "current_streak": 0,
         "longest_streak": 0,
         "last_active_date": None,
+        "last_active_minute": None,
     }
 
 
@@ -109,6 +110,7 @@ def _sb_upsert_daily(user_id: str, date: str, daily: dict):
             row[day_col] = val
             activity += val
         row["activity_score"] = activity
+        row["active_minutes"] = daily.get("active_minutes", 0)
         client.table("user_insights_daily").upsert(row, on_conflict="user_id,date").execute()
         return True
     except Exception as e:
@@ -156,6 +158,8 @@ def record_event(event_type: str, value: int = 1):
     data = _load_local()
     life_col, day_col = _EVENT_COLS[event_type]
     today = _today()
+    now = datetime.now()
+    current_minute = now.strftime("%Y-%m-%d %H:%M")
 
     # Update lifetime
     data["lifetime"][life_col] = data["lifetime"].get(life_col, 0) + value
@@ -164,6 +168,11 @@ def record_event(event_type: str, value: int = 1):
     if today not in data["daily"]:
         data["daily"][today] = {}
     data["daily"][today][day_col] = data["daily"][today].get(day_col, 0) + value
+
+    # Track active minutes (distinct minutes of usage; caps naturally at 1/min)
+    if data.get("last_active_minute") != current_minute:
+        data["daily"][today]["active_minutes"] = data["daily"][today].get("active_minutes", 0) + 1
+        data["last_active_minute"] = current_minute
 
     # Recalculate streaks
     _recalc_streaks(data)
@@ -298,7 +307,7 @@ def get_daily_summary(days: int = 180) -> List[dict]:
             row = {"date": date_str, **daily[date_str]}
             row["activity_score"] = sum(
                 v for k, v in daily[date_str].items()
-                if k != "activity_score" and isinstance(v, (int, float))
+                if k not in ("activity_score", "active_minutes") and isinstance(v, (int, float))
             )
             result.append(row)
     return result

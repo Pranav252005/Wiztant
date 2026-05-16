@@ -1,6 +1,6 @@
 import { BrowserWindow, screen, app, type Rectangle, type Display } from 'electron';
 import path from 'node:path';
-import { exec } from 'node:child_process';
+import { exec, execSync } from 'node:child_process';
 import { VITE_DEV_SERVER_URL, RENDERER_DIST, PRELOAD_PATH } from './utils';
 import { getPillBounds, getOverlayBounds, setWindowBounds, getCursorDisplay } from './positioning';
 import { setLastCursorDisplayId } from './monitorState';
@@ -74,21 +74,53 @@ function getX11WindowId(win: BrowserWindow): string | null {
   }
 }
 
-function setX11NotificationType(win: BrowserWindow): void {
-  if (process.platform !== 'linux') return;
-  const id = getX11WindowId(win);
-  if (!id) return;
+function findWindowIdByTitle(title: string): string | null {
   try {
-    exec(
-      `xprop -id 0x${id} -f _NET_WM_WINDOW_TYPE 32a -set _NET_WM_WINDOW_TYPE _NET_WM_WINDOW_TYPE_NOTIFICATION`,
-      () => { /* ignore errors */ },
-    );
-    exec(
-      `xprop -id 0x${id} -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_SKIP_TASKBAR,_NET_WM_STATE_SKIP_PAGER`,
-      () => { /* ignore errors */ },
-    );
-  } catch {
-    // Silently ignore if xprop is unavailable
+    const out = execSync(`xdotool search --name "${title}"`, { encoding: 'utf-8', timeout: 500 });
+    const lines = out.trim().split('\n').filter((l) => l.length > 0);
+    if (lines.length) return lines[0].trim();
+  } catch { /* ignore */ }
+  return null;
+}
+
+function applyX11FlagsSync(win: BrowserWindow, title: string): void {
+  if (process.platform !== 'linux') return;
+  let id = findWindowIdByTitle(title);
+  if (!id) id = getX11WindowId(win);
+  if (!id) {
+    console.warn(`[LinuxFlags] Could not find X11 window ID for "${title}"`);
+    return;
+  }
+  console.log(`[LinuxFlags] Applying flags to 0x${id} ("${title}")`);
+  const cmds = [
+    `xprop -id 0x${id} -f _NET_WM_WINDOW_TYPE 32a -set _NET_WM_WINDOW_TYPE _NET_WM_WINDOW_TYPE_DOCK`,
+    `xprop -id 0x${id} -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_SKIP_TASKBAR,_NET_WM_STATE_SKIP_PAGER`,
+    `xprop -id 0x${id} -f _NET_WM_DESKTOP 32c -set _NET_WM_DESKTOP 0xFFFFFFFF`,
+    `xdotool set_desktop_for_window 0x${id} -1`,
+    `wmctrl -i -r 0x${id} -b add,sticky`,
+    `wmctrl -i -r 0x${id} -b add,skip_taskbar`,
+  ];
+  for (const cmd of cmds) {
+    try {
+      execSync(cmd, { timeout: 500 });
+      console.log(`[LinuxFlags] OK: ${cmd.split(' ').slice(0, 4).join(' ')}...`);
+    } catch (e: any) {
+      console.warn(`[LinuxFlags] FAILED: ${cmd.split(' ').slice(0, 4).join(' ')}... (${e.message || 'unknown'})`);
+    }
+  }
+}
+
+export function setLinuxSticky(win: BrowserWindow, title: string): void {
+  if (process.platform !== 'linux') return;
+  const id = findWindowIdByTitle(title) || getX11WindowId(win);
+  if (!id) return;
+  const cmds = [
+    `xprop -id 0x${id} -f _NET_WM_DESKTOP 32c -set _NET_WM_DESKTOP 0xFFFFFFFF`,
+    `xdotool set_desktop_for_window 0x${id} -1`,
+    `wmctrl -i -r 0x${id} -b add,sticky`,
+  ];
+  for (const cmd of cmds) {
+    try { exec(cmd, () => {}); } catch { /* ignore */ }
   }
 }
 
@@ -109,6 +141,7 @@ export function createPillWindow(disp: Display, _pos?: EdgePosition): BrowserWin
     movable: false,
     focusable: true,
     hasShadow: false,
+    title: 'whiztant-pill',
     // Use 'notification' type on Linux so the pill appears as a floating HUD
     // rather than a desktop window in taskbars / alt-tab.
     ...(isLinux ? { type: 'toolbar' as const } : { type: 'toolbar' as const }),
@@ -129,7 +162,7 @@ export function createPillWindow(disp: Display, _pos?: EdgePosition): BrowserWin
     win.once('ready-to-show', () => {
       if (!win.isDestroyed()) {
         setWindowBounds(win, getPillBounds(disp), false);
-        setX11NotificationType(win);
+        applyX11FlagsSync(win, 'whiztant-pill');
       }
     });
   }
@@ -168,6 +201,7 @@ export function createOverlayWindow(disp: Display, pill?: BrowserWindow, _pos?: 
     minimizable: false,
     show: process.platform === 'linux',
     hasShadow: false,
+    title: 'whiztant-overlay',
     ...(process.platform === 'linux' ? { type: 'toolbar' as const } : {}),
     webPreferences: {
       preload: PRELOAD_PATH,
@@ -193,7 +227,7 @@ export function createOverlayWindow(disp: Display, pill?: BrowserWindow, _pos?: 
         win.setFullScreenable(false);
         win.setMaximizable(false);
         win.setMinimizable(false);
-        setX11NotificationType(win);
+        applyX11FlagsSync(win, 'whiztant-overlay');
       }
     });
   }

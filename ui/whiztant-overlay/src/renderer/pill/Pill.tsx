@@ -38,10 +38,14 @@ const PILL_VISUAL_H = 18;
 function useMicLevels(enabled: boolean, bands: number): number[] {
   const [levels, setLevels] = useState<number[]>(() => new Array(bands).fill(0));
   const pythonLevelRef = useRef(0);
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
 
   // Listen for mic_level messages from Python backend as fallback.
+  // Use a stable callback so we don't re-register the bridge listener
+  // on every render (which happens ~60×/s when the bars are animating).
   useBridgeMessage((msg) => {
-    if (enabled && msg?.type === 'mic_level') {
+    if (enabledRef.current && msg?.type === 'mic_level') {
       const lvl = typeof msg.level === 'number' ? msg.level : 0;
       pythonLevelRef.current = Math.max(0, Math.min(1, lvl));
     }
@@ -62,7 +66,7 @@ function useMicLevels(enabled: boolean, bands: number): number[] {
 
     navigator.mediaDevices
       .getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
-      .then((s) => {
+      .then(async (s) => {
         if (cancelled) {
           s.getTracks().forEach((t) => t.stop());
           return;
@@ -70,6 +74,15 @@ function useMicLevels(enabled: boolean, bands: number): number[] {
         hasBrowserMic = true;
         stream = s;
         ctx = new AudioContext();
+        // Chromium may create the context in 'suspended' state on subsequent
+        // recordings. Resume it explicitly before wiring the graph.
+        if (ctx.state === 'suspended') {
+          try {
+            await ctx.resume();
+          } catch {
+            /* ignore */
+          }
+        }
         const src = ctx.createMediaStreamSource(s);
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 128;
@@ -85,6 +98,10 @@ function useMicLevels(enabled: boolean, bands: number): number[] {
 
         const tick = () => {
           if (cancelled) return;
+          // Defensive: if context got suspended mid-recording, try to resume.
+          if (ctx && ctx.state === 'suspended') {
+            ctx.resume().catch(() => {});
+          }
           analyser.getByteFrequencyData(data);
           const next: number[] = [];
           for (let i = 0; i < bands; i++) {
@@ -135,6 +152,7 @@ function useMicLevels(enabled: boolean, bands: number): number[] {
 
   return levels;
 }
+
 
 /**
  * Simulated waveform bars for agent mode when no mic input is available.
@@ -350,6 +368,11 @@ export default function Pill() {
         window.api.syncState('idle');
       } else if (vs === 'error') {
         setFlashState('error');
+        setState('idle');
+        window.api.syncState('idle');
+      } else if (vs === 'idle') {
+        // Explicit idle reset — ensures we never get stuck in thinking/recording
+        // if a delayed message arrives after the session already ended.
         setState('idle');
         window.api.syncState('idle');
       }
@@ -721,6 +744,25 @@ export default function Pill() {
         window.api.openOverlayToTasksEdit({
           prefillTitle: payload.title,
           taskId: payload.task_id,
+          scrollToTask: true,
+        });
+      },
+      snoozeTask: (id: string, minutes: number) => {
+        sendBridgeMessage({ type: 'tasks/snooze', task_id: id, minutes });
+        setFlashState('success');
+        dismissNotification();
+      },
+      toggleTaskDone: (id: string) => {
+        sendBridgeMessage({ type: 'tasks/toggle_status', task_id: id });
+        setFlashState('success');
+        dismissNotification();
+      },
+      openTaskById: (id: string, title: string) => {
+        dismissNotification();
+        window.api.showOverlay();
+        window.api.openOverlayToTasksEdit({
+          prefillTitle: title,
+          taskId: id,
           scrollToTask: true,
         });
       },

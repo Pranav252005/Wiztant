@@ -21,6 +21,9 @@ export interface NotificationHandlers {
   rejectTaskConfirm: () => void;
   editTaskConfirm: (payload: TaskConfirmPayload) => void;
   openTaskNotification: (payload: PillNotificationPayload) => void;
+  snoozeTask: (id: string, minutes: number) => void;
+  toggleTaskDone: (id: string) => void;
+  openTaskById: (id: string, title: string) => void;
 }
 
 interface Props {
@@ -46,7 +49,10 @@ export default function NotificationRenderer({ notification, compact, handlers, 
     return (
       <NotificationBar
         payload={notification.payload}
-        onOpen={() => handlers.openTaskNotification(notification.payload)}
+        onToggleDone={() => handlers.toggleTaskDone(notification.payload.task_id)}
+        onDismiss={() => handlers.openTaskNotification(notification.payload)}
+        onSnooze={(minutes) => handlers.snoozeTask(notification.payload.task_id, minutes)}
+        onEdit={() => handlers.openTaskNotification(notification.payload)}
         onBodyClick={onNotificationBodyClick ?? (() => {})}
       />
     );
@@ -69,6 +75,9 @@ export default function NotificationRenderer({ notification, compact, handlers, 
         compact={compact}
         onReschedule={handlers.rescheduleTask}
         onDismissAll={handlers.dismissDueAlertAll}
+        onSnooze={handlers.snoozeTask}
+        onToggleDone={handlers.toggleTaskDone}
+        onEdit={handlers.openTaskById}
       />
     );
   }
@@ -78,6 +87,9 @@ export default function NotificationRenderer({ notification, compact, handlers, 
         tasks={notification.payload.tasks}
         compact={compact}
         onDismiss={handlers.dismissReminder}
+        onSnooze={handlers.snoozeTask}
+        onToggleDone={handlers.toggleTaskDone}
+        onEdit={handlers.openTaskById}
       />
     );
   }
@@ -88,6 +100,9 @@ export default function NotificationRenderer({ notification, compact, handlers, 
         reminderCount={notification.payload.reminder_count}
         compact={compact}
         onDismiss={handlers.dismissOverdueReminder}
+        onSnooze={handlers.snoozeTask}
+        onToggleDone={handlers.toggleTaskDone}
+        onEdit={handlers.openTaskById}
       />
     );
   }

@@ -570,7 +570,17 @@ def tool_paste_text(text="", **_):
     def _do():
         pyperclip.copy(str(text))
         time.sleep(0.25)
-        keyboard.press_and_release("ctrl+v")
+        # Use platform system access for reliable Ctrl+V instead of the
+        # keyboard library which can leave modifiers stuck.
+        try:
+            from platforms.factory import get_system_access
+            system = get_system_access()
+            ok, _ = system.hotkey("ctrl", "v")
+            if not ok:
+                # Final fallback — only if system access is unavailable
+                keyboard.press_and_release("ctrl+v")
+        except Exception:
+            keyboard.press_and_release("ctrl+v")
     threading.Thread(target=_do, daemon=True).start()
     return "Pasted."
 
@@ -1074,15 +1084,20 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
             return
         add_system_message(f"Agent task: {user_text}")
 
-        # Pre-flight check so we don't announce "Starting agent task" and then immediately
-        # block. The @requires_usage("uitars") decorator on run_agent_task is the real gate
-        # (check + increment-on-success); this check avoids the false announcement.
-        # Internet is required for agent mode; usage can still fall back to the local counter.
-        pre_allowed, pre_msg = usage.check_usage("uitars", tier, fail_open=True)
-        if not pre_allowed:
-            print(f"[Agent] Pre-flight blocked: {pre_msg}")
-            add_history_message("assistant", pre_msg)
-            return
+        # Credit-based pre-flight check so we don't announce "Starting agent task"
+        # and then immediately block. Free users can use agent within their credits.
+        try:
+            from core.credit_system import can_afford, get_current_user_id, calculate_agent_credits
+            user_id = get_current_user_id()
+            estimated_steps = max(3, 1 + len(user_text.split()) // 10)
+            estimated_cost = calculate_agent_credits(estimated_steps)
+            if not can_afford(user_id, estimated_cost):
+                msg = f"Agent mode needs ~{estimated_cost} credits. You can still use dictation and other features within your plan."
+                print(f"[Agent] Pre-flight blocked: insufficient credits ({estimated_cost})")
+                add_history_message("assistant", msg)
+                return
+        except Exception as e:
+            print(f"[Agent] Credit pre-check error (continuing): {e}")
 
         executor_name = _agent_executor_name()
 

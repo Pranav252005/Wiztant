@@ -1,13 +1,17 @@
 import { motion } from 'framer-motion';
 import type { PillNotificationPayload } from '../usePillNotifications';
+import TaskActionBar from './TaskActionBar';
 
 interface Props {
   payload: PillNotificationPayload;
-  onOpen: () => void;
+  onToggleDone: () => void;
+  onDismiss: () => void;
+  onSnooze: (minutes: number) => void;
+  onEdit: () => void;
   onBodyClick: () => void;
 }
 
-export default function NotificationBar({ payload, onOpen, onBodyClick }: Props) {
+export default function NotificationBar({ payload, onToggleDone, onDismiss, onSnooze, onEdit, onBodyClick }: Props) {
   const urgencyColor =
     payload.notification_type === 'overdue'
       ? '#f87171'
@@ -98,38 +102,13 @@ export default function NotificationBar({ payload, onOpen, onBodyClick }: Props)
         </div>
       </div>
 
-      {/* Action */}
-      <button
-        type="button"
-        onClick={onOpen}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '6px 12px',
-          borderRadius: 8,
-          background: 'rgba(192,193,255,0.15)',
-          border: 'none',
-          color: '#c0c1ff',
-          fontSize: 12,
-          fontWeight: 600,
-          cursor: 'pointer',
-          transition: 'background 0.15s',
-          flexShrink: 0,
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(192,193,255,0.30)';
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(192,193,255,0.15)';
-        }}
-      >
-        Open
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="15 3 21 3 21 9" />
-          <line x1="10" y1="14" x2="21" y2="3" />
-        </svg>
-      </button>
+      {/* Unified Action Bar */}
+      <TaskActionBar
+        onApprove={onToggleDone}
+        onDeny={onDismiss}
+        onSnooze={onSnooze}
+        onEdit={onEdit}
+      />
     </motion.div>
   );
 }

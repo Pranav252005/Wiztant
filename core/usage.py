@@ -19,9 +19,9 @@ _SUPABASE_COL = {
 
 TIER_LIMITS = {
     "free": {
-        "agent": 0,
-        "vlm": 0,
-        "uitars": 0,
+        "agent": 10,
+        "vlm": 10,
+        "uitars": 10,
     },
     "pro": {
         "agent": 50,
@@ -36,7 +36,7 @@ TIER_LIMITS = {
     "trial": {
         "agent": 3,
         "vlm": 5,
-        "uitars": 0,
+        "uitars": 3,
     }
 }
 
