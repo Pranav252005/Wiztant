@@ -474,8 +474,16 @@ class BackgroundAgentManager:
     def _get_system_executor(self):
         """Lazy-load the system task executor."""
         if self._system_executor is None:
-            from core.system_task_executor import SystemTaskExecutor
-            self._system_executor = SystemTaskExecutor()
+            # Stub: core.system_task_executor was removed.
+            class _SystemTaskExecutorStub:
+                def _not_implemented(self, *args, **kwargs):
+                    raise NotImplementedError("SystemTaskExecutor has been removed. Background system tasks are not available.")
+                execute_registry_task = _not_implemented
+                execute_windows_settings_task = _not_implemented
+                execute_nvidia_task = _not_implemented
+                execute_game_optimization = _not_implemented
+                execute_system_task = _not_implemented
+            self._system_executor = _SystemTaskExecutorStub()
         return self._system_executor
 
     def queue_task(self, description: str, task_type: Optional[str] = None) -> str:
@@ -810,11 +818,26 @@ class BackgroundAgentManager:
             is_window_valid,
             restore_window,
         )
-        from core.action_optimizer import ActionOptimizer
+        # Stub: core.action_optimizer was removed.
+        class _ActionOptimizerStub:
+            def __init__(self):
+                self.should_force_refresh = False
+                self._last_hash = ""
+            def is_screenshot_unchanged(self, b64: str) -> bool:
+                import hashlib
+                h = hashlib.md5(b64.encode()).hexdigest()
+                unchanged = h == self._last_hash
+                self._last_hash = h
+                return unchanged
+            def cache_response(self, action):
+                pass
+            @staticmethod
+            def heuristic_action(description, last_action):
+                return None
 
         max_steps = int(_cfg("BG_AGENT_MAX_STEPS", "20"))
         context = AgentInputContext(target_hwnd)
-        optimizer = ActionOptimizer()
+        optimizer = _ActionOptimizerStub()
         history: List[Dict[str, Any]] = []
         result_data: Dict[str, Any] = {"status": "incomplete", "data": None, "error": None}
 

@@ -223,6 +223,7 @@ from core import agent  # registers tools, sets up OpenAI client
 _dbg(f"[Agent] tools registered: {len(agent.TOOLS)} tools")
 
 from core.ws_bridge import start_ws_bridge, send_pill_notice, broadcast_sync
+from core.reminder_scheduler import ReminderScheduler
 
 
 # =============================================================
@@ -238,68 +239,12 @@ def seconds_until(hour: int, minute: int = 0) -> float:
 
 
 # Singleton guards to prevent duplicate background timers/threads across reloads.
-_due_check_timer: threading.Timer | None = None
-_due_reminder_timer: threading.Timer | None = None
 _startup_nudge_thread: threading.Thread | None = None
 _overlay_thread: threading.Thread | None = None
 _credit_reset_timer: threading.Timer | None = None
 
-# Reminder tracking: task_id -> {"pre_due_warned": bool, "due_warned": bool, "overdue_reminder_count": int, "last_overdue_reminder": float}
-# Used to implement the aggressive multi-stage reminder schedule without spamming.
-_reminder_tracker: dict[str, dict] = {}
-_REMINDER_CHECK_INTERVAL_SEC = 15 * 60  # 15 minutes
-
-
-def _get_task_settings() -> dict:
-    """Load task reminder settings, with sensible defaults."""
-    import json as _json
-    import os
-    try:
-        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
-        if os.path.exists(settings_path):
-            with open(settings_path, "r", encoding="utf-8") as f:
-                data = _json.load(f)
-                if isinstance(data, dict):
-                    return {
-                        "reminder_interval_min": int(data.get("reminder_interval_min", 15)),
-                        "pre_due_warning": bool(data.get("pre_due_warning", True)),
-                        "carry_over": bool(data.get("carry_over", True)),
-                    }
-    except Exception:
-        pass
-    return {"reminder_interval_min": 15, "pre_due_warning": True, "carry_over": True}
-
-
-def _due_reminder():
-    """Periodic reminder for carried-over tasks (legacy, kept for compatibility)."""
-    global _due_reminder_timer
-    try:
-        from core.tasks import get_carried_over_undone, is_snoozed
-        tasks = [t for t in get_carried_over_undone() if not is_snoozed(t)]
-        if tasks:
-            broadcast_sync({
-                "type": "due_reminder",
-                "count": len(tasks),
-                "tasks": [
-                    {"id": task.get("id"), "title": task.get("text", ""), "scheduled_for": task.get("due_at")}
-                    for task in tasks
-                ],
-            })
-        if get_carried_over_undone():
-            _due_reminder_timer = threading.Timer(4 * 3600, _due_reminder)
-            _due_reminder_timer.daemon = True
-            _due_reminder_timer.start()
-        else:
-            _due_reminder_timer = None
-    except Exception:
-        _due_reminder_timer = None
-
-
-def _cleanup_stale_tracker(tasks: list):
-    """Remove tracker entries for tasks that no longer exist or are completed."""
-    global _reminder_tracker
-    valid_ids = {t.get("id", "") for t in tasks}
-    _reminder_tracker = {k: v for k, v in _reminder_tracker.items() if k in valid_ids}
+# Persistent async reminder scheduler (replaces threading.Timer-based _due_check)
+_reminder_scheduler: ReminderScheduler | None = None
 
 
 def _monthly_credit_reset_check():
@@ -316,148 +261,6 @@ def _monthly_credit_reset_check():
         _credit_reset_timer = threading.Timer(3600, _monthly_credit_reset_check)
         _credit_reset_timer.daemon = True
         _credit_reset_timer.start()
-
-
-def _due_check():
-    global _due_check_timer, _due_reminder_timer
-    try:
-        from core.tasks import get_due_today_undone, get_due_soon, is_snoozed, mark_failed
-        settings = _get_task_settings()
-
-        # ── 1. Pre-due warnings (tasks due within 30 minutes) ──
-        if settings.get("pre_due_warning", True):
-            soon_tasks = get_due_soon(minutes=30)
-            for task in soon_tasks:
-                tid = task.get("id", "")
-                tracker = _reminder_tracker.setdefault(tid, {})
-                if not tracker.get("pre_due_warned", False):
-                    due_at = task.get("due_at", "")
-                    minutes_remaining = 0
-                    try:
-                        from datetime import datetime as _dt
-                        dt = _dt.fromisoformat(str(due_at).replace("Z", "+00:00"))
-                        now = _dt.now(timezone.utc)
-                        minutes_remaining = max(0, int((dt - now).total_seconds() / 60))
-                    except Exception:
-                        pass
-                    broadcast_sync({
-                        "type": "pill_notification",
-                        "payload": {
-                            "task_id": tid,
-                            "title": task.get("text", ""),
-                            "due_datetime": due_at,
-                            "notification_type": "pre_due",
-                            "minutes_remaining": minutes_remaining,
-                        },
-                    })
-                    tracker["pre_due_warned"] = True
-
-        # ── 2. Tasks that are due today / right now ──
-        tasks = get_due_today_undone()
-        if tasks:
-            second_miss = [task for task in tasks if task.get("carried_over")]
-            first_miss = [task for task in tasks if not task.get("carried_over")]
-
-            # Second miss → mark as failed
-            if second_miss:
-                failed_tasks = []
-                for task in second_miss:
-                    if is_snoozed(task):
-                        continue
-                    if mark_failed(task.get("id", "")):
-                        failed_tasks.append({"id": task.get("id"), "title": task.get("text", "")})
-                if failed_tasks:
-                    broadcast_sync({"type": "tasks_failed", "tasks": failed_tasks})
-                    try:
-                        from core.tasks import get_task_snapshot
-                        snapshot = get_task_snapshot()
-                        broadcast_sync({
-                            "type": "tasks/update",
-                            "payload": snapshot.get("tasks", []),
-                            "history": snapshot.get("history", []),
-                            "suggestion": snapshot.get("suggestion"),
-                        })
-                    except Exception:
-                        pass
-
-            # First miss → due alert + aggressive reminders
-            if first_miss:
-                now_ts = datetime.now(timezone.utc).timestamp()
-                newly_due = []
-                for task in first_miss:
-                    tid = task.get("id", "")
-                    tracker = _reminder_tracker.setdefault(tid, {})
-                    if not tracker.get("due_warned", False):
-                        newly_due.append(task)
-                        tracker["due_warned"] = True
-
-                if newly_due:
-                    broadcast_sync({
-                        "type": "due_alert",
-                        "count": len(newly_due),
-                        "tasks": [{"id": t.get("id"), "title": t.get("text", "")} for t in newly_due],
-                    })
-                    for task in newly_due:
-                        broadcast_sync({
-                            "type": "pill_notification",
-                            "payload": {
-                                "task_id": task.get("id"),
-                                "title": task.get("text", ""),
-                                "due_datetime": task.get("due_at"),
-                                "notification_type": "due_now",
-                                "minutes_remaining": 0,
-                            },
-                        })
-
-                # Aggressive overdue reminders: every 15 minutes while overdue
-                for task in first_miss:
-                    tid = task.get("id", "")
-                    tracker = _reminder_tracker.setdefault(tid, {})
-                    last_reminder = tracker.get("last_overdue_reminder", 0)
-                    if now_ts - last_reminder >= _REMINDER_CHECK_INTERVAL_SEC:
-                        tracker["last_overdue_reminder"] = now_ts
-                        tracker["overdue_reminder_count"] = tracker.get("overdue_reminder_count", 0) + 1
-                        broadcast_sync({
-                            "type": "overdue_reminder",
-                            "task": {"id": tid, "title": task.get("text", "")},
-                            "reminder_count": tracker["overdue_reminder_count"],
-                        })
-                        broadcast_sync({
-                            "type": "pill_notification",
-                            "payload": {
-                                "task_id": tid,
-                                "title": task.get("text", ""),
-                                "due_datetime": task.get("due_at"),
-                                "notification_type": "overdue",
-                                "minutes_remaining": 0,
-                            },
-                        })
-
-        # ── 3. Carried-over undone tasks ──
-        try:
-            from core.tasks import get_carried_over_undone
-            carried = [t for t in get_carried_over_undone() if not is_snoozed(t)]
-            if carried and (_due_reminder_timer is None or not _due_reminder_timer.is_alive()):
-                _due_reminder_timer = threading.Timer(4 * 3600, _due_reminder)
-                _due_reminder_timer.daemon = True
-                _due_reminder_timer.start()
-        except Exception:
-            pass
-
-        # Clean up tracker entries for completed / deleted tasks
-        try:
-            from core.tasks import get_tasks
-            _cleanup_stale_tracker(get_tasks())
-        except Exception:
-            pass
-
-    except Exception:
-        pass
-    finally:
-        # Reschedule every 15 minutes instead of waiting for 18:00
-        _due_check_timer = threading.Timer(_REMINDER_CHECK_INTERVAL_SEC, _due_check)
-        _due_check_timer.daemon = True
-        _due_check_timer.start()
 
 
 # =============================================================
@@ -615,7 +418,7 @@ def update_feature_flags(features: dict) -> dict:
 # =============================================================
 
 def run_app():
-    global _startup_nudge_thread, _overlay_thread, _due_check_timer, _due_reminder_timer, _credit_reset_timer
+    global _startup_nudge_thread, _overlay_thread, _credit_reset_timer, _reminder_scheduler
     _tier = os.getenv("CURRENT_TIER", "free")
     _model = agent.get_model()
 
@@ -663,22 +466,11 @@ def run_app():
         _credit_reset_timer.start()
 
     if _FEATURE_FLAGS.get("tasks", True):
-        try:
-            from core.tasks import get_carried_over_undone, is_snoozed
-            if _due_check_timer is None or not _due_check_timer.is_alive():
-                _due_check_timer = threading.Timer(30, _due_check)
-                _due_check_timer.daemon = True
-                _due_check_timer.start()
-            carried = [t for t in get_carried_over_undone() if not is_snoozed(t)]
-            if carried:
-                if _due_reminder_timer is None or not _due_reminder_timer.is_alive():
-                    _due_reminder_timer = threading.Timer(4 * 3600, _due_reminder)
-                    _due_reminder_timer.daemon = True
-                    _due_reminder_timer.start()
-        except Exception:
-            pass
+        if _reminder_scheduler is None:
+            _reminder_scheduler = ReminderScheduler()
+        _reminder_scheduler.start()
     else:
-        _dbg("[Tasks] Due-check timer skipped (tasks feature disabled)")
+        _dbg("[Tasks] Reminder scheduler skipped (tasks feature disabled)")
 
     # Start overlay in background
     def _start_overlay_bg():
@@ -720,6 +512,11 @@ def run_app():
         print("[Whiztant] Shutting down...")
     finally:
         _shutdown_active_work()
+        try:
+            if _reminder_scheduler is not None:
+                _reminder_scheduler.stop()
+        except Exception:
+            pass
         try:
             from core.background_agent import stop_background_agent
             stop_background_agent()

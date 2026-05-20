@@ -175,15 +175,18 @@ def _load() -> dict:
     return _empty_data()
 
 def _save(data: dict):
-    try:
-        data["memory_hashes"] = _compute_memory_hashes(data)
-        MEMORY_DIR.mkdir(parents=True, exist_ok=True)
-        MEMORY_FILE.write_text(
-            json.dumps(data, indent=2, ensure_ascii=False),
-            encoding="utf-8"
-        )
-    except Exception as e:
-        print(f"[Memory] Save error: {e}")
+    with _lock:
+        try:
+            data["memory_hashes"] = _compute_memory_hashes(data)
+            MEMORY_DIR.mkdir(parents=True, exist_ok=True)
+            tmp = MEMORY_FILE.with_suffix(".tmp")
+            tmp.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False),
+                encoding="utf-8"
+            )
+            tmp.replace(MEMORY_FILE)
+        except Exception as e:
+            print(f"[Memory] Save error: {e}")
 
 # =============================================================
 #  PUBLIC API
@@ -194,10 +197,11 @@ def _ensure_loaded() -> None:
     global _data
     if _data and _has_user_memory(_data):
         return
-    if MEMORY_FILE.exists():
-        _data = _load()
-    else:
-        _data = _empty_data()
+    with _lock:
+        if MEMORY_FILE.exists():
+            _data = _load()
+        else:
+            _data = _empty_data()
         _data["memory_enabled"] = True
 
 

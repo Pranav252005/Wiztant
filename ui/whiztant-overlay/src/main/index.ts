@@ -161,7 +161,7 @@ function bootstrap(): void {
   registerShortcuts({ pill, overlay, showOverlay });
 
   // Send initial edge to pill renderer once it loads
-  pill.webContents.on('did-finish-load', () => {
+  pill.webContents.once('did-finish-load', () => {
     try {
       pill.webContents.send(IPC.PILL_EDGE_CHANGED, getEdgePosition().edge);
     } catch { /* renderer may not be ready yet */ }

@@ -104,14 +104,18 @@ class LinuxHotkeys(BaseHotkeys):
             "shift": {Key.shift_l, Key.shift_r},
             "super": {Key.cmd_l, Key.cmd_r},
         }
+        non_mod_pressed = False
         for part in parts:
             if part in mod_map:
                 if not self._pressed & mod_map[part]:
                     return False
             else:
-                # Non-modifier part must be pressed
-                # Simplified: we only check on key press events
-                pass
+                # Non-modifier key must actually be in _pressed
+                key_val = getattr(Key, part, part)
+                if key_val in self._pressed:
+                    non_mod_pressed = True
+        # If combo has only modifiers, require at least one non-modifier
+        # (caller should ensure the triggering key is in _pressed)
         return True
 
     # ── Legacy compatibility ──────────────────────────────────────────────────

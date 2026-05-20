@@ -96,12 +96,12 @@ class TestSmartDictateSpokenSymbols:
 
     def test_defensive_symbols(self):
         """Symbols that reach dictation_smart layer are still converted."""
-        result = smart_dictate("use slash ut sign")
+        result = smart_dictate("use slash at the rate sign")
         text = result["text"]
         assert "/" in text
         assert "@" in text
         assert "slash" not in text.lower()
-        assert "ut" not in text.lower()
+        assert "at the rate" not in text.lower()
 
     def test_wind_surf_entity(self):
         """Entity fix for 'wind surf' through smart_dictate."""

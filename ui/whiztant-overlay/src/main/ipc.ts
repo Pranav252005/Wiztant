@@ -88,6 +88,11 @@ function buildTask(task: Partial<Task>): Task {
     task_type: taskType,
     carried_over: Boolean(task.carried_over),
     failed: Boolean(task.failed),
+    snoozed_until: task.snoozed_until ?? null,
+    category: task.category ?? null,
+    difficulty: task.difficulty ?? null,
+    progress: task.progress ?? 0,
+    reminder_sent: Boolean(task.reminder_sent),
   };
 }
 

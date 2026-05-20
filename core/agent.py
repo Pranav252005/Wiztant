@@ -81,8 +81,10 @@ class AgentMemory:
     def _save_history(self):
         self.history_file.parent.mkdir(parents=True, exist_ok=True)
         try:
-            with open(self.history_file, "w", encoding="utf-8") as f:
+            tmp = self.history_file.with_suffix(".tmp")
+            with open(tmp, "w", encoding="utf-8") as f:
                 json.dump(self.memory, f, indent=2)
+            tmp.replace(self.history_file)
         except Exception as e:
             print(f"[AgentMemory] save error: {e}")
 
@@ -228,8 +230,8 @@ def _get_custom_client():
     if not custom_model:
         return None
     
-    from core.wiztype.custom_model import parse_custom_model
-    config = parse_custom_model(custom_model, os.getenv("MODEL_CUSTOM_PROVIDER", "") or None)
+    # wiztype subsystem was removed; custom model support disabled.
+    return None
     
     if not config.is_valid or config.is_local:
         return None
@@ -289,10 +291,8 @@ def get_model(tier: str = None) -> str:
     # Check for custom model first (WizType BYOK mode)
     custom_model = os.getenv("MODEL_CUSTOM", "").strip()
     if custom_model:
-        from core.wiztype.custom_model import parse_custom_model
-        config = parse_custom_model(custom_model, os.getenv("MODEL_CUSTOM_PROVIDER", "") or None)
-        if config.is_valid:
-            return config.model_id
+        # wiztype subsystem was removed; custom model support disabled.
+        pass
     
     if tier is None:
         tier = os.getenv("CURRENT_TIER", "free")
@@ -382,38 +382,14 @@ def call_llm(messages: list, tier: str = None, max_tokens: int = 1500,
     # Use custom client if available
     if custom_client is not None:
         try:
-            from core.wiztype.custom_model import parse_custom_model
-            config = parse_custom_model(
-                os.getenv("MODEL_CUSTOM", ""),
-                os.getenv("MODEL_CUSTOM_PROVIDER", "") or None
+            # OpenAI-compatible API (wiztype subsystem was removed)
+            response = custom_client.chat.completions.create(
+                model=primary_model,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=0.7,
             )
-            
-            if config.provider == "anthropic":
-                # Anthropic API format
-                system_msg = next((m.get("content", "") for m in messages if m.get("role") == "system"), "")
-                user_messages = [m for m in messages if m.get("role") != "system"]
-                
-                anthropic_messages = []
-                for m in user_messages:
-                    role = "assistant" if m.get("role") == "assistant" else "user"
-                    anthropic_messages.append({"role": role, "content": m.get("content", "")})
-                
-                response = custom_client.messages.create(
-                    model=primary_model,
-                    max_tokens=max_tokens,
-                    system=system_msg,
-                    messages=anthropic_messages,
-                )
-                return response.content[0].text
-            else:
-                # OpenAI-compatible API
-                response = custom_client.chat.completions.create(
-                    model=primary_model,
-                    messages=messages,
-                    max_tokens=max_tokens,
-                    temperature=0.7,
-                )
-                return response.choices[0].message.content
+            return response.choices[0].message.content
         except Exception as e:
             print(f"[LLM] Custom model error: {e}")
             # Fall back to default client if custom fails
@@ -674,6 +650,11 @@ def tool_paste_text(text="", **_):
 def tool_run_command(cmd="", **_):
     if not cmd:
         return "No command given."
+    # Guardrail: block destructive commands
+    from core.guardrails import is_destructive_action
+    is_dest, reason = is_destructive_action(cmd)
+    if is_dest:
+        return f"Blocked by safety guardrail: {reason}"
     try:
         result = subprocess.run(
             cmd, shell=True, capture_output=True, text=True, timeout=20
@@ -723,9 +704,24 @@ def tool_read_file(path="", **_):
 def tool_write_file(path="", content="", **_):
     if not path:
         return "No file path given."
+    # Path sandboxing — block system paths and directory traversal
+    _abs = os.path.abspath(path)
+    if ".." in _abs:
+        return "Blocked: directory traversal is not allowed."
+    _blocked_prefixes = (
+        "/etc/", "/sys/", "/proc/", "/dev/", "/boot/", "/var/log/",
+        "/usr/sbin/", "/usr/bin/", "/bin/", "/sbin/", "/lib/", "/lib64/",
+        "C:\\Windows\\", "C:\\Program Files", "C:\\ProgramData\\",
+    )
+    _lower = _abs.lower()
+    for prefix in _blocked_prefixes:
+        if _lower.startswith(prefix.lower()):
+            return f"Blocked: writing to {_abs} is not allowed."
+    if os.path.expanduser("~/.ssh/") in _lower or os.path.expanduser("~/.gnupg/") in _lower:
+        return f"Blocked: writing to {_abs} is not allowed."
     try:
-        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-        with open(path, "w", encoding="utf-8") as f:
+        os.makedirs(os.path.dirname(_abs), exist_ok=True)
+        with open(_abs, "w", encoding="utf-8") as f:
             f.write(str(content))
         return f"Written to {path} ({len(content)} chars)."
     except Exception as e:

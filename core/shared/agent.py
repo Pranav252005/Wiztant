@@ -212,11 +212,8 @@ def _get_custom_client():
     if not custom_model:
         return None
     
-    from core.wiztype.custom_model import parse_custom_model
-    config = parse_custom_model(custom_model, os.getenv("MODEL_CUSTOM_PROVIDER", "") or None)
-    
-    if not config.is_valid or config.is_local:
-        return None
+    # wiztype subsystem was removed; custom model support disabled.
+    return None
     
     # Return cached client if config matches
     if _custom_client and _custom_model_config and _custom_model_config.model_id == config.model_id:
@@ -273,10 +270,8 @@ def get_model(tier: str = None) -> str:
     # Check for custom model first (WizType BYOK mode)
     custom_model = os.getenv("MODEL_CUSTOM", "").strip()
     if custom_model:
-        from core.wiztype.custom_model import parse_custom_model
-        config = parse_custom_model(custom_model, os.getenv("MODEL_CUSTOM_PROVIDER", "") or None)
-        if config.is_valid:
-            return config.model_id
+        # wiztype subsystem was removed; custom model support disabled.
+        pass
     
     if tier is None:
         tier = os.getenv("CURRENT_TIER", "free")
@@ -366,38 +361,14 @@ def call_llm(messages: list, tier: str = None, max_tokens: int = 1500,
     # Use custom client if available
     if custom_client is not None:
         try:
-            from core.wiztype.custom_model import parse_custom_model
-            config = parse_custom_model(
-                os.getenv("MODEL_CUSTOM", ""),
-                os.getenv("MODEL_CUSTOM_PROVIDER", "") or None
+            # OpenAI-compatible API (wiztype subsystem was removed)
+            response = custom_client.chat.completions.create(
+                model=primary_model,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=0.7,
             )
-            
-            if config.provider == "anthropic":
-                # Anthropic API format
-                system_msg = next((m.get("content", "") for m in messages if m.get("role") == "system"), "")
-                user_messages = [m for m in messages if m.get("role") != "system"]
-                
-                anthropic_messages = []
-                for m in user_messages:
-                    role = "assistant" if m.get("role") == "assistant" else "user"
-                    anthropic_messages.append({"role": role, "content": m.get("content", "")})
-                
-                response = custom_client.messages.create(
-                    model=primary_model,
-                    max_tokens=max_tokens,
-                    system=system_msg,
-                    messages=anthropic_messages,
-                )
-                return response.content[0].text
-            else:
-                # OpenAI-compatible API
-                response = custom_client.chat.completions.create(
-                    model=primary_model,
-                    messages=messages,
-                    max_tokens=max_tokens,
-                    temperature=0.7,
-                )
-                return response.choices[0].message.content
+            return response.choices[0].message.content
         except Exception as e:
             print(f"[LLM] Custom model error: {e}")
             # Fall back to default client if custom fails

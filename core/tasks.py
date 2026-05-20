@@ -10,11 +10,14 @@ import random
 import re
 import string
 import sys
+import threading
 import requests
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
+
+_tasks_lock = threading.Lock()
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _MEMORY_DIR = _PROJECT_ROOT / "memory"
@@ -145,11 +148,12 @@ def _load() -> dict:
 
 
 def _save(data: dict) -> None:
-    path = _tasks_path()
-    tmp = path.with_suffix(".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-    tmp.replace(path)
+    with _tasks_lock:
+        path = _tasks_path()
+        tmp = path.with_suffix(".tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        tmp.replace(path)
 
 
 def _new_id() -> str:

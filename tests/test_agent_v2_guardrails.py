@@ -12,10 +12,10 @@ from core.agent_v2.guardrails import (
 
 
 def test_destructive_detection():
-    assert is_destructive_command("rm -rf /") is True
-    assert is_destructive_command("git push origin main") is True
-    assert is_destructive_command("npm install lodash") is False
-    assert is_destructive_command("npx tsc --noEmit") is False
+    assert is_destructive_command("rm -rf /")[0] is True
+    assert is_destructive_command("git push origin main")[0] is True
+    assert is_destructive_command("npm install lodash")[0] is False
+    assert is_destructive_command("npx tsc --noEmit")[0] is False
 
 
 def test_sandbox_path():

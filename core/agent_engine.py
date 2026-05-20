@@ -72,7 +72,7 @@ def call_api(model: str, messages: list, temperature: float, max_tokens: int, th
         kwargs: dict[str, Any] = dict(model=model, messages=messages, temperature=temperature, max_tokens=max_tokens)
         if thinking is False:
             kwargs["extra_body"] = {"include_reasoning": False}
-        resp = _client.chat.completions.create(**kwargs)
+        resp = _client.chat.completions.create(**kwargs, timeout=60.0)
         return resp.choices[0].message.content or ""
     except Exception as e:
         log.error("API call failed: %s", e)
@@ -110,6 +110,9 @@ def to_base64(img: Image.Image, max_side: int = GROUND_IMG_MAX) -> str:
     if max_s > max_side:
         scale = max_side / max_s
         img = img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+    # JPEG does not support alpha; convert RGBA/P modes to RGB
+    if img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
     buf = BytesIO()
     img.save(buf, format="JPEG", quality=82)
     return base64.b64encode(buf.getvalue()).decode()

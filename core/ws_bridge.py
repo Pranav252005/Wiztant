@@ -122,6 +122,8 @@ async def _handler(websocket):
         async for raw in websocket:
             try:
                 msg = json.loads(raw)
+                if not isinstance(msg, dict):
+                    continue
                 msg_type = msg.get("type", "")
 
                 if msg_type == "send_agent_task":
@@ -537,7 +539,7 @@ async def _handler(websocket):
                         print(f"[WsBridge] tunehub/set_settings error: {e}")
 
             except json.JSONDecodeError:
-                pass
+                print(f"[WsBridge] Malformed JSON from client: {raw[:200]!r}")
     except Exception:
         pass
     finally:
@@ -613,12 +615,7 @@ def has_overlay_clients() -> bool:
 
 def broadcast_sync(data: dict):
     """Thread-safe broadcast — callable from any thread."""
-    client_count = len(_clients)
-    loop_ok = _loop is not None
-    msg_type = data.get("type", "unknown")
-    print(f"[WsBridge] broadcast_sync: type={msg_type}, loop={loop_ok}, clients={client_count}")
     if _loop is None or not _clients:
-        print(f"[WsBridge] broadcast_sync SKIPPED (no loop or no clients)")
         return
     try:
         asyncio.run_coroutine_threadsafe(_broadcast(data), _loop)
@@ -902,11 +899,13 @@ def _handle_task_confirm_approve(msg: dict):
 
 
 def _handle_task_confirm_reject(msg: dict):
-    try:
-        from core.hotkeys import _pending_task_confirmations
-        _pending_task_confirmations.pop(msg.get("confirm_id", ""), None)
-    except Exception as e:
-        print(f"[WsBridge] task_confirm_reject error: {e}")
+    def _run():
+        try:
+            from core.hotkeys import _pending_task_confirmations
+            _pending_task_confirmations.pop(msg.get("confirm_id", ""), None)
+        except Exception as e:
+            print(f"[WsBridge] task_confirm_reject error: {e}")
+    threading.Thread(target=_run, daemon=True).start()
 
 
 async def _handle_tasks_settings_set(websocket, msg: dict):
@@ -1246,7 +1245,7 @@ def send_pill_notice(kind: str, title: str, summary: str = "", duration_ms: int 
         "kind": str(kind or "added"),
         "title": str(title or ""),
         "summary": str(summary or ""),
-        "duration_ms": int(duration_ms) if duration_ms else 2600,
+        "duration_ms": int(duration_ms) if duration_ms is not None else 2600,
     })
 
 

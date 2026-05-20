@@ -540,11 +540,8 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
         _was_streaming = True
         # Also clear the live variable so it doesn't leak to the next session
         _last_stt_text = ""
-        try:
-            from core.voice import clean_transcript
-            text = clean_transcript(text)
-        except Exception as e:
-            print(f"[STT] clean_transcript error: {e}")
+        # NOTE: captured_stt already went through clean_transcript in
+        # StreamingSTT._transcribe_chunk(final=True); do not clean again.
     elif _last_stt_text:
         text = _last_stt_text
         _last_stt_text = ""
@@ -1059,6 +1056,13 @@ def start_recording():
     #  START RECORDING — from this point the audio callback captures frames
     # ═══════════════════════════════════════════════════════════════════════
     state.recording = True
+
+    # Auto-stop after 60 seconds to prevent unbounded memory growth
+    def _auto_stop():
+        if state.recording:
+            print("[Hotkeys] Auto-stopping recording after 60s max duration")
+            stop_and_process()
+    threading.Timer(60.0, _auto_stop).start()
 
     # Immediate feedback
     print("\n🎙️  RECORDING STARTED — speak now, press F9 to stop")

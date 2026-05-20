@@ -253,7 +253,7 @@ export function createOverlayWindow(disp: Display, pill?: BrowserWindow, _pos?: 
         }
       }
 
-      if (!win.isDestroyed() && win.isVisible()) {
+      if (process.platform !== 'linux' && !win.isDestroyed() && win.isVisible()) {
         stampAutoHidden(win);
         win.hide();
       }

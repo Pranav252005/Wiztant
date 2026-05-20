@@ -674,7 +674,10 @@ def _phase2_loop(
                         break
 
             # Loop detection
-            img_hash = _gr.screenshot_hash(prefetched_img if isinstance(prefetched_img, bytes) else b"")
+            _img_bytes = prefetched_img if isinstance(prefetched_img, bytes) else (
+                prefetched_img.tobytes() if hasattr(prefetched_img, "tobytes") else b""
+            )
+            img_hash = _gr.screenshot_hash(_img_bytes)
             loop_history.append((act_type, img_hash))
             if _gr.detect_loop(loop_history):
                 msg = f"Loop detected at step {iteration} — aborting"

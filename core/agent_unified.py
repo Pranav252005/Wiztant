@@ -173,8 +173,8 @@ async def run_unified_agent(
         append_chat_fn("assistant", f"[Agent] {result}")
         time.sleep(0.5)
         # Verify window title
-        title = runtime.get_foreground_app()
-        if target_app.lower() in title.lower():
+        title = runtime.get_foreground_app() or ""
+        if title and target_app.lower() in title.lower():
             starting_verified = 1
             append_chat_fn("assistant", f"[Agent] Verified window: {title}")
         else:
@@ -304,7 +304,7 @@ async def run_unified_agent(
                 _send_blocked(dest_reason)
                 return f"Blocked by safety guardrail: {dest_reason}"
 
-            if action_type in ("click", "scroll"):
+            if action_type in ("click", "double_click", "right_click", "scroll", "drag"):
                 coords = _extract_coords(params)
                 if coords:
                     x, y = coords
@@ -312,7 +312,7 @@ async def run_unified_agent(
                     if not valid:
                         log.warning("Guardrail blocked coords: %s", coord_reason)
                         _send_blocked(coord_reason)
-                        break
+                        return f"Blocked by safety guardrail: {coord_reason}"
 
             # ── Loop detection ──────────────────────────────────────────────
             img_hash = _screenshot_hash(img)

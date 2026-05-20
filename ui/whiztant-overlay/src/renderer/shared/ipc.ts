@@ -74,6 +74,8 @@ export interface Task {
   snoozed_until?: string | null;
   category?: string | null;
   difficulty?: TaskDifficulty;
+  progress?: number;
+  reminder_sent?: boolean;
 }
 
 export interface TaskSnapshot {

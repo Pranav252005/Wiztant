@@ -159,8 +159,8 @@ async def tune(req: TuneRequest):
         if not can_afford(user_id, 1):
             return {"ok": False, "type": "error", "reply": "Insufficient credits for chat. Upgrade at whiztant.app/pricing", "applied": [], "errors": ["credits"]}
         from core.tune import process_tune, tune_reply_to_dict
-        result = process_tune(req.content)
-        deduct(user_id, "chat", 1)
+        result = await asyncio.to_thread(process_tune, req.content)
+        await asyncio.to_thread(deduct, user_id, "chat", 1)
         return tune_reply_to_dict(result)
     except Exception as e:
         return {"ok": False, "type": "error", "reply": f"Tune error: {e}", "applied": [], "errors": [str(e)]}
@@ -182,7 +182,7 @@ async def agent_run(req: AgentRequest):
                 state._agent_step_page_cb = step_cb
             # ask_ai handles both chat and agent routing; force_agent=True
             # makes it skip the chat path and go straight to the agent executor.
-            agent_module.ask_ai(req.task, force_agent=True)
+            await asyncio.to_thread(agent_module.ask_ai, req.task, force_agent=True)
             return {"ok": True, "steps": steps}
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
@@ -286,11 +286,11 @@ def tts_set_voice(req: VoiceRequest):
     return {"ok": True}
 
 @app.post("/voice/dictate")
-def voice_dictate():
+async def voice_dictate():
     if _core_available:
         try:
             import core.hotkeys as hk
-            hk._on_f9_taps(1)
+            await asyncio.to_thread(hk._on_f9_taps, 1)
         except Exception:
             pass
     return {"ok": True}
