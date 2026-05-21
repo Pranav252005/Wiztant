@@ -1249,6 +1249,12 @@ def send_pill_notice(kind: str, title: str, summary: str = "", duration_ms: int 
     })
 
 
+def send_mic_error(title: str, detail: str = "", duration_ms: int = 5000) -> None:
+    """Push microphone error to overlay pill with voice_state error flash."""
+    send_voice_state("error", detail)
+    send_pill_notice("error", title, detail, duration_ms=duration_ms)
+
+
 def _attach_engine_listeners(engine):
     def listener(event, payload):
         if event == "agent.phase_start":

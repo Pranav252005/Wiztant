@@ -1059,9 +1059,8 @@ def start_recording():
         _ensure_audio_stream()
     except Exception as e:
         print(f"[Audio] Failed to open microphone: {e}")
-        _try_ws_send("state", "error", "Microphone unavailable")
-        from core.ws_bridge import send_pill_notice
-        send_pill_notice("error", "Mic Error", str(e)[:80], duration_ms=5000)
+        from core.ws_bridge import send_mic_error
+        send_mic_error("Mic Error", str(e)[:80], duration_ms=5000)
         return
 
     # Remember where the user was typing so paste lands on the right screen/field.
@@ -1322,7 +1321,8 @@ def _start_task_recording():
         _ensure_audio_stream()
     except Exception as e:
         print(f"[Audio] Failed to open microphone: {e}")
-        _try_ws_send("state", "error", "Microphone unavailable")
+        from core.ws_bridge import send_mic_error
+        send_mic_error("Mic Error", str(e)[:80], duration_ms=5000)
         return
 
     state.audio_frames = []
