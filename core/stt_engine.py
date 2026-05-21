@@ -615,7 +615,7 @@ def _light_clean(text: str) -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def _transcribe_groq_with_prompt(audio_bytes: bytes, prompt: str) -> str:
-    """Groq transcription with optional rolling-context prompt."""
+    """Groq transcription with optional rolling-context prompt and retry."""
     from core.voice import _get_groq_client, WHISPER_MODEL
 
     client = _get_groq_client()
@@ -628,19 +628,56 @@ def _transcribe_groq_with_prompt(audio_bytes: bytes, prompt: str) -> str:
         tmp.close()
 
         with open(tmp.name, "rb") as _f:
-            kwargs = {
-                "file": ("audio.wav", _f.read()),
-                "model": WHISPER_MODEL,
-                "response_format": "text",
-                "language": "en",
-                "temperature": 0.0,
-            }
-            if prompt:
-                # Groq prompt max ~224 tokens; we cap at 1200 chars to be safe
-                kwargs["prompt"] = prompt[:1200]
+            file_bytes = _f.read()
 
-            transcription = client.audio.transcriptions.create(**kwargs)
-        return transcription.text.strip() if hasattr(transcription, "text") else transcription.strip()
+        kwargs = {
+            "file": ("audio.wav", file_bytes),
+            "model": WHISPER_MODEL,
+            "response_format": "text",
+            "language": "en",
+            "temperature": 0.0,
+        }
+        if prompt:
+            # Groq prompt max ~224 tokens; we cap at 1200 chars to be safe
+            kwargs["prompt"] = prompt[:1200]
+
+        max_retries = 3
+        base_delay = 1.0
+        last_exc: Exception | None = None
+
+        for attempt in range(max_retries + 1):
+            try:
+                transcription = client.audio.transcriptions.create(**kwargs)
+                return (
+                    transcription.text.strip()
+                    if hasattr(transcription, "text")
+                    else transcription.strip()
+                )
+            except Exception as e:
+                last_exc = e
+                err_str = str(e).lower()
+                is_transient = any(
+                    phrase in err_str
+                    for phrase in (
+                        "rate limit",
+                        "timeout",
+                        "too many requests",
+                        "429",
+                        "503",
+                        "502",
+                    )
+                )
+                if not is_transient or attempt == max_retries:
+                    raise
+                delay = base_delay * (2 ** attempt)
+                print(
+                    f"[STT] Groq transient error (attempt {attempt + 1}/{max_retries + 1}): {e}. "
+                    f"Retrying in {delay}s..."
+                )
+                time.sleep(delay)
+
+        # Unreachable — loop either returns or raises
+        raise last_exc  # type: ignore[misc]
     finally:
         try:
             os.unlink(tmp.name)
