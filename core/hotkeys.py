@@ -1044,8 +1044,9 @@ def start_recording():
     # Remember where the user was typing so paste lands on the right screen/field.
     _save_recording_focus()
 
-    # Start the production streaming STT engine for live preview (no auto-stop)
+    # Start the production streaming STT engine for live preview
     _active_stt = StreamingSTT()
+    _active_stt.on_auto_stop = stop_and_process
     _active_stt.start()
 
     # Clear buffers atomically with the recording flag
@@ -1056,13 +1057,6 @@ def start_recording():
     #  START RECORDING — from this point the audio callback captures frames
     # ═══════════════════════════════════════════════════════════════════════
     state.recording = True
-
-    # Auto-stop after 60 seconds to prevent unbounded memory growth
-    def _auto_stop():
-        if state.recording:
-            print("[Hotkeys] Auto-stopping recording after 60s max duration")
-            stop_and_process()
-    threading.Timer(60.0, _auto_stop).start()
 
     # Immediate feedback
     print("\n🎙️  RECORDING STARTED — speak now, press F9 to stop")
