@@ -43,8 +43,8 @@ from core.ws_bridge import send_voice_state, send_mic_level, broadcast_sync
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CHUNK_SEC = 1.5           # Seconds between interim transcription requests
-SILENCE_SEC = 1.5         # Seconds of silence before auto-stop
-MAX_RECORD_SEC = 300      # 5 minutes hard ceiling
+SILENCE_SEC = 7.5         # Seconds of silence before auto-stop
+MAX_RECORD_SEC = 999999   # Effectively unlimited (VAD is the real guard)
 PROMPT_MAX_TOKENS = 150   # Approximate token budget for Groq prompt param
 INTERIM_JITTER_SEC = 0.2  # Minimum time between identical interim broadcasts
 
