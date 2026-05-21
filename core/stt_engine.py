@@ -44,7 +44,7 @@ from core.ws_bridge import send_voice_state, send_mic_level, broadcast_sync
 
 CHUNK_SEC = 1.5           # Seconds between interim transcription requests
 SILENCE_SEC = 1.5         # Seconds of silence before auto-stop
-MAX_RECORD_SEC = 999999   # Effectively unlimited
+MAX_RECORD_SEC = 300      # 5 minutes hard ceiling
 PROMPT_MAX_TOKENS = 150   # Approximate token budget for Groq prompt param
 INTERIM_JITTER_SEC = 0.2  # Minimum time between identical interim broadcasts
 
@@ -483,14 +483,39 @@ class StreamingSTT:
     # ── Internal loops ───────────────────────────────────────────────────────
 
     def _vad_loop(self) -> None:
-        """Monitor audio_level from core state and auto-stop ONLY on max duration."""
+        """Monitor audio_level from core state and auto-stop on silence or max duration."""
+        # Threshold must match _energy_is_speech()
+        THRESHOLD = 300.0
+        poll_interval = 0.15  # seconds
+
         while not self._stop_event.is_set():
-            time.sleep(0.15)
+            time.sleep(poll_interval)
+
+            # Max duration guard
             elapsed = time.time() - self._start_time
             if elapsed > self.max_sec:
                 print("[STT] Max duration reached — auto-stopping")
                 self._auto_stop()
                 return
+
+            # Silence detection
+            level = float(getattr(state, "audio_level", 0.0) or 0.0)
+            if level > THRESHOLD:
+                # Speech detected — reset silence tracker
+                with self._lock:
+                    self._silence_start = None
+            else:
+                should_stop = False
+                with self._lock:
+                    now = time.time()
+                    if self._silence_start is None:
+                        self._silence_start = now
+                    elif now - self._silence_start > self.silence_sec:
+                        should_stop = True
+                if should_stop:
+                    print(f"[STT] Silence > {self.silence_sec}s — auto-stopping")
+                    self._auto_stop()
+                    return
 
     def _auto_stop(self) -> None:
         """Called by VAD loop to trigger a graceful stop."""
