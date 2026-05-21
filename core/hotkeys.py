@@ -408,6 +408,27 @@ def _ensure_audio_stream():
             raise RuntimeError("Microphone unavailable") from e
 
 
+def check_microphone_available() -> tuple[bool, str]:
+    """Probe the default microphone. Returns (ok, error_message)."""
+    import sounddevice as sd
+    try:
+        # 0.1 s test stream — minimal latency
+        with sd.RawInputStream(
+            samplerate=16000, blocksize=1024, dtype="int16", channels=1, latency="low"
+        ):
+            pass
+        return True, ""
+    except sd.PortAudioError as e:
+        msg = str(e).lower()
+        if "device unavailable" in msg or "bad device" in msg:
+            return False, "No microphone detected. Connect a mic and restart Wiztant."
+        if "access" in msg or "permission" in msg:
+            return False, "Microphone access denied. Check system privacy settings."
+        return False, f"Microphone error: {e}"
+    except Exception as e:
+        return False, f"Microphone unavailable: {e}"
+
+
 # =============================================================
 #  TRANSCRIBE + DISPATCH
 # =============================================================
@@ -1039,6 +1060,8 @@ def start_recording():
     except Exception as e:
         print(f"[Audio] Failed to open microphone: {e}")
         _try_ws_send("state", "error", "Microphone unavailable")
+        from core.ws_bridge import send_pill_notice
+        send_pill_notice("error", "Mic Error", str(e)[:80], duration_ms=5000)
         return
 
     # Remember where the user was typing so paste lands on the right screen/field.

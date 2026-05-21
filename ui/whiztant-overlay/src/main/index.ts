@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, screen, session, type Display } from 'electron';
+import { app, BrowserWindow, globalShortcut, screen, session, systemPreferences, type Display } from 'electron';
 import { createPillWindow, createOverlayWindow, setLinuxSticky } from './windows';
 import { registerIpcHandlers } from './ipc';
 import { registerShortcuts } from './shortcuts';
@@ -143,6 +143,18 @@ function bootstrap(): void {
       callback(false);
     }
   });
+
+  // macOS: explicitly request microphone permission so the user sees a system dialog
+  // and we can log the result. On Linux/Windows this is a no-op fallback.
+  if (process.platform === 'darwin') {
+    systemPreferences.askForMediaAccess('microphone').then((granted) => {
+      if (!granted) {
+        console.warn('[Overlay] Microphone access denied by user');
+      } else {
+        console.log('[Overlay] Microphone access granted');
+      }
+    });
+  }
 
   console.log('[Overlay] COMMAND_FILE resolved to:', COMMAND_FILE);
 

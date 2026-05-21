@@ -344,6 +344,16 @@ try:
 except Exception as _e:
     print(f"[WS] Could not start WebSocket bridge: {_e}")
 
+# Probe microphone once at startup and broadcast errors to overlay
+try:
+    from core.hotkeys import check_microphone_available
+    _mic_ok, _mic_err = check_microphone_available()
+    if not _mic_ok:
+        print(f"[Startup] Mic check failed: {_mic_err}")
+        send_pill_notice("error", "Mic Unavailable", _mic_err, duration_ms=8000)
+except Exception as _e:
+    print(f"[Startup] Mic probe skipped: {_e}")
+
 # Background agent manager (only if agent feature enabled)
 _bg_mgr = None
 if _FEATURE_FLAGS.get("agent", True):
