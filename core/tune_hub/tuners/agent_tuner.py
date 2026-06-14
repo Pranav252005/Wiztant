@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..base import ComplexityLevel, CreditBudget, LearnedModel, TuneStatus
+from ..single_file_store import read_tune_file, write_tune_file
 from ..tune_base import TuneBase, ExperimentResult
 from ..utils.convergence import ConvergenceChecker
 from ..utils.feature_extraction import cosine_similarity, embed_text
@@ -516,35 +517,60 @@ class AgentTuner(TuneBase, feature_name="agent"):
     # ── PHASE 3: Deployment ──
 
     def deploy(self, model: LearnedModel) -> Dict[str, Any]:
-        return {
+        manifest = {
             "tune_id": model.tune_id,
-            "recipe": model.payload["recipe"],
-            "recipe_type": model.payload["recipe_type"],
+            "recipe": model.payload.get("recipe", []),
+            "recipe_type": model.payload.get("recipe_type", ""),
             "dsl_code": model.payload.get("dsl_code", ""),
             "target_app": model.payload.get("target_app", ""),
+            "updated_at": __import__("datetime").datetime.utcnow().isoformat(),
         }
+        write_tune_file(self.feature_name, manifest)
+        return manifest
 
     # ── RUNTIME: Apply ──
 
     def apply(
         self, model: LearnedModel, feature_input: Dict[str, Any]
     ) -> Dict[str, Any]:
-        feature_input["recipe"] = model.payload.get("recipe", [])
-        feature_input["tune_id"] = model.tune_id
-        feature_input["dsl_code"] = model.payload.get("dsl_code", "")
-
-        # Inject recipe guidance hint — NEVER mutate the original task key
-        recipe_hint = model.payload.get("recipe", [])
-        if recipe_hint:
-            dsl_code = model.payload.get("dsl_code", "")
-            hint = f"Follow this learned automation sequence: {recipe_hint}"
-            if dsl_code:
-                hint += f"\nDSL: {dsl_code}"
-            feature_input["recipe_hint"] = hint
+        # Single-file source of truth: read from canonical file first
+        tune_data = read_tune_file(self.feature_name)
+        if tune_data:
+            recipe = tune_data.get("recipe", [])
+            dsl_code = tune_data.get("dsl_code", "")
+            feature_input["recipe"] = recipe
+            feature_input["tune_id"] = tune_data.get("tune_id", model.tune_id)
+            feature_input["dsl_code"] = dsl_code
+            if recipe:
+                hint = f"Follow this learned automation sequence: {recipe}"
+                if dsl_code:
+                    hint += f"\nDSL: {dsl_code}"
+                feature_input["recipe_hint"] = hint
+        else:
+            # Fallback to model payload (tests / legacy)
+            feature_input["recipe"] = model.payload.get("recipe", [])
+            feature_input["tune_id"] = model.tune_id
+            feature_input["dsl_code"] = model.payload.get("dsl_code", "")
+            recipe_hint = model.payload.get("recipe", [])
+            if recipe_hint:
+                dsl_code = model.payload.get("dsl_code", "")
+                hint = f"Follow this learned automation sequence: {recipe_hint}"
+                if dsl_code:
+                    hint += f"\nDSL: {dsl_code}"
+                feature_input["recipe_hint"] = hint
 
         return feature_input
 
     def get_default_config(self, task: str) -> Dict[str, Any]:
+        # Single-file source of truth: read from canonical file first
+        tune_data = read_tune_file(self.feature_name)
+        if tune_data:
+            return {
+                "recipe": tune_data.get("recipe", []),
+                "tune_id": tune_data.get("tune_id"),
+                "dsl_code": tune_data.get("dsl_code", ""),
+                "target_app": tune_data.get("target_app", ""),
+            }
         return {"recipe": [], "tune_id": None, "dsl_code": ""}
 
     def allowed_injectable_keys(self) -> frozenset[str]:

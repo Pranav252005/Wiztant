@@ -1,20 +1,26 @@
 """
 core/stt_refiner.py — AI refinement for STT output
 
-Groq Mixtral-powered refinement system.
-Fixes homophones, run-on words, missing punctuation.
-Real-time corrections on final transcript (not mid-stream to save tokens).
+Groq-powered surgical refinement. The model never returns rewritten text —
+it returns a list of single-word replacements which we validate and apply
+ourselves, so nothing outside the flagged words can change.
 """
 
 import json
 import logging
 import os
+import re
 import time
 from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+DEFAULT_MODEL = os.getenv("WIZTANT_REFINER_MODEL", "llama-3.3-70b-versatile")
+
+# A proposed replacement not targeting a known dictionary/vocab word must be
+# at least this similar to the original (homophone/typo territory).
+_MIN_FREE_SIMILARITY = 0.6
 
 
 class STTRefiner:
@@ -30,9 +36,10 @@ class STTRefiner:
     Preserves user intent (no hallucination).
     """
 
-    def __init__(self, model: str = "mixtral-8x7b-32768"):
+    def __init__(self, model: str = DEFAULT_MODEL):
         self._groq_client = None
         self.vocab_db: Dict[str, str] = {}
+        self.dictionary_words: List[str] = []
         self.context_history: List[str] = []
         self.model = model
         self.stats = {
@@ -52,6 +59,10 @@ class STTRefiner:
         """Inject vocabulary database (from vocab.py)."""
         self.vocab_db = vocab_dict.copy()
         logger.info(f"Loaded vocab: {len(vocab_dict)} entries")
+
+    def set_dictionary(self, words: List[str]):
+        """Inject the user dictionary (plain words from vocab.py)."""
+        self.dictionary_words = [w for w in words if w and w.strip()]
 
     def add_context(self, recent_task: str):
         """Add recent task for context window."""
@@ -107,24 +118,25 @@ class STTRefiner:
             )
 
         vocab_str = json.dumps(self.vocab_db, indent=2) if self.vocab_db else "{}"
+        dict_str = json.dumps(self.dictionary_words) if self.dictionary_words else "[]"
 
-        # Dynamic max_tokens: generous headroom so long dictation never gets truncated
-        input_word_count = len(partial_text.split())
-        max_tokens = max(300, input_word_count * 3)
+        # Replacement lists are short; no need to scale with input length.
+        max_tokens = 500
 
-        # Strict prompt to prevent hallucination
-        prompt = f"""TASK: Fix speech-to-text errors in the transcript. ONLY fix actual errors.
+        # The model only proposes word-level replacements; we apply them ourselves.
+        prompt = f"""TASK: Find speech-to-text errors in the transcript. Propose word replacements ONLY — never rewrite the text.
 
 RULES (STRICT):
-1. ONLY apply vocabulary replacements below. NO other changes.
-2. Fix homophones (their/there), run-on words, missing punctuation.
-3. Convert spoken emails: "name at domain dot com" → "name@domain.com"
-4. Handle scratch-that: remove everything before "scratch that" / "delete that" / "no wait" / "actually i meant" and keep only what follows.
-5. Preserve original intent. No rewording, no summarizing, no shortening.
-6. PRESERVE FULL LENGTH — do NOT shorten, summarize, or truncate the text. The output must contain every idea and detail from the input.
-7. Return ONLY valid JSON. No markdown. No preamble.
+1. Each replacement is a single word or short phrase that appears VERBATIM in the input, plus its correction.
+2. Fix: homophones (their/there), run-on words (manytasks -> many tasks), words that are likely mis-hearings of a USER DICTIONARY word, and vocabulary pairs below.
+3. The user dictionary lists words the speaker actually uses. If an input word sounds like one of them, replace it with the dictionary word.
+4. Do NOT reword, summarize, restyle, or fix grammar. If unsure, propose nothing.
+5. Return ONLY valid JSON. No markdown. No preamble.
 
-VOCABULARY (apply ONLY these):
+USER DICTIONARY:
+{dict_str}
+
+VOCABULARY PAIRS (heard -> correct):
 {vocab_str}
 
 CONTEXT:
@@ -134,7 +146,7 @@ INPUT TEXT:
 "{partial_text}"
 
 OUTPUT JSON (no markdown, no backticks):
-{{"refined": "...", "changes": ["word1->word2"], "confidence": 0.0}}
+{{"replacements": [{{"from": "exact word in text", "to": "correction"}}], "confidence": 0.0}}
 """
 
         try:
@@ -158,34 +170,24 @@ OUTPUT JSON (no markdown, no backticks):
             result = json.loads(response_text)
             latency = (time.time() - start_time) * 1000
 
+            refined, changes = self._apply_replacements(
+                partial_text, result.get("replacements", [])
+            )
+
             self.stats["total_refinements"] += 1
-            if result.get("changes"):
-                self.stats["changes_made"] += len(result["changes"])
+            self.stats["changes_made"] += len(changes)
             # Rolling average
             n = self.stats["total_refinements"]
             self.stats["avg_latency_ms"] = (
                 self.stats["avg_latency_ms"] * (n - 1) + latency
             ) / n
 
-            refined = result.get("refined", partial_text)
-
-            # Length guard: if the model shortened the text dramatically, reject it
-            original_words = len(partial_text.split())
-            refined_words = len(refined.split()) if refined else 0
-            if original_words > 10 and refined_words < original_words * 0.6:
-                logger.warning(
-                    f"Refiner shortened text too much ({original_words} -> {refined_words} words); "
-                    f"keeping original."
-                )
-                refined = partial_text
-
-            logger.info(
-                f"Refined: '{partial_text[:40]}...' -> '{refined[:40]}...' ({latency:.0f}ms)"
-            )
+            if changes:
+                logger.info(f"Refined: {changes} ({latency:.0f}ms)")
 
             return {
                 "refined": refined,
-                "changes": result.get("changes", []),
+                "changes": changes,
                 "confidence": float(result.get("confidence", 0.7)),
                 "latency_ms": latency,
                 "error": None,
@@ -201,6 +203,39 @@ OUTPUT JSON (no markdown, no backticks):
                 "latency_ms": (time.time() - start_time) * 1000,
                 "error": str(e),
             }
+
+    def _apply_replacements(
+        self, text: str, replacements: List[dict]
+    ) -> "tuple[str, List[str]]":
+        """Validate and apply model-proposed word replacements.
+
+        A replacement is applied only when:
+          - `from` actually occurs in the text as a whole word/phrase, and
+          - `to` is a known dictionary/vocab word, OR is similar enough to
+            `from` to be a homophone/run-on fix (blocks hallucinated rewrites).
+        """
+        from core.vocab import _similarity
+
+        known_targets = {w.lower() for w in self.dictionary_words}
+        known_targets.update(v.lower() for v in self.vocab_db.values())
+
+        changes: List[str] = []
+        for rep in replacements or []:
+            if not isinstance(rep, dict):
+                continue
+            src = str(rep.get("from", "")).strip()
+            dst = str(rep.get("to", "")).strip()
+            if not src or not dst or src.lower() == dst.lower():
+                continue
+            pattern = re.compile(r"\b" + re.escape(src) + r"\b", re.IGNORECASE)
+            if not pattern.search(text):
+                continue
+            if dst.lower() not in known_targets and _similarity(src, dst) < _MIN_FREE_SIMILARITY:
+                logger.info(f"Refiner: rejected replacement '{src}' -> '{dst}'")
+                continue
+            text = pattern.sub(dst, text)
+            changes.append(f"{src}->{dst}")
+        return text, changes
 
     def refine_batch(self, transcripts: List[str]) -> List[Dict]:
         """Refine multiple transcripts."""

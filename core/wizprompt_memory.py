@@ -529,19 +529,30 @@ async def retrieve_examples_for_prompt(
     return examples, cluster_id, bias
 
 
-def format_few_shot_block(examples: List[Dict]) -> str:
-    """Format retrieved examples as a few-shot prompt block."""
+def format_few_shot_block(examples: List[Dict], mode: str = "prompt") -> str:
+    """Format retrieved examples as a few-shot prompt block.
+
+    Args:
+        examples: Retrieved similar examples.
+        mode: "prompt" for classic prompt engineering, or "preset" for preset-driven tasks.
+    """
     if not examples:
         return ""
 
-    lines = [
-        "Here are examples of prompt optimizations you previously produced that the user accepted:",
-        "",
-    ]
+    if mode == "preset":
+        header = "Here are examples of enhancements you previously produced that the user accepted:"
+        label_before = "Input"
+        label_after = "Output"
+    else:
+        header = "Here are examples of prompt optimizations you previously produced that the user accepted:"
+        label_before = "Original"
+        label_after = "Optimized"
+
+    lines = [header, ""]
     for i, ex in enumerate(examples, 1):
         lines.append(f"Example {i}:")
-        lines.append(f"Original: {ex['original']}")
-        lines.append(f"Optimized: {ex['final']}")
+        lines.append(f"{label_before}: {ex['original']}")
+        lines.append(f"{label_after}: {ex['final']}")
         lines.append("")
     lines.append("Please follow the same style and level of detail as these examples.")
     lines.append("")

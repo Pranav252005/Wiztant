@@ -1,9 +1,10 @@
-"" 
 # CLAUDE.md
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+
+> This file is kept in sync with `AGENTS.md`. If the two ever disagree, `AGENTS.md` is the source of truth for project facts; update both when something changes.
 
 ## 1. Think Before Coding
 
@@ -71,10 +72,11 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Product Identity
 
-- **Product name:** Wiztant (never "Whiztant" — name was changed)
-- **What it is:** Windows AI operating assistant, distributed as a portable `.exe` (no install), sold as SaaS
-- **Builder:** Solo project by Pranav (venkatesh is the same person)
-- **Root directory:** `C:\whis\`
+- **Product name:** Wiztant (intended branding). Note: the codebase still contains many "Whiztant" references in strings, file names, and legacy docs — update to "Wiztant" when you touch those lines, but do not do a global rename unless asked.
+- **What it is:** Windows AI operating assistant (Linux supported for development), distributed as a portable executable, sold as SaaS.
+- **Builder:** Solo project by Pranav (venkatesh is the same person).
+- **Root directory:** `C:\whis\` (Windows), `/home/user/whis/` or similar (Linux dev).
+- **Distribution:** Single portable executable; no installer, no registry writes.
 
 ---
 
@@ -83,31 +85,36 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 Wiztant has **three separate applications** that must not be confused:
 
 ### 1. Python Backend
-- **Entry point:** `C:\whis\main.py` — starts uvicorn on port 8765, WebSocket bridge on port 9120, system tray, F9 hotkeys, WizType
-- **Core logic:** `C:\whis\core\` — agent, voice, hotkeys, tasks, ws_bridge, tts, vlm, memory, background_agent, vocab, guardrails, wiztype/
-- **Agent rules:** `C:\whis\agent_rules\` — markdown specs for navigation, shortcuts, apps (used by UI-TARS agent)
-- **No PyQt6 main window** — the Python side is headless backend + tray icon only
+- **Entry point:** `main.py` → `app/main.py` → `run_app()`. Loads `.env`, runs health checks, initializes `data/` and `memory/`, imports core subsystems, registers global hotkeys via the Platform Abstraction Layer (PAL), starts uvicorn on `127.0.0.1:8765`, starts the WebSocket bridge on `localhost:9120`, and spins up background threads (system context scanner, background agent, system tray, task reminders, overlay launcher).
+- **Core logic:** `core/` — 50+ top-level modules plus `core/agent_v2/` and `core/tune_hub/`.
+- **Agent rules:** `agent_rules/` — markdown navigation/shortcut/app specs consumed by the UI-TARS agent.
+- **Platform abstraction:** `platforms/` — isolates all OS-specific code behind abstract base classes. Factory at `platforms/factory.py` does lazy imports so Linux never loads `win32api` and vice versa.
+- **No PyQt6 main window** — the Python side is headless backend + tray icon only (`core/tray.py`). PyQt6/tkinter are used only for the tray icon and minimal overlays (`ui/`).
 
 ### 2. Electron Overlay (React + TypeScript) ← ACTIVE UI
-- **Location:** `C:\whis\ui\whiztant-overlay\`  ← THIS IS THE ONE TO EDIT
-- **Stack:** Electron + React 18 + TypeScript + Tailwind + Framer Motion + electron-vite
+- **Location:** `ui/whiztant-overlay/`  ← THIS IS THE ONE TO EDIT
+- **Stack:** Electron 33 + React 18 + TypeScript 5.7 + Tailwind CSS 3.4 + Framer Motion + electron-vite
+- **Build:** `npm run build` → outputs to `out/`
 - **Three BrowserWindows:**
   - Pill — bottom-center always-on-top wave indicator
-  - Overlay — 340×420 chat/tasks/agent panel (Ctrl+Space to toggle)
-  - Settings — theme + WizType config
-- **On-demand:** TaskPanel windows (one per task id, 340×420 frameless, positioned right of overlay)
-- **IPC:** Electron ↔ Python via WebSocket on `ws://localhost:9120` (ws_bridge.py)
-- **Task IPC:** Electron main also reads/writes `C:\whis\memory\tasks.json` directly via Node fs
+  - Overlay — chat/tasks/agent panel (Ctrl+Space to toggle)
+  - Settings — theme + feature toggles + agent integrations
+- **On-demand:** TaskPanel windows (one per task id, frameless, positioned right of overlay)
+- **IPC:** Electron ↔ Python via WebSocket on `ws://localhost:9120` (`core/ws_bridge.py`). Electron main also reads/writes `memory/tasks.json` directly via Node fs.
+- **Performance rule:** Overlay uses `setOpacity(0/1)` for show/hide — NEVER `hide()/show()` (causes DWM repaint lag on Windows).
 
 ### 3. Marketing Website
-- **Location:** `C:\whis\whiztant-website\`
-- **Stack:** React + Vite + Tailwind CSS v3
-- **Deploy:** `deploy.bat` → Netlify
+- **Location:** `whiztant-website/`
+- **Stack:** React 19 + Vite 6 + Tailwind CSS v3 + PostCSS + Autoprefixer + GSAP + Framer Motion + Spline + React Router 7
+- **Payments:** Stripe + Razorpay
+- **Deploy:** Manual to Netlify (`netlify.toml` present; no CI/CD pipeline)
 - **PostCSS config:** `postcss.config.cjs` (CJS, not `.js`, because `package.json` has `"type": "module"`)
 
 ### Legacy / Do Not Use
-- `C:\whis\ui\wiztant-clui\` — archived, superseded by `whiztant-overlay`
-- `C:\whis\ui\wiztant-app\` — older React app, also superseded
+- `ui/wiztant-clui/` — archived, superseded by `whiztant-overlay`
+- `ui/wiztant-app/` — older React app, also superseded
+- `overlay/whiztant-overlay/` — legacy Electron overlay, superseded
+- `core/wiztype/` — entire subsystem removed
 
 ---
 
@@ -115,143 +122,172 @@ Wiztant has **three separate applications** that must not be confused:
 
 | Layer | Language | Runtime / Framework |
 |---|---|---|
-| Python backend | Python 3.11 | asyncio, uvicorn, pynput, websockets |
-| Electron overlay | TypeScript | React 18, Electron, Vite, Framer Motion |
-| Website | TypeScript / JSX | React, Vite, Tailwind CSS v3 |
+| Python backend | Python 3.11 | asyncio, uvicorn, FastAPI, pynput, websockets |
+| Electron overlay | TypeScript | React 18, Electron 33, Vite, Framer Motion |
+| Website | TypeScript / JSX | React 19, Vite 6, Tailwind CSS v3 |
 | STT | — | Groq Whisper Large v3 Turbo (cloud) + faster-whisper (local fallback) |
-| TTS | — | Kokoro (local), 6 voices, `af_nova` default |
-| Agent planner | — | Qwen 3.6 Plus free via OpenRouter (text-only) |
+| Agent planner | — | Qwen 3-VL-235B via OpenRouter (vision + text) |
 | Agent executor | — | UI-TARS 1.5 7B via OpenRouter (vision) |
 | Auth | — | Supabase |
 | Cost tracking | — | Helicone |
+| License validation | — | LemonSqueezy |
 
 ---
 
-## Feature Modes
+## Feature Modes (Hotkeys)
 
 | Trigger | Mode | What it does |
 |---|---|---|
-| F9 ×1 | Dictation | Whisper transcription → paste at cursor |
-| F9 ×2 | Conversation | Voice loop with GPT-5.4 + Kokoro TTS |
-| F9 ×3 | Agent | UI-TARS screen-to-action loop |
-| Ctrl+Space | Overlay toggle | Show/hide 340×420 chat+tasks+agent overlay |
-| F10 (planned) | Task voice | Voice-only task creation with "Add Task" pill state |
+| **F9 ×1** | Dictation | STT engine transcribes → smart paste at cursor |
+| **F9 ×2+** | Agent toggle | Toggles Agent mode on/off (Three-Brain screen-to-action loop) |
+| **Ctrl+Space** | Overlay toggle | Show/hide chat+tasks+agent overlay |
+| **Ctrl+Shift+Space** | WizPrompt / RePrompt | Reads clipboard → optimizes via TuneHub persona weights + preset → writes back |
+| **Esc** | Dismiss overlay | Closes overlay |
+| **F10** | Task voice | Configurable task creation hotkey (`data/settings.json` → `task_hotkey`). Partially implemented. |
+
+**Note:** The old "Conversation" mode (F9×2 voice loop with GPT + TTS) was removed when `core/tts.py` was deleted. Platform-specific TTS lives in `platforms/*/tts.py`.
 
 ---
 
-## Design System (Electron overlay + website)
+## Agent Mode
+
+The agent is a **Three-Brain screen-to-action loop** (Planner → Vision → Executor) plus a multi-app workflow agent ("The Bridge").
+
+### Key modules
+- `core/agent_orchestrator.py` — Three-Brain orchestrator (Planner → Vision → Executor); F9×2 entry point.
+- `core/agent_executor.py` — Executor Brain (UI-TARS) predicting GUI actions from screenshots.
+- `core/agent_actions.py` — action primitives (click, type, scroll, etc.).
+- `core/workflow_runtime.py` — workflow execution runtime; only permits UI-navigation actions.
+- `core/workflow_planner.py` — converts intent into a structured `WorkflowPlan`.
+- `core/agent_v2_engine.py` + `core/agent_v2/` — "The Bridge" multi-app workflow agent + TuneHub learning.
+- **Agent presets:** `core/agent_presets.py` — 11 built-in presets; UI in `AgentV2Panel.tsx`; bridge message `agent_v2:run_preset`.
+
+### Agent Integrations / App Authorization ← NEW
+Lets the agent sign into apps (Slack, Gmail, anything) automatically. Supports **both** OAuth and a credential vault.
+
+- **Vault module:** `core/integrations.py`
+  - **Local-only, encrypted:** secrets are **never** sent to any cloud/app DB. Stored Fernet-encrypted at `~/.wiztant/integrations.enc`. Encryption key lives in the OS keyring when available, else a `0600` `~/.wiztant/vault.key` fallback.
+  - **Two auth types:** `credential` (login fields the screen agent types) and `oauth` (PKCE loopback flow; providers `google`, `slack`, `github`).
+  - **Secrets never reach the LLM:** the planner only sees `list_public()` / `agent_context_block()` — app names + which field keys exist, no values. To type a secret the agent emits a placeholder `{{cred:App:field}}` (e.g. `{{cred:Slack:password}}`); `core/agent_actions._resolve_credentials()` substitutes the real value at type time (TypeAction path only).
+  - **OTP / 2FA:** the agent pauses and asks the user; codes are never stored.
+- **On-demand OAuth fallback:** when the agent opens an app the user never configured in Settings, `core/integrations.ensure_authorized(app)` runs OAuth directly. Resolution order: (1) vault hit → ok; (2) known OAuth provider + built-in client ID → run OAuth now and store; (3) otherwise → ask the user to set it up. Hooked into `core/workflow_runtime.py` on the `open_app` action. App→provider mapping via `detect_provider()` (e.g. "Gmail" → google).
+  - **Built-in OAuth client IDs** come from env vars: `WIZTANT_<PROVIDER>_CLIENT_ID` / `WIZTANT_<PROVIDER>_CLIENT_SECRET` (e.g. `WIZTANT_GOOGLE_CLIENT_ID`). Until these are set, direct OAuth can't fire and the agent falls back to asking the user.
+- **Bridge messages (`core/ws_bridge.py`):** `integrations/list`, `integrations/save`, `integrations/delete`, `integrations/oauth/start` → broadcasts `integrations/update`, `integrations/oauth/result`, `integrations/error`.
+- **UI:** `IntegrationsTab` + `IntegrationForm` in `ui/whiztant-overlay/src/renderer/settings/Settings.tsx` (Settings → "Integrations" tab). Add credential-vault apps with custom key/value fields, or connect via OAuth.
+
+---
+
+## Design System (shared across apps)
 
 ```
 Background:  #07070f
+Surface:     #0f0f1a
 Primary:     #c0c1ff  (indigo)
 Secondary:   #d0bcff  (purple)
 Tertiary:    #4cd7f6  (teal)
+Text:        #e2e2e2
+Muted:       #6b7280
 ```
 
-- **Wave states:** idle `#7B2241` (burgundy), recording (mic-reactive), thinking `#C4956A` (cappuccino), speaking `#1a3a6b` (dark blue), agent `#2d6e3e` (green)
 - **Overlay themes** (5): `onyx`, `graphite`, `porcelain`, `midnight`, `ember` — stored in `memory/theme.json`
+- **Python tokens:** `ui/constants.py` and `ui/theme.py`
 - **Website tokens:** Tailwind config + CSS classes: `.glass`, `.gradient-text`, `.btn-primary`, `.btn-ghost`, `.card`, `.eyebrow`, `.kbd`, `.prose-dark`, `.page-wrap`, `.section`, `.section-alt`
 - **Logo:** `wiztantW.svg` (do NOT regenerate programmatically — always load from file)
 
 ---
 
-## Pricing
+## Feature Toggles System
 
-| Plan | Monthly | Annual | Limits |
-|---|---|---|---|
-| Free | $0 | — | 15 chats/mo |
-| Pro | $15 | $165/yr | 300 chats, 50 agent, 30 UI-TARS |
-| Power | $25 | $275/yr | 500 chats, 200 agent, 200 UI-TARS |
+### 4 Features
+| Key | Description | Default |
+|---|---|---|
+| `agent` | Agent mode (F9 ×2+) | `true` |
+| `tunehub` | TuneHub adaptive tuning | `true` |
+| `tasks` | Task system | `true` |
+| `reprompt` | RePrompt / WizPrompt | `true` |
 
-- Trial: 3 days, 30 msgs, 3 agent tasks, no credit card required
-- Annual saves 1 month vs monthly
+### Storage
+- **Frontend:** `localStorage` keys `whiztant.feature.*` + JSON blob `whiztant.features`
+- **Backend:** `data/settings.json` under `"features"` key
 
----
-
-## What's Been Built
-
-### Python Backend
-- [x] F9 hotkey with 3-mode detection (debounced counter)
-- [x] Dictation: Groq Whisper STT → clipboard paste
-- [x] Conversation: voice loop with GPT-5.4 + Kokoro TTS, 6 voices
-- [x] Agent: UI-TARS 1.5 7B screen-to-action loop with agent_rules/ navigation spec
-- [x] System tray icon (winotify toasts on startup)
-- [x] Supabase auth (email/password)
-- [x] Usage guard via Helicone
-- [x] WebSocket bridge on port 9120 (ws_bridge.py) — Python ↔ Electron IPC
-- [x] FastAPI backend on port 8765 (core/server.py)
-- [x] Task system (core/tasks.py): full CRUD, voice parsing, due-time extraction, LLM task refiner, daily suggestion
-- [x] Task schema: id, text, status, source, created_at, due_at, completed_at, parent_id, content, task_type (large/small), carried_over, failed
-- [x] Session continuity: "save this for tomorrow" → save_session_as_task()
-- [x] Due-alert timers: _due_check() at 18:00 daily, _due_reminder() every 4h for carried-over tasks
-- [x] Startup nudge: 8s after boot, pill flashes yesterday's pending task summary
-- [x] WizType subsystem (core/wiztype/): keyboard hook, debounced inference, Ollama/custom model, Tab-to-accept suggestion overlay
-- [x] Background agent manager (core/background_agent.py)
-- [x] Memory system (core/memory.py)
-- [x] System context scanner (core/system_context.py)
-- [x] Vocab correction system (core/vocab.py)
-- [x] Agent confirmation overlay (ui/agent_confirmation_overlay.py)
-
-### Electron Overlay (whiztant-overlay)
-- [x] Pill window — always-on-top, bottom-center, wave animation with state colors
-- [x] Overlay window — 3-tab layout (Chat / Tasks / Agent), Ctrl+Space toggle
-- [x] Settings window — theme picker, WizType config
-- [x] Theme system — 5 themes, persisted to memory/theme.json, synced to all windows
-- [x] WebSocket bridge client (useBridge.ts) — connects to Python on port 9120
-- [x] Task system — full CRUD via IPC + fs direct (getTasks, saveTask, updateTask, deleteTask, markDone, openTaskPanel, rescheduleTask, undoTaskSave)
-- [x] TasksPanel — task list with add-form, due-time picker (day + hh:mm + am/pm), Today section, Undone section, recent history
-- [x] TaskTile — LARGE/SMALL badge, due label, overdue highlighting, failed state, voice badge
-- [x] TaskPanel side window — 340×420 frameless, opens to the right of overlay, title input, content textarea, due pickers, Save button
-- [x] useTasks hook — wraps IPC, local state sync, refresh
-- [x] Notification system — usePillNotifications queue + NotificationRenderer dispatching 4 types:
-  - TaskSavedNotification (Edit / Save / Decline, 5s auto-save)
-  - DueAlertNotification (red, per-task Reschedule Tomorrow)
-  - DueReminderNotification (gold, 4h carry-over reminder)
-  - DuplicateTaskNotification (gold duplicate warning)
-- [x] Task banners in Overlay.tsx — voice-added flash, halfway reminder, due-now danger banner
-- [x] Agent panel (AgentPanel.tsx) — live step progress, blocked state with undo, done/result state
-- [x] VocabCorrectModal — prompt user to correct misheard words
-- [x] Warp entrance animation on every Ctrl+Space show
-- [x] Multiple chat conversations with tab strip, add/close tabs
-
-### Website
-- [x] All marketing pages (/, /features, /how-it-works, /pricing, /download, /login)
-- [x] Legal pages (/privacy-policy, /terms-of-service, /cookie-policy)
-- [x] /support, /docs (7 sections), /press
-- [x] Dark celestial design system throughout
-- [x] Supabase auth on /login (email + Google OAuth)
+### Gating
+- **Frontend:** `Settings.tsx` toggles, `Overlay.tsx` conditional panel rendering, `TopTabBar.tsx` dynamic tab visibility
+- **Backend:** `app/main.py` wraps agent init, TuneHub init, task timer, background agent in conditional blocks
 
 ---
 
-## What Still Needs Building
+## Preset Systems
 
-- [ ] **F10 task hotkey** — voice-only task creation mode; `record_task_voice()` in core/voice.py; `_parse_task_from_speech()` LLM extractor; `task_recording` pill wave state (purple/indigo "Add Task" label). Spec: `Plans_Implementation/whiztant-f10-task-hotkey-prompt.md`
-- [ ] Final smoke test of task panel IPC + `tsc --noEmit` verification
-- [ ] Website deploy CI/CD (currently manual `deploy.bat`)
+### RePrompt presets
+- **File:** `core/presets.py` — `product_review`, `idea_review`, `code_review`, `code_creation`, `general`
+- **UI:** Dropdown in `WizPromptPanel.tsx`; **API:** `GET /presets`; consumed by `core/wizprompt.py`.
 
----
-
-## Task Storage — CRITICAL
-
-Tasks are stored at **`C:\whis\memory\tasks.json`** (NOT `data/tasks.json`).
-
-Both the Python backend (`core/tasks.py`) and the Electron main process (`ipc.ts`) read and write this same file. Always use `memory/tasks.json`.
+### Agent presets (The Bridge)
+- **File:** `core/agent_presets.py` — 11 built-in presets (Development / Productivity / System).
+- **UI:** Dropdown in `AgentV2Panel.tsx`; **API:** `GET /agent_presets`; **Bridge:** `agent_v2:run_preset`.
+- No emojis in the agent UI; button label "Run Agent"; tab label "Agent".
 
 ---
 
-## Definition of Done
+## Task System & Reminders
 
-A task is **complete** when:
+### Storage — CRITICAL
+Tasks are stored at **`memory/tasks.json`** (NOT `data/tasks.json`). Both the Python backend (`core/tasks.py`) and the Electron main process (`ipc.ts`) read/write this same file. Always use `memory/tasks.json`.
 
-1. **Code compiles / imports without errors** — Python: `python -c "import main"` passes; TypeScript: `npm run build` succeeds in `ui/whiztant-overlay/`
-2. **The specific behavior requested works** — verified manually or via test, not just "it looks right"
-3. **No regressions introduced** — the three F9 modes, Ctrl+Space overlay, pill notifications, and task system still function
-4. **No new files created unless necessary** — prefer editing existing files
-5. **Build artifact is up to date** — if `whiztant-overlay` was changed, `npm run build` was re-run
+### Schema
+```
+id, text, status, source, created_at, due_at, completed_at,
+parent_id, content, task_type (large/small), carried_over, failed,
+progress, reminder_sent, snoozed_until
+```
 
-For UI changes in `whiztant-overlay`: task is NOT done until `npm run build` completes successfully in `C:\whis\ui\whiztant-overlay\`.
+### Reminders & Snooze
+- **Check cycle:** every 15 minutes; 30-min pre-due warning; due alert at `due_at`; overdue repeats every 15 min.
+- **Snooze presets:** configurable in `data/settings.json` (default 15min, 60min, 1440min). Functions in `core/tasks.py`: `snooze_task`, `is_snoozed`, `clear_snooze`.
+- **WebSocket broadcasts:** `due_alert`, `due_reminder`, `tasks_failed`, `task_saved`, `pill/notice`.
 
-For Python changes: task is NOT done until `python main.py` starts without errors in the terminal.
+---
+
+## Code Style Guidelines
+
+### Python
+- `from __future__ import annotations` at the top of every module.
+- Type hints where practical; `snake_case` funcs/vars, `PascalCase` classes, `UPPER_CASE` constants.
+- Module-level docstrings; section headers (`# === SECTION ===`).
+- **Lazy imports for platform-specific modules** (see `platforms/factory.py`) so cross-platform imports never crash at startup.
+- **Defensive coding:** wrap optional subsystems in `try/except` so missing API keys / unavailable platforms degrade gracefully.
+- Prefer `pathlib.Path` over `os.path` for new code.
+
+### TypeScript / React
+- Explicit types; avoid `any`. Functional components with hooks.
+- The overlay uses `setOpacity(0/1)` for show/hide — never `hide()/show()` on BrowserWindow.
+
+---
+
+## Testing
+
+**Framework:** `pytest` (with `pytest-asyncio`, `pytest-cov`).
+
+```bash
+pytest tests/                                   # all
+pytest tests/test_tasks.py                      # one file
+pytest tests/stt_tests/test_integration.py
+pytest core/tune_hub/tests/test_orchestrator.py
+```
+
+- Mock external APIs (`unittest.mock.patch`, monkeypatch); use `tmp_path` for hermetic file I/O.
+- `tests/conftest.py` injects the project root into `sys.path`.
+- No E2E tests for the overlay IPC protocol — add pytest-based tests when modifying bridge code.
+
+---
+
+## Security Considerations
+
+- **`.env` contains secrets** — API keys for OpenAI, OpenRouter, Groq, Supabase, Helicone, LemonSqueezy, plus `WIZTANT_*_CLIENT_ID/SECRET` OAuth client creds. Never commit `.env`.
+- **Integration secrets stay local** — `core/integrations.py` stores everything Fernet-encrypted under `~/.wiztant/`, never in any cloud/app DB, and never exposes plaintext secrets to the LLM (placeholder substitution only).
+- **Agent guardrails** — `core/guardrails.py` blocks destructive actions via regex, validates coordinates, detects no-progress loops. `core/agent_v2/guardrails.py` adds cost/file/step ceilings, command validation, path sandboxing, secret scanning. Respect and update these when adding agent capabilities.
+- **Isolated input** — background agent tasks use `AgentInputContext` (`core/agent_isolation.py`) to send input without stealing focus.
+- **No sandbox escape** — the agent runs with the user's permissions. Do not add elevation prompts or UAC bypasses.
 
 ---
 
@@ -259,23 +295,55 @@ For Python changes: task is NOT done until `python main.py` starts without error
 
 | Thing | Path |
 |---|---|
-| App entry | `C:\whis\main.py` |
-| Core logic | `C:\whis\core\` |
-| WizType subsystem | `C:\whis\core\wiztype\` |
-| Agent navigation spec | `C:\whis\WHISrules.md` |
-| Agent rules folder | `C:\whis\agent_rules\` |
-| WebSocket bridge | `C:\whis\core\ws_bridge.py` |
-| Tasks CRUD | `C:\whis\core\tasks.py` |
-| Task storage | `C:\whis\memory\tasks.json` |
-| Theme storage | `C:\whis\memory\theme.json` |
-| Electron overlay root | `C:\whis\ui\whiztant-overlay\` |
-| Electron main process | `C:\whis\ui\whiztant-overlay\src\main\` |
-| Electron preload | `C:\whis\ui\whiztant-overlay\src\preload\index.ts` |
-| Overlay renderer | `C:\whis\ui\whiztant-overlay\src\renderer\overlay\` |
-| Pill renderer | `C:\whis\ui\whiztant-overlay\src\renderer\pill\` |
-| Settings renderer | `C:\whis\ui\whiztant-overlay\src\renderer\settings\` |
-| Shared types/IPC | `C:\whis\ui\whiztant-overlay\src\renderer\shared\` |
-| Notification components | `C:\whis\ui\whiztant-overlay\src\renderer\shared\notifications\` |
-| Logo SVG | `C:\whis\wiztantW.svg` |
-| Website | `C:\whis\whiztant-website\` |
-| Implementation plans | `C:\whis\Plans_Implementation\` |
+| App entry | `main.py` |
+| Core logic | `core/` |
+| Agent navigation spec | `WHISrules.md` |
+| Agent rules folder | `agent_rules/` |
+| Agent integrations vault | `core/integrations.py` (data: `~/.wiztant/`) |
+| WebSocket bridge | `core/ws_bridge.py` |
+| FastAPI server | `core/server.py` |
+| Tasks CRUD | `core/tasks.py` |
+| Task storage | `memory/tasks.json` |
+| Theme storage | `memory/theme.json` |
+| Settings + feature flags | `data/settings.json` |
+| Electron overlay root | `ui/whiztant-overlay/` |
+| Electron main process | `ui/whiztant-overlay/src/main/index.ts` |
+| Electron preload | `ui/whiztant-overlay/src/preload/index.ts` |
+| Overlay renderer | `ui/whiztant-overlay/src/renderer/overlay/Overlay.tsx` |
+| Pill renderer | `ui/whiztant-overlay/src/renderer/pill/Pill.tsx` |
+| Settings renderer | `ui/whiztant-overlay/src/renderer/settings/Settings.tsx` |
+| Shared types/IPC | `ui/whiztant-overlay/src/renderer/shared/` |
+| Notification components | `ui/whiztant-overlay/src/renderer/shared/notifications/` |
+| Logo SVG | `wiztantW.svg` |
+| Website | `whiztant-website/` |
+| Implementation plans | `Plans_Implementation/` |
+| Python deps | `requirements.txt` |
+| Windows build script | `build.bat` |
+| Tests | `tests/` |
+
+---
+
+## Definition of Done
+
+A task is **complete** when:
+
+1. **Code compiles / imports without errors** — Python: `python -c "import main"` passes; TypeScript: `npm run build` succeeds in `ui/whiztant-overlay/`.
+2. **The specific behavior requested works** — verified manually or via test, not just "it looks right".
+3. **No regressions introduced** — the F9 modes (dictation + agent toggle), Ctrl+Space overlay, pill notifications, and task system still function.
+4. **No new files created unless necessary** — prefer editing existing files.
+5. **Build artifact is up to date** — if `whiztant-overlay` was changed, `npm run build` was re-run.
+
+For UI changes in `whiztant-overlay`: task is NOT done until `npm run build` completes successfully.
+For Python changes: task is NOT done until `python main.py` starts without errors.
+
+---
+
+## Legacy Features — DO NOT USE in New Code
+
+Removed; must not be referenced in new code or docs:
+
+- `core/wiztype/` (entire subsystem)
+- `core/action_optimizer.py`, `core/agent_s3_wrapper.py`, `core/app_detector.py`, `core/intent_compiler.py`, `core/learning_agent.py`, `core/system_task_executor.py`, `core/workflow_recorder.py`
+- `tests/test_wiztype_*.py`, `ui/chat_overlay.py`
+- `main_old.py`, root `package-lock.json`, `docs/WIZTYPE.md`, `data/wiztype_config.json`
+- Conversation mode (F9×2 voice loop with TTS) — removed with `core/tts.py`

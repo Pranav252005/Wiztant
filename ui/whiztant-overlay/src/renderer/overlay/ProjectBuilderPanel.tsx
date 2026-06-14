@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useProjectBuilder, type ExecutionLog, type LogLevel } from './useProjectBuilder';
 import { PhaseTimeline } from './PhaseTimeline';
 import type { Theme } from '../shared/themes';
+import { inkFor } from '../shared/themes';
 
 const logLevelColor = (level: LogLevel, accent: string): string => {
   switch (level) {
@@ -152,7 +153,7 @@ export const ProjectBuilderPanel: React.FC<{ theme?: Theme['panel'] }> = ({ them
             style={{
               borderRadius: 8,
               background: t?.aiAccent ?? '#c0c1ff',
-              color: '#07070f',
+              color: inkFor(t?.aiAccent ?? '#c0c1ff'),
               padding: '8px 16px',
               fontSize: 13,
               fontWeight: 600,
@@ -239,7 +240,7 @@ export const ProjectBuilderPanel: React.FC<{ theme?: Theme['panel'] }> = ({ them
                   style={{
                     borderRadius: 6,
                     background: t?.aiAccent ?? '#c0c1ff',
-                    color: '#07070f',
+                    color: inkFor(t?.aiAccent ?? '#c0c1ff'),
                     padding: '4px 12px',
                     fontSize: 12,
                     border: 'none',

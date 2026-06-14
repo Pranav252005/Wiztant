@@ -9,11 +9,18 @@ export interface CreditTransaction {
   created_at: string;
 }
 
+export interface CreditSummaryItem {
+  feature: string;
+  total: number;
+  count: number;
+}
+
 export interface CreditState {
   balance: number;
   tier: 'free' | 'pro' | 'power';
   allocation: number;
   transactions: CreditTransaction[];
+  summary: CreditSummaryItem[];
   loading: boolean;
   error: string | null;
 }
@@ -43,6 +50,7 @@ export function useCredits() {
     tier: 'free',
     allocation: 50,
     transactions: [],
+    summary: [],
     loading: true,
     error: null,
   });
@@ -116,13 +124,35 @@ export function useCredits() {
     [safeSetState],
   );
 
+  const refreshSummary = useCallback(
+    async () => {
+      try {
+        const res = await fetch(`${API_BASE}/credits/summary`, {
+          headers: { ...getAuthHeaders() },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json()) as Record<string, unknown>;
+        if (data.ok && Array.isArray(data.summary)) {
+          safeSetState((prev) => ({
+            ...prev,
+            summary: data.summary as CreditSummaryItem[],
+          }));
+        }
+      } catch {
+        // Silently fail for summary — balance is the critical path
+      }
+    },
+    [safeSetState],
+  );
+
   // Initial fetch
   useEffect(() => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
     fetchBalance();
     refreshHistory();
-  }, [fetchBalance, refreshHistory]);
+    refreshSummary();
+  }, [fetchBalance, refreshHistory, refreshSummary]);
 
   // Poll every 10 seconds so the UI stays in sync even if WebSocket messages are missed
   useEffect(() => {
@@ -138,11 +168,12 @@ export function useCredits() {
       if (!document.hidden) {
         fetchBalance();
         refreshHistory();
+        refreshSummary();
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [fetchBalance, refreshHistory]);
+  }, [fetchBalance, refreshHistory, refreshSummary]);
 
   // Listen for real-time WebSocket updates
   useBridgeMessage((msg) => {
@@ -170,5 +201,6 @@ export function useCredits() {
     remainingPercent,
     refresh: fetchBalance,
     refreshHistory,
+    refreshSummary,
   };
 }

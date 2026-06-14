@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { defaultTheme, themes } from '../shared/themes';
+import { defaultTheme, themes, inkFor } from '../shared/themes';
 import type { ThemeName, DictationMemory, DictationMemoryMode } from '../shared/ipc';
 import { sendBridgeMessage, useBridgeMessage } from '../shared/useBridge';
 
@@ -356,7 +356,7 @@ export default function MemoryPanel() {
               disabled={!text.trim() || status === 'saving'}
               style={{
                 background: theme.aiAccent,
-                color: '#0a0a0a',
+                color: inkFor(theme.aiAccent),
                 border: 'none',
                 borderRadius: 10,
                 padding: '8px 14px',
@@ -375,7 +375,7 @@ export default function MemoryPanel() {
             onClick={() => del()}
             style={{
               background: 'transparent',
-              color: '#F87171',
+              color: '#ef4444',
               border: '1px solid rgba(248,113,113,0.25)',
               borderRadius: 10,
               padding: '8px 14px',

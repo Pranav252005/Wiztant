@@ -114,3 +114,20 @@ def get_agent_runtime():
     else:
         from platforms.windows.agent_runtime import WindowsAgentRuntime
         return WindowsAgentRuntime()
+
+
+_virtual_desktop_instance = None
+
+
+def get_virtual_desktop():
+    """Return the platform-specific virtual desktop driver (cached)."""
+    global _virtual_desktop_instance
+    if _virtual_desktop_instance is None:
+        platform = get_platform_name()
+        if platform == "linux":
+            from platforms.linux.virtual_desktop import LinuxVirtualDesktop
+            _virtual_desktop_instance = LinuxVirtualDesktop()
+        else:
+            from platforms.windows.virtual_desktop import WindowsVirtualDesktop
+            _virtual_desktop_instance = WindowsVirtualDesktop()
+    return _virtual_desktop_instance

@@ -2,12 +2,12 @@ import type { Theme } from '../shared/themes';
 import type { TopTabId } from './useTopTabNav';
 import type { FeatureFlags } from '../settings/Settings';
 
-const ALL_TABS: { id: TopTabId; label: string; featureKey?: keyof FeatureFlags }[] = [
-  { id: 'chat', label: 'Tune' },
-  { id: 'wizprompt', label: 'RePrompt', featureKey: 'reprompt' },
-  { id: 'agent', label: 'Builder', featureKey: 'agent' },
-  { id: 'tasks', label: 'TaskStack', featureKey: 'tasks' },
-  { id: 'memories', label: 'Memories' },
+const ALL_TABS: { id: TopTabId; label: string; tooltip: string; featureKey?: keyof FeatureFlags }[] = [
+  { id: 'chat', label: 'Tune Hub', tooltip: 'Teach Wiztant your style — tune dictation and RePrompt to how you work' },
+  { id: 'wizprompt', label: 'RePrompt', tooltip: 'Optimize any prompt — copy text, press Ctrl+Shift+Space', featureKey: 'reprompt' },
+  { id: 'agent', label: 'Agent', tooltip: 'Run workflows on your screen — toggle with a double-tap of F9', featureKey: 'agent' },
+  { id: 'tasks', label: 'Tasks', tooltip: 'Track to-dos with due times, reminders and snooze', featureKey: 'tasks' },
+  { id: 'memories', label: 'Memories', tooltip: 'Everything you dictated with F9, searchable' },
 ];
 
 // Tabs that are always visible regardless of feature flags
@@ -24,18 +24,23 @@ type Props = {
 };
 
 export default function TopTabBar({ active, onChange, theme, enabledFeatures, processes }: Props) {
+  // The agent tab stays visible when its feature is disabled, shown as "Coming Soon".
+  const isComingSoon = (tab: (typeof ALL_TABS)[number]) =>
+    tab.id === 'agent' && !!enabledFeatures && !enabledFeatures.agent;
+
   const visibleTabs = ALL_TABS.filter((tab) => {
     if (ALWAYS_VISIBLE.has(tab.id)) return true;
     if (!tab.featureKey) return true;
     // If no feature flags provided, show all tabs (backward compatible)
     if (!enabledFeatures) return true;
-    return enabledFeatures[tab.featureKey];
+    return enabledFeatures[tab.featureKey] || isComingSoon(tab);
   });
 
   return (
     <div
       role="tablist"
       aria-label="Overlay sections"
+      data-tour="tabbar"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -53,7 +58,8 @@ export default function TopTabBar({ active, onChange, theme, enabledFeatures, pr
         }
       `}</style>
       {visibleTabs.map((tab) => {
-        const isActive = tab.id === active;
+        const comingSoon = isComingSoon(tab);
+        const isActive = tab.id === active && !comingSoon;
         const proc = processes?.[tab.id];
         const procColor = proc === 'active' ? theme.aiAccent : proc === 'completed' ? '#22c55e' : proc === 'error' ? '#ef4444' : undefined;
         return (
@@ -61,7 +67,9 @@ export default function TopTabBar({ active, onChange, theme, enabledFeatures, pr
             key={tab.id}
             role="tab"
             aria-selected={isActive}
-            onClick={() => onChange(tab.id)}
+            title={comingSoon ? 'Agent mode is coming soon' : tab.tooltip}
+            onClick={() => { if (!comingSoon) onChange(tab.id); }}
+            disabled={comingSoon}
             style={{
               height: 28,
               padding: '0 10px',
@@ -73,7 +81,8 @@ export default function TopTabBar({ active, onChange, theme, enabledFeatures, pr
               fontSize: 11,
               fontWeight: isActive ? 700 : 500,
               fontFamily: 'inherit',
-              cursor: 'pointer',
+              cursor: comingSoon ? 'default' : 'pointer',
+              opacity: comingSoon ? 0.55 : 1,
               transition: 'background 0.14s, color 0.14s, border-color 0.14s',
               whiteSpace: 'nowrap',
               flexShrink: 0,
@@ -83,6 +92,23 @@ export default function TopTabBar({ active, onChange, theme, enabledFeatures, pr
             }}
           >
             {tab.label}
+            {comingSoon && (
+              <span
+                style={{
+                  fontSize: 8,
+                  fontWeight: 700,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  padding: '1px 5px',
+                  borderRadius: 6,
+                  border: `1px solid ${theme.border}`,
+                  color: theme.textMuted,
+                  flexShrink: 0,
+                }}
+              >
+                Soon
+              </span>
+            )}
             {procColor && (
               <span
                 style={{

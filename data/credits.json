@@ -1,21 +1,422 @@
 {
   "bb14e354ff5cbcee": {
-    "balance": 4999,
+    "balance": 4942,
     "tier": "power",
+    "reset_at": "2026-05-29T20:49:02.207296+00:00",
     "transactions": [
       {
-        "feature": "dictation",
-        "model": "whisper-large-v3-turbo",
-        "amount": 1,
-        "balance_after": 4999,
-        "created_at": "2026-05-16T21:17:01.294015"
+        "feature": "monthly_reset",
+        "model": null,
+        "amount": 0,
+        "balance_after": 5000,
+        "created_at": "2026-05-29T20:49:02.207319+00:00",
+        "note": "Monthly reset: 4845 \u2192 5000 (power plan)"
       },
       {
         "feature": "dictation",
         "model": "whisper-large-v3-turbo",
         "amount": 1,
         "balance_after": 4999,
-        "created_at": "2026-05-16T21:26:47.115867"
+        "created_at": "2026-05-29T20:49:59.204501"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4998,
+        "created_at": "2026-05-29T21:00:24.356752"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4997,
+        "created_at": "2026-05-29T21:01:58.708142"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4996,
+        "created_at": "2026-05-29T21:06:07.139815"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4995,
+        "created_at": "2026-05-29T21:08:02.461443"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4994,
+        "created_at": "2026-05-29T21:11:07.860607"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4993,
+        "created_at": "2026-05-29T21:38:25.708767"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4992,
+        "created_at": "2026-05-29T21:40:39.288253"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4991,
+        "created_at": "2026-05-29T21:49:34.674091"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4990,
+        "created_at": "2026-05-29T21:51:40.295698"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4989,
+        "created_at": "2026-05-29T21:52:34.940438"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4988,
+        "created_at": "2026-06-06T08:06:11.168855"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4987,
+        "created_at": "2026-06-06T08:22:31.185080"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4986,
+        "created_at": "2026-06-06T08:30:57.390281"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4985,
+        "created_at": "2026-06-06T08:40:36.939919"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4984,
+        "created_at": "2026-06-06T08:41:59.364691"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4983,
+        "created_at": "2026-06-06T08:52:10.219930"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4982,
+        "created_at": "2026-06-06T08:53:39.188516"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4981,
+        "created_at": "2026-06-06T08:55:47.678647"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4980,
+        "created_at": "2026-06-06T08:58:05.009810"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4979,
+        "created_at": "2026-06-06T12:07:58.854132"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4978,
+        "created_at": "2026-06-06T12:09:18.783272"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4977,
+        "created_at": "2026-06-06T15:23:19.529569"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4976,
+        "created_at": "2026-06-06T15:28:05.733098"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4975,
+        "created_at": "2026-06-06T15:30:26.562627"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4974,
+        "created_at": "2026-06-06T16:00:04.854071"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4973,
+        "created_at": "2026-06-06T16:55:53.977148"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4972,
+        "created_at": "2026-06-06T16:55:57.474545"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4971,
+        "created_at": "2026-06-06T16:56:47.965982"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4970,
+        "created_at": "2026-06-06T16:58:45.138441"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4969,
+        "created_at": "2026-06-06T16:59:20.869522"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4968,
+        "created_at": "2026-06-06T17:00:04.474429"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4967,
+        "created_at": "2026-06-06T17:15:21.246361"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4966,
+        "created_at": "2026-06-07T05:40:06.975700"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4965,
+        "created_at": "2026-06-07T05:42:11.249119"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4964,
+        "created_at": "2026-06-07T06:41:40.367599"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4963,
+        "created_at": "2026-06-08T01:47:28.354002"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4962,
+        "created_at": "2026-06-08T23:29:28.753648"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4961,
+        "created_at": "2026-06-08T23:30:18.404695"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4960,
+        "created_at": "2026-06-09T01:00:38.535391"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4959,
+        "created_at": "2026-06-09T01:06:09.256228"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4958,
+        "created_at": "2026-06-09T01:09:42.977700"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4957,
+        "created_at": "2026-06-09T02:17:25.684519"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4956,
+        "created_at": "2026-06-10T09:35:44.177932"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4955,
+        "created_at": "2026-06-10T09:36:58.399680"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4954,
+        "created_at": "2026-06-12T08:40:20.531761"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4953,
+        "created_at": "2026-06-12T08:42:21.849710"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4952,
+        "created_at": "2026-06-12T08:44:26.235677"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4951,
+        "created_at": "2026-06-12T08:51:47.724708"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4950,
+        "created_at": "2026-06-12T08:57:18.612291"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4949,
+        "created_at": "2026-06-12T09:00:59.057202"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4948,
+        "created_at": "2026-06-12T09:36:06.889310"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4947,
+        "created_at": "2026-06-12T09:37:55.817691"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4946,
+        "created_at": "2026-06-12T10:33:00.851141"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4945,
+        "created_at": "2026-06-12T10:50:44.603624"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4944,
+        "created_at": "2026-06-12T10:56:27.375363"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4943,
+        "created_at": "2026-06-12T10:57:29.476638"
+      },
+      {
+        "feature": "dictation",
+        "model": "whisper-large-v3-turbo",
+        "amount": 1,
+        "balance_after": 4942,
+        "created_at": "2026-06-12T11:01:47.102232"
       }
     ]
   }

@@ -297,12 +297,31 @@ async def run_unified_agent(
 
             # ── Guardrails ──────────────────────────────────────────────────
             action_text = f"{action_type} {params}"
-            is_dest, dest_reason = _gr.is_destructive_action(action_text)
-            if is_dest:
-                log.warning("Guardrail blocked: %s", dest_reason)
-                append_chat_fn("assistant", f"[Agent] Blocked: {dest_reason}")
-                _send_blocked(dest_reason)
-                return f"Blocked by safety guardrail: {dest_reason}"
+            safety, reason = _gr.classify_action(action_text)
+            _gr.AgentAuditLogger.log_decision(
+                intent=optimized_task, action=action_text, safety=safety, reason=reason
+            )
+            if safety == "blocked":
+                log.warning("Guardrail blocked: %s", reason)
+                append_chat_fn("assistant", f"[Agent] Blocked: {reason}")
+                _send_blocked(reason)
+                return f"Blocked by safety guardrail: {reason}"
+            if safety == "dangerous":
+                log.warning("Guardrail dangerous action pending confirmation: %s", reason)
+                append_chat_fn("assistant", f"[Agent] Dangerous action: {reason} — waiting for confirmation...")
+                from ui.agent_confirmation_overlay import get_agent_confirmation_overlay
+                choice = get_agent_confirmation_overlay().show_dangerous_confirmation(
+                    action_desc=f"Step {step}: {action_type} — {thought or action_text}",
+                    reason=reason,
+                    timeout=8.0,
+                )
+                if choice != "confirm":
+                    log.warning("Dangerous action cancelled or timed out: %s", reason)
+                    append_chat_fn("assistant", "[Agent] Dangerous action cancelled.")
+                    _send_blocked("dangerous_action_cancelled")
+                    return f"Dangerous action cancelled: {reason}"
+                log.info("Dangerous action confirmed by user: %s", reason)
+                append_chat_fn("assistant", "[Agent] Dangerous action confirmed. Proceeding...")
 
             if action_type in ("click", "double_click", "right_click", "scroll", "drag"):
                 coords = _extract_coords(params)
@@ -313,6 +332,26 @@ async def run_unified_agent(
                         log.warning("Guardrail blocked coords: %s", coord_reason)
                         _send_blocked(coord_reason)
                         return f"Blocked by safety guardrail: {coord_reason}"
+
+            # Domain check for navigate actions
+            if action_type == "navigate":
+                url = canonicalize_url(str(params.get("url", "")))
+                blocked, domain_reason = _gr.is_blocked_domain(url)
+                if blocked:
+                    log.warning("Blocked domain: %s", domain_reason)
+                    append_chat_fn("assistant", f"[Agent] Blocked domain: {domain_reason}")
+                    _send_blocked(domain_reason)
+                    return f"Blocked by safety guardrail: {domain_reason}"
+
+            # App check for open_app actions
+            if action_type == "open_app":
+                app = str(params.get("app", ""))
+                blocked, app_reason = _gr.is_blocked_app(app)
+                if blocked:
+                    log.warning("Blocked app: %s", app_reason)
+                    append_chat_fn("assistant", f"[Agent] Blocked app: {app_reason}")
+                    _send_blocked(app_reason)
+                    return f"Blocked by safety guardrail: {app_reason}"
 
             # ── Loop detection ──────────────────────────────────────────────
             img_hash = _screenshot_hash(img)

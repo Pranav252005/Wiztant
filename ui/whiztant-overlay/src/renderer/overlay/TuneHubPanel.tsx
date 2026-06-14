@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import type { Theme } from '../shared/themes';
+import { inkFor } from '../shared/themes';
 import { sendBridgeMessage, useBridgeMessage } from '../shared/useBridge';
 import CustomDropdown from '../shared/CustomDropdown';
 
@@ -98,6 +99,8 @@ const TUNE_MODELS: { id: string; label: string; description: string }[] = [
 ];
 
 const SETTINGS_KEY = 'tunehub_settings';
+const INITIAL_TUNE_LIMIT = 15;
+const LOAD_MORE_TUNES = 10;
 
 function loadSettings(): { model: string } {
   try {
@@ -125,6 +128,7 @@ function saveSettings(settings: { model: string }) {
 export default function TuneHubPanel({ theme, onProcessChange }: Props) {
   const [stats, setStats] = useState<TuneStats | null>(null);
   const [tunes, setTunes] = useState<TuneItem[]>([]);
+  const [visibleTuneCount, setVisibleTuneCount] = useState(INITIAL_TUNE_LIMIT);
   const [loading, setLoading] = useState(false);
   const [learnTask, setLearnTask] = useState('');
 
@@ -155,7 +159,9 @@ export default function TuneHubPanel({ theme, onProcessChange }: Props) {
       setStats((msg.stats as TuneStats) ?? null);
     }
     if (msg.type === 'tunehub/list') {
-      setTunes((msg.tunes as TuneItem[]) ?? []);
+      const list = (msg.tunes as TuneItem[]) ?? [];
+      setTunes(list);
+      setVisibleTuneCount(INITIAL_TUNE_LIMIT);
     }
     if (msg.type === 'tunehub/learn_result') {
       setLoading(false);
@@ -322,7 +328,7 @@ export default function TuneHubPanel({ theme, onProcessChange }: Props) {
             borderRadius: 8,
             border: 'none',
             background: loading ? theme.border : theme.aiAccent,
-            color: '#07070f',
+            color: inkFor(theme.aiAccent),
             fontSize: 12,
             fontWeight: 700,
             fontFamily: 'inherit',
@@ -338,7 +344,7 @@ export default function TuneHubPanel({ theme, onProcessChange }: Props) {
             animate={{ opacity: 1, y: 0 }}
             style={{
               fontSize: 11,
-              color: learnResult.success ? '#4ade80' : '#f87171',
+              color: theme.text,
               padding: '6px 8px',
               borderRadius: 6,
               background: learnResult.success ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)',
@@ -362,9 +368,12 @@ export default function TuneHubPanel({ theme, onProcessChange }: Props) {
       {tunes.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: theme.text }}>Your Tunes</div>
-          {tunes.map((tune) => (
-            <div
+          {tunes.slice(0, visibleTuneCount).map((tune) => (
+            <motion.div
               key={tune.tune_id}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
               style={{
                 border: `1px solid ${theme.border}`,
                 borderRadius: 10,
@@ -399,8 +408,38 @@ export default function TuneHubPanel({ theme, onProcessChange }: Props) {
                 <span>Quality: {Math.round((tune.quality_score ?? 0) * 100)}%</span>
                 <span>v{tune.version}</span>
               </div>
-            </div>
+            </motion.div>
           ))}
+
+          {visibleTuneCount < tunes.length && (
+            <button
+              onClick={() => setVisibleTuneCount((c) => c + LOAD_MORE_TUNES)}
+              style={{
+                alignSelf: 'center',
+                marginTop: 4,
+                padding: '6px 16px',
+                borderRadius: 8,
+                border: `1px solid ${theme.border}`,
+                background: 'transparent',
+                color: theme.textMuted,
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all 0.14s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = theme.aiAccent;
+                e.currentTarget.style.color = theme.aiAccent;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = theme.border;
+                e.currentTarget.style.color = theme.textMuted;
+              }}
+            >
+              View more
+            </button>
+          )}
         </div>
       )}
     </div>

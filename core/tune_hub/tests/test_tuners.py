@@ -13,6 +13,10 @@ class TestRePromptTuner:
     def setup_method(self):
         self.tuner = RePromptTuner()
         self.judge = SimpleJudge()
+        from core.tune_hub.single_file_store import clear_tune_file
+        clear_tune_file("reprompt")
+        clear_tune_file("dictation")
+        clear_tune_file("agent")
 
     def test_estimate_complexity(self):
         assert self.tuner.estimate_complexity("code") == ComplexityLevel.LOW
@@ -32,7 +36,7 @@ class TestRePromptTuner:
         assert "personas" in model.payload
 
         valid = self.tuner.validate(model)
-        assert isinstance(valid, bool)
+        assert valid is True
 
     def test_apply(self):
         budget = CreditBudget(approved=20)
@@ -54,6 +58,10 @@ class TestRePromptTuner:
 class TestDictationTuner:
     def setup_method(self):
         self.tuner = DictationTuner()
+        from core.tune_hub.single_file_store import clear_tune_file
+        clear_tune_file("reprompt")
+        clear_tune_file("dictation")
+        clear_tune_file("agent")
 
     def test_estimate_complexity(self):
         assert self.tuner.estimate_complexity("general speech") == ComplexityLevel.LOW
@@ -71,7 +79,7 @@ class TestDictationTuner:
         assert "corrections" in model.payload
 
         valid = self.tuner.validate(model)
-        assert isinstance(valid, bool)
+        assert valid is True
 
     def test_apply(self):
         budget = CreditBudget(approved=20)
@@ -87,6 +95,10 @@ class TestDictationTuner:
 class TestAgentTuner:
     def setup_method(self):
         self.tuner = AgentTuner()
+        from core.tune_hub.single_file_store import clear_tune_file
+        clear_tune_file("reprompt")
+        clear_tune_file("dictation")
+        clear_tune_file("agent")
 
     def test_estimate_complexity(self):
         assert self.tuner.estimate_complexity("simple click") == ComplexityLevel.LOW
@@ -109,7 +121,7 @@ class TestAgentTuner:
         assert "recipe" in model.payload
 
         valid = self.tuner.validate(model)
-        assert isinstance(valid, bool)
+        assert valid is True
 
     def test_apply(self):
         budget = CreditBudget(approved=10)

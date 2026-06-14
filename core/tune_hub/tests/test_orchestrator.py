@@ -27,6 +27,10 @@ class TestTuneHub:
             quality_judge_factory=SimpleJudge,
             desktop_mode="desktop2",
         )
+        from core.tune_hub.single_file_store import clear_tune_file
+        clear_tune_file("reprompt")
+        clear_tune_file("dictation")
+        clear_tune_file("agent")
 
     def test_tune_feature_success(self):
         req = TuneRequest(

@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import { IPC } from '../renderer/shared/ipc';
-import type { AppState, ThemeName, PillNoticePayload, Task, DictationMemory } from '../renderer/shared/ipc';
+import type { AppState, ThemeName, PillNoticePayload, Task, DictationMemory, UpdateStatus } from '../renderer/shared/ipc';
 
 const clipboardWrite = (text: string): Promise<void> => ipcRenderer.invoke(IPC.CLIPBOARD_WRITE, text);
 
@@ -71,4 +71,11 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on(IPC.NAVIGATE_TO_TASKS_EDIT, (_e: IpcRendererEvent, data: Record<string, unknown>) => cb(data));
   },
   openExternal: (url: string): void => ipcRenderer.send(IPC.OPEN_EXTERNAL, url),
+
+  // ── Update system ─────────────────────────────────────────
+  checkForUpdates: (): void => ipcRenderer.send(IPC.CHECK_FOR_UPDATES),
+  restartToUpdate: (): void => ipcRenderer.send(IPC.RESTART_UPDATE),
+  onUpdateStatus: (cb: (status: UpdateStatus) => void): void => {
+    ipcRenderer.on(IPC.UPDATE_STATUS, (_e: IpcRendererEvent, s: UpdateStatus) => cb(s));
+  },
 });

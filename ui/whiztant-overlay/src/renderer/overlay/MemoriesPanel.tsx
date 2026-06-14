@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { Theme } from '../shared/themes';
 import type { DictationMemory } from '../shared/ipc';
@@ -28,6 +28,9 @@ const MODE_COLOR: Record<DictationMemory['mode'], string> = {
   reprompt: '#d0bcff',
 };
 
+const INITIAL_LIMIT = 15;
+const LOAD_MORE = 10;
+
 function formatTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -48,6 +51,7 @@ function formatTime(value: string) {
 
 export default function MemoriesPanel({ theme, memories, filter: filterProp, onFilterChange }: Props) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_LIMIT);
   const filter = filterProp ?? 'all';
   const setFilter = onFilterChange ?? (() => {});
 
@@ -55,6 +59,11 @@ export default function MemoriesPanel({ theme, memories, filter: filterProp, onF
     if (filter === 'all') return memories;
     return memories.filter((m) => m.mode === filter);
   }, [memories, filter]);
+
+  // Reset visible count when filter or memories change
+  useEffect(() => {
+    setVisibleCount(INITIAL_LIMIT);
+  }, [filter, memories.length]);
 
   const handleCopy = async (text: string, id: string) => {
     try {
@@ -143,99 +152,131 @@ export default function MemoriesPanel({ theme, memories, filter: filterProp, onF
               : 'No memories match this filter.'}
           </div>
         ) : (
-          filtered.map((mem) => (
-            <motion.div
-              key={mem.id}
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-              onClick={() => handleCopy(mem.final_text, mem.id)}
-              onDoubleClick={() => handleDoubleClick(mem)}
-              title="Click to copy • Double-click to edit"
-              style={{
-                padding: '10px 12px',
-                borderRadius: 12,
-                border: `1px solid ${theme.border}`,
-                background: theme.inputBg,
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6,
-                transition: 'background 0.12s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = `${theme.aiAccent}0d`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = theme.inputBg;
-              }}
-            >
-              <div
+          <>
+            {filtered.slice(0, visibleCount).map((mem) => (
+              <motion.div
+                key={mem.id}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                onClick={() => handleCopy(mem.final_text, mem.id)}
+                onDoubleClick={() => handleDoubleClick(mem)}
+                title="Click to copy • Double-click to edit"
                 style={{
+                  padding: '10px 12px',
+                  borderRadius: 12,
+                  border: `1px solid ${theme.border}`,
+                  background: theme.inputBg,
+                  cursor: 'pointer',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 8,
+                  flexDirection: 'column',
+                  gap: 6,
+                  transition: 'background 0.12s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = `${theme.aiAccent}0d`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = theme.inputBg;
                 }}
               >
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    color: MODE_COLOR[mem.mode],
-                  }}
-                >
-                  {MODE_LABEL[mem.mode]}
-                </span>
-                <span style={{ fontSize: 10, color: theme.textMuted }}>
-                  {formatTime(mem.timestamp)}
-                </span>
-              </div>
-
-              <div
-                style={{
-                  fontSize: 12,
-                  color: theme.text,
-                  lineHeight: 1.45,
-                  wordBreak: 'break-word',
-                }}
-              >
-                {mem.final_text}
-              </div>
-
-              {mem.original_text !== mem.final_text && (
                 <div
                   style={{
-                    fontSize: 11,
-                    color: theme.textMuted,
-                    lineHeight: 1.4,
-                    fontStyle: 'italic',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 8,
                   }}
                 >
-                  Heard: "{mem.original_text}"
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      color: MODE_COLOR[mem.mode],
+                    }}
+                  >
+                    {MODE_LABEL[mem.mode]}
+                  </span>
+                  <span style={{ fontSize: 10, color: theme.textMuted }}>
+                    {formatTime(mem.timestamp)}
+                  </span>
                 </div>
-              )}
 
-              {copiedId === mem.id && (
-                <motion.div
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
+                <div
                   style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: theme.aiAccent,
-                    alignSelf: 'flex-end',
+                    fontSize: 12,
+                    color: theme.text,
+                    lineHeight: 1.45,
+                    wordBreak: 'break-word',
                   }}
                 >
-                  Copied ✓
-                </motion.div>
-              )}
-            </motion.div>
-          ))
+                  {mem.final_text}
+                </div>
+
+                {mem.original_text !== mem.final_text && (
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: theme.textMuted,
+                      lineHeight: 1.4,
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    Heard: "{mem.original_text}"
+                  </div>
+                )}
+
+                {copiedId === mem.id && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: theme.aiAccent,
+                      alignSelf: 'flex-end',
+                    }}
+                  >
+                    Copied ✓
+                  </motion.div>
+                )}
+              </motion.div>
+            ))}
+
+            {visibleCount < filtered.length && (
+              <button
+                onClick={() => setVisibleCount((c) => c + LOAD_MORE)}
+                style={{
+                  alignSelf: 'center',
+                  marginTop: 4,
+                  padding: '6px 16px',
+                  borderRadius: 8,
+                  border: `1px solid ${theme.border}`,
+                  background: 'transparent',
+                  color: theme.textMuted,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.14s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = theme.aiAccent;
+                  e.currentTarget.style.color = theme.aiAccent;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = theme.border;
+                  e.currentTarget.style.color = theme.textMuted;
+                }}
+              >
+                View more
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

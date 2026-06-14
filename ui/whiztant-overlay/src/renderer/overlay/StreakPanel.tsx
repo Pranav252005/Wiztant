@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { motion } from 'framer-motion';
-import { themes, defaultTheme } from '../shared/themes';
+import { themes, defaultTheme, isLightBg } from '../shared/themes';
 import type { ThemeName } from '../shared/ipc';
 
 interface DailyRow {
@@ -65,10 +65,10 @@ export default function StreakPanel() {
   // 120 minutes (~2 hours) = max intensity (level 4).
   const MAX_MINUTES = 120;
   const colorScale = [
-    'rgba(255,255,255,0.04)',
-    'rgba(255,255,255,0.12)',
-    'rgba(255,255,255,0.28)',
-    'rgba(255,255,255,0.50)',
+    isLightBg(theme.bg) ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
+    isLightBg(theme.bg) ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)',
+    isLightBg(theme.bg) ? 'rgba(0,0,0,0.28)' : 'rgba(255,255,255,0.28)',
+    isLightBg(theme.bg) ? 'rgba(0,0,0,0.50)' : 'rgba(255,255,255,0.50)',
     theme.aiAccent,
   ];
 
@@ -203,7 +203,7 @@ export default function StreakPanel() {
         >
           <div
             style={{
-              background: 'rgba(255,255,255,0.03)',
+              background: isLightBg(theme.bg) ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
               border: `1px solid ${theme.border}`,
               borderRadius: 12,
               padding: 12,
@@ -217,7 +217,7 @@ export default function StreakPanel() {
           </div>
           <div
             style={{
-              background: 'rgba(255,255,255,0.03)',
+              background: isLightBg(theme.bg) ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
               border: `1px solid ${theme.border}`,
               borderRadius: 12,
               padding: 12,
@@ -251,7 +251,7 @@ export default function StreakPanel() {
                   alignItems: 'center',
                   padding: '8px 10px',
                   borderRadius: 8,
-                  background: 'rgba(255,255,255,0.02)',
+                  background: isLightBg(theme.bg) ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
                   border: `1px solid ${theme.border}`,
                 }}
               >

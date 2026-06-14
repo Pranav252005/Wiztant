@@ -1,10 +1,8 @@
 """
 core/vlm.py — Cross-platform compatibility shim for legacy consumers.
 
-On Linux delegates agent tasks to platforms.linux._vlm_impl
-and input actions to core.platform_backends.
-On Windows this file should be replaced by the full platforms/windows/_vlm_impl
-re-export (or the original core/vlm.py restored).
+Delegates agent tasks to core.agent_loop and input actions to
+core.platform_backends (both OS-agnostic via the Platform Abstraction Layer).
 """
 from __future__ import annotations
 
@@ -23,8 +21,8 @@ from core.platform_backends import (
     press_key,
 )
 
-# Agent entry points — Linux uses the dedicated Linux implementation
-from platforms.linux._vlm_impl import (
+# Agent entry points — shared cross-platform loop
+from core.agent_loop import (
     run_agent_loop,
     run_agent_task,
     run_agent_task_async,

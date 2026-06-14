@@ -48,6 +48,10 @@ export const IPC = {
   OPEN_OVERLAY_TO_TASKS_EDIT: 'open-overlay-to-tasks-edit',
   NAVIGATE_TO_TASKS_EDIT: 'navigate-to-tasks-edit',
   OPEN_EXTERNAL: 'open-external',
+  // Update system
+  UPDATE_STATUS: 'update-status',
+  CHECK_FOR_UPDATES: 'check-for-updates',
+  RESTART_UPDATE: 'restart-update',
 } as const;
 
 export type AppState = 'idle' | 'recording' | 'thinking' | 'speaking' | 'agent';
@@ -107,7 +111,8 @@ export type PillNoticeKind =
   | 'subtask'
   | 'memory_added'
   | 'memory_updated'
-  | 'error';
+  | 'error'
+  | 'update_ready';
 
 export interface PillNoticePayload {
   kind: PillNoticeKind;
@@ -115,6 +120,15 @@ export interface PillNoticePayload {
   summary: string;
   duration_ms: number;
 }
+
+export type UpdateStatus =
+  | { status: 'checking' }
+  | { status: 'available'; version: string }
+  | { status: 'downloaded'; version: string }
+  | { status: 'error'; message: string }
+  | { status: 'idle' };
+
+export type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
 
 export async function startProject(projectPath: string, description: string, stack: string[] = [], approvalMode = 'step-by-step') {
   const res = await fetch('http://localhost:8765/agent/project/start', {

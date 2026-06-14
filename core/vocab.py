@@ -43,9 +43,10 @@ def load_vocab() -> dict:
             with open(path, "r", encoding="utf-8") as f:
                 _vocab_cache = json.load(f)
         except Exception:
-            _vocab_cache = {"corrections": []}
+            _vocab_cache = {"corrections": [], "words": []}
     else:
-        _vocab_cache = {"corrections": []}
+        _vocab_cache = {"corrections": [], "words": []}
+    _vocab_cache.setdefault("words", [])
     return _vocab_cache
 
 
@@ -245,6 +246,159 @@ def delete_correction(heard: str) -> bool:
         save_vocab(data)
         return True
     return False
+
+
+# =============================================================
+#  USER DICTIONARY (plain words; mis-hearings found by fuzzy match)
+# =============================================================
+
+def list_words() -> List[dict]:
+    """Return all user dictionary word entries."""
+    if _vocab_cache is None:
+        load_vocab()
+    return _vocab_cache.get("words", [])
+
+
+def add_word(word: str) -> bool:
+    """Add a word (or phrase) to the user dictionary. Returns False if blank/duplicate."""
+    word = (word or "").strip()
+    if not word:
+        return False
+    data = load_vocab()
+    words = data.setdefault("words", [])
+    if any((e.get("word", "") or "").lower() == word.lower() for e in words):
+        return False
+    words.append({
+        "word": word,
+        "phonetic": _phonetic_key(word.replace(" ", "")),
+        "added_at": datetime.now(timezone.utc).isoformat(),
+    })
+    save_vocab(data)
+    return True
+
+
+def delete_word(word: str) -> bool:
+    data = load_vocab()
+    words = data.get("words", [])
+    before = len(words)
+    data["words"] = [e for e in words if (e.get("word", "") or "").lower() != (word or "").lower()]
+    if len(data["words"]) < before:
+        save_vocab(data)
+        return True
+    return False
+
+
+# Common English words that must never be fuzz-replaced by a dictionary word.
+_STOPWORDS = {
+    "the", "and", "for", "are", "but", "not", "you", "all", "any", "can",
+    "had", "her", "was", "one", "our", "out", "day", "get", "has", "him",
+    "his", "how", "man", "new", "now", "old", "see", "two", "way", "who",
+    "did", "its", "let", "put", "say", "she", "too", "use", "that", "with",
+    "have", "this", "will", "your", "from", "they", "know", "want", "been",
+    "good", "much", "some", "time", "very", "when", "come", "here", "just",
+    "like", "long", "make", "many", "more", "only", "over", "such", "take",
+    "than", "them", "well", "were", "what", "into", "then", "there", "their",
+    "would", "could", "should", "about", "after", "before", "where", "which",
+    "while", "thing", "things", "going", "really", "right", "people", "work",
+}
+
+# Similarity floor for a fuzzy dictionary replacement. The phonetic key must
+# already match, so this only guards against unrelated same-key collisions.
+_DICT_SIMILARITY_THRESHOLD = 0.72
+
+_TOKEN_RE = re.compile(r"^(?P<pre>[^\w]*)(?P<core>[\w'-]+)(?P<post>[^\w]*)$")
+
+
+def apply_dictionary_corrections(text: str) -> Tuple[str, List[str]]:
+    """Surgically replace misheard words with user-dictionary words.
+
+    For each token (and 2/3-token window, to catch e.g. "whizz tent" → "Wiztant"),
+    compare phonetic key + fuzzy similarity against every dictionary word. Replace
+    only that token/window when both agree; everything else is left untouched.
+
+    Returns (corrected_text, ["heard->word", ...]).
+    """
+    if not text or not text.strip():
+        return text, []
+    entries = list_words()
+    if not entries:
+        return text, []
+
+    # Precompute dictionary lookup data: (word, collapsed_lower, phonetic_key)
+    dict_words = []
+    for e in entries:
+        w = (e.get("word", "") or "").strip()
+        if not w:
+            continue
+        collapsed = w.replace(" ", "").lower()
+        key = e.get("phonetic") or _phonetic_key(collapsed)
+        dict_words.append((w, collapsed, key))
+    if not dict_words:
+        return text, []
+
+    exact_surfaces = {w for w, _, _ in dict_words}
+    exact_lower = {w.lower() for w, _, _ in dict_words}
+
+    tokens = text.split()
+    parsed = [_TOKEN_RE.match(t) for t in tokens]
+    out: List[str] = []
+    changes: List[str] = []
+    i = 0
+    while i < len(tokens):
+        replaced = False
+        # Try longest window first so multi-token mishearings win over single words.
+        for n in (3, 2, 1):
+            if i + n > len(tokens):
+                continue
+            window = parsed[i:i + n]
+            if any(m is None for m in window):
+                continue
+            cores = [m.group("core") for m in window]  # type: ignore[union-attr]
+            # Punctuation inside the window means it spans a phrase boundary.
+            if n > 1 and any(m.group("post") for m in window[:-1]):  # type: ignore[union-attr]
+                continue
+            candidate = "".join(cores).lower()
+            if len(candidate) < 3:
+                continue
+            if n == 1 and cores[0].lower() in _STOPWORDS:
+                continue
+            if n > 1 and all(c.lower() in _STOPWORDS for c in cores):
+                continue
+            # A token that is already a dictionary word must not be merged
+            # into a larger window (e.g. "Wiztant to" must stay two words).
+            if n > 1 and any(c.lower() in exact_lower for c in cores):
+                continue
+            if " ".join(cores) in exact_surfaces:
+                continue  # already correct (incl. exact casing) — leave it alone
+            cand_key = _phonetic_key(candidate)
+            best_word = None
+            best_score = 0.0
+            for w, collapsed, key in dict_words:
+                if not cand_key or cand_key != key:
+                    continue
+                score = _similarity(candidate, collapsed)
+                if score > best_score:
+                    best_score = score
+                    best_word = w
+            if best_word is not None and best_score >= _DICT_SIMILARITY_THRESHOLD:
+                pre = window[0].group("pre")  # type: ignore[union-attr]
+                post = window[-1].group("post")  # type: ignore[union-attr]
+                heard = " ".join(cores)
+                out.append(pre + best_word + post)
+                changes.append(f"{heard}->{best_word}")
+                try:
+                    from core.dictation_correction import record_correction
+                    record_correction(heard, best_word, confidence=0.85)
+                except Exception:
+                    pass
+                i += n
+                replaced = True
+                break
+        if not replaced:
+            out.append(tokens[i])
+            i += 1
+
+    return " ".join(out), changes
 
 
 # =============================================================

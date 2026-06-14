@@ -1,4 +1,4 @@
-import type { AppState, ThemeName, PillNoticePayload, Task, TaskSnapshot, DictationMemory } from './ipc';
+import type { AppState, ThemeName, PillNoticePayload, Task, TaskSnapshot, DictationMemory, UpdateStatus } from './ipc';
 
 /** Shape of the contextBridge-exposed API available inside renderer processes. */
 export interface WhiztantApi {
@@ -28,6 +28,8 @@ export interface WhiztantApi {
   pillDragEnd: () => void;
   getPillEdge: () => Promise<string>;
   onPillEdge: (cb: (edge: string) => void) => void;
+  reloadShortcuts: (config: Record<string, string>) => void;
+  setPillNotifications: (enabled: boolean) => void;
 
   onSetState: (cb: (state: AppState) => void) => void;
   onThemeChanged: (cb: (name: ThemeName) => void) => void;
@@ -39,6 +41,11 @@ export interface WhiztantApi {
   openExternal: (url: string) => void;
   openOverlayToTasksEdit: (data: Record<string, unknown>) => void;
   onNavigateToTasksEdit: (cb: (data: Record<string, unknown>) => void) => void;
+
+  // Update system
+  checkForUpdates: () => void;
+  restartToUpdate: () => void;
+  onUpdateStatus: (cb: (status: UpdateStatus) => void) => void;
 }
 
 declare global {

@@ -1,0 +1,69 @@
+name: Release
+
+# Trigger this workflow when a version tag is pushed.
+# Example:
+#   npm version patch
+#   git push origin main --follow-tags
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - windows-latest
+          - ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ui/whiztant-overlay/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ui/whiztant-overlay
+        run: npm ci
+
+      - name: Build overlay
+        working-directory: ui/whiztant-overlay
+        run: npm run build
+
+      # ------------------------------------------------------------------
+      #  Publish to GitHub Releases via electron-builder
+      # ------------------------------------------------------------------
+      #  Before enabling signed builds, uncomment and configure the env
+      #  variables below and add the corresponding secrets in GitHub:
+      #    Settings → Secrets and variables → Actions → Repository secrets
+      # ------------------------------------------------------------------
+      - name: Publish release
+        working-directory: ui/whiztant-overlay
+        run: npx electron-builder --publish always
+        env:
+          # Required for electron-builder to create the GitHub release
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # ----------------------------------------------------------------
+          #  macOS Notarization — uncomment after adding Apple credentials
+          # ----------------------------------------------------------------
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+          # ----------------------------------------------------------------
+          #  Windows Code Signing — uncomment after adding cert secrets
+          # ----------------------------------------------------------------
+          # WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          # CSC_LINK: ${{ secrets.WINDOWS_CERTIFICATE_BASE64 }}
+          #   ^ Base64-encoded .p12 file pasted into a secret

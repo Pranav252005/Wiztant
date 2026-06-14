@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { themes, defaultTheme, type Theme } from '../shared/themes';
-import type { ThemeName } from '../shared/ipc';
+import { themes, defaultTheme, inkFor, isLightBg, type Theme } from '../shared/themes';
+import type { ThemeName, UpdateStatus } from '../shared/ipc';
 import InsightsTab from './InsightsTab';
 import { useBridgeMessage, sendBridgeMessage } from '../shared/useBridge';
 import { useCredits, type CreditTransaction } from '../shared/useCredits';
@@ -12,7 +12,21 @@ const THEME_NAMES = Object.keys(themes) as ThemeName[];
 type SystemAccess = 'standard' | 'system' | 'deep';
 const SYSTEM_ACCESS_VALUES: SystemAccess[] = ['standard', 'system', 'deep'];
 
-export type SettingsTab = 'general' | 'dictation' | 'agent' | 'tasks' | 'features' | 'credits';
+export type SettingsTab = 'general' | 'dictation' | 'agent' | 'integrations' | 'tasks' | 'features' | 'credits';
+
+// ─── Integration types ─────────────────────────────────────
+type IntegrationAuthType = 'credential' | 'oauth';
+
+interface PublicIntegration {
+  id: string;
+  app: string;
+  auth_type: IntegrationAuthType;
+  field_keys: string[];
+  oauth_connected: boolean;
+  updated_at?: number;
+}
+
+const OAUTH_PROVIDERS = ['google', 'slack', 'github'] as const;
 
 const LS_KEYS = {
   sound: 'whiztant.sound',
@@ -126,6 +140,7 @@ export default function Settings({
 
   // Feature flags state
   const [features, setFeatures] = useState<FeatureFlags>(() => readFeatureFlags());
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ status: 'idle' });
 
   // Sync live dictation preview setting with Python backend
   useBridgeMessage((msg) => {
@@ -150,6 +165,11 @@ export default function Settings({
   // the settings panel is reopened.
   useEffect(() => {
     sendBridgeMessage({ type: 'settings/get' });
+  }, []);
+
+  // Subscribe to auto-updater status from main process
+  useEffect(() => {
+    window.api.onUpdateStatus((s) => setUpdateStatus(s));
   }, []);
 
   useEffect(() => writeLS(LS_KEYS.sound, String(soundEnabled)), [soundEnabled]);
@@ -211,6 +231,7 @@ export default function Settings({
         onToggleFeature={toggleFeature}
         onBack={onBack}
         initialTab={initialTab}
+        updateStatus={updateStatus}
       />
     </div>
   );
@@ -233,6 +254,7 @@ function SettingsContent({
   onToggleFeature,
   onBack,
   initialTab,
+  updateStatus,
 }: {
   theme: Theme['panel'];
   activeTheme: ThemeName;
@@ -249,6 +271,7 @@ function SettingsContent({
   onToggleFeature: (key: FeatureKey) => void;
   onBack: () => void;
   initialTab?: SettingsTab;
+  updateStatus: UpdateStatus;
 }) {
   const [tab, setTab] = useState<SettingsTab>(initialTab ?? 'general');
 
@@ -257,6 +280,7 @@ function SettingsContent({
     { id: 'features', label: 'Features' },
     { id: 'dictation', label: 'Dictation' },
     { id: 'agent', label: 'Agent' },
+    { id: 'integrations', label: 'Integrations' },
     { id: 'tasks', label: 'Tasks' },
     { id: 'credits', label: 'Credits' },
   ];
@@ -374,6 +398,7 @@ function SettingsContent({
             setSoundEnabled={setSoundEnabled}
             pillNotificationsEnabled={pillNotificationsEnabled}
             onTogglePillNotifications={onTogglePillNotifications}
+            updateStatus={updateStatus}
           />
         )}
         {tab === 'features' && (
@@ -389,6 +414,7 @@ function SettingsContent({
           />
         )}
         {tab === 'agent' && <AgentTab theme={theme} />}
+        {tab === 'integrations' && <IntegrationsTab theme={theme} />}
         {tab === 'tasks' && <TasksTab theme={theme} />}
         {tab === 'credits' && <CreditsTab theme={theme} />}
       </div>
@@ -405,6 +431,7 @@ function GeneralTab({
   setSoundEnabled,
   pillNotificationsEnabled,
   onTogglePillNotifications,
+  updateStatus,
 }: {
   theme: Theme['panel'];
   activeTheme: ThemeName;
@@ -413,6 +440,7 @@ function GeneralTab({
   setSoundEnabled: (v: boolean) => void;
   pillNotificationsEnabled: boolean;
   onTogglePillNotifications: () => void;
+  updateStatus: UpdateStatus;
 }) {
   return (
     <>
@@ -455,7 +483,7 @@ function GeneralTab({
                     position: 'relative',
                     boxShadow: isActive
                       ? `0 0 0 3px ${theme.bg}, 0 0 0 5px ${t.pill.idle}`
-                      : '0 0 0 2px rgba(255,255,255,0.08)',
+                      : `0 0 0 2px ${isLightBg(theme.bg) ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
                     transition: 'box-shadow 0.15s',
                     display: 'flex',
                     alignItems: 'center',
@@ -518,7 +546,89 @@ function GeneralTab({
 
       <Divider color={theme.border} />
 
+      <section>
+        <Label text="Getting started" color={theme.textMuted} />
+        <div style={{ marginTop: 10 }}>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('wiz-replay-tour'))}
+            style={{
+              padding: '7px 12px',
+              borderRadius: 8,
+              border: `1px solid ${theme.border}`,
+              background: 'transparent',
+              color: theme.text,
+              fontSize: 11,
+              fontWeight: 600,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = theme.aiAccent;
+              e.currentTarget.style.background = `${theme.aiAccent}12`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = theme.border;
+              e.currentTarget.style.background = 'transparent';
+            }}
+          >
+            Replay welcome tour
+          </button>
+          <div style={{ fontSize: 10, color: theme.textMuted, marginTop: 6, lineHeight: 1.4 }}>
+            Walks through the hotkeys, the pill, and each tab again.
+          </div>
+        </div>
+      </section>
+
+      <Divider color={theme.border} />
+
       <ShortcutsSection theme={theme} />
+
+      <Divider color={theme.border} />
+
+      <section>
+        <Label text="Update" color={theme.textMuted} />
+        <div
+          style={{
+            marginTop: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+          }}
+        >
+          <div style={{ fontSize: 12, color: theme.text }}>
+            {updateStatus.status === 'checking' && 'Checking for updates…'}
+            {updateStatus.status === 'available' && `Update available: v${updateStatus.version}`}
+            {updateStatus.status === 'downloaded' && `v${updateStatus.version} ready to install`}
+            {updateStatus.status === 'error' && 'Update check failed'}
+            {updateStatus.status === 'idle' && 'Up to date'}
+          </div>
+          {updateStatus.status === 'downloaded' && (
+            <button
+              onClick={() => window.api.restartToUpdate()}
+              style={{
+                fontSize: 12,
+                color: theme.aiAccent,
+                background: `${theme.aiAccent}15`,
+                border: `1px solid ${theme.aiAccent}40`,
+                borderRadius: 6,
+                padding: '6px 14px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontWeight: 600,
+                alignSelf: 'flex-start',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `${theme.aiAccent}25`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = `${theme.aiAccent}15`;
+              }}
+            >
+              Restart to Update
+            </button>
+          )}
+        </div>
+      </section>
 
       <Divider color={theme.border} />
 
@@ -635,45 +745,541 @@ function DictationTab({
         </div>
       </section>
       <Divider color={theme.border} />
+      <DictionarySection theme={theme} />
+      <Divider color={theme.border} />
       <InsightsTab theme={theme} />
     </div>
   );
 }
 
-function AgentTab({ theme }: { theme: Theme['panel'] }) {
+// ─── My Dictionary (user vocabulary for dictation) ─────────
+function DictionarySection({ theme }: { theme: Theme['panel'] }) {
+  const [words, setWords] = useState<string[]>([]);
+  const [corrections, setCorrections] = useState<{ heard: string; actual: string }[]>([]);
+  const [newWord, setNewWord] = useState('');
+  const [pairHeard, setPairHeard] = useState('');
+  const [pairActual, setPairActual] = useState('');
+
+  useBridgeMessage((msg: any) => {
+    if (msg?.type === 'vocab/update') {
+      setWords(Array.isArray(msg.words) ? msg.words.filter(Boolean) : []);
+      setCorrections(Array.isArray(msg.corrections) ? msg.corrections : []);
+    }
+  });
+
+  useEffect(() => {
+    sendBridgeMessage({ type: 'vocab/list' });
+  }, []);
+
+  const addWord = () => {
+    const w = newWord.trim();
+    if (!w) return;
+    sendBridgeMessage({ type: 'vocab/add_word', word: w });
+    setNewWord('');
+  };
+
+  const addPair = () => {
+    const heard = pairHeard.trim();
+    const actual = pairActual.trim();
+    if (!heard || !actual) return;
+    sendBridgeMessage({ type: 'vocab/add_pair', heard, actual });
+    setPairHeard('');
+    setPairActual('');
+  };
+
+  const inputStyle: CSSProperties = {
+    background: theme.inputBg,
+    border: `1px solid ${theme.border}`,
+    borderRadius: 8,
+    padding: '7px 10px',
+    fontSize: 12,
+    color: theme.text,
+    outline: 'none',
+    flex: 1,
+    minWidth: 0,
+  };
+  const addBtnStyle: CSSProperties = {
+    background: theme.aiAccent,
+    color: '#07070f',
+    border: 'none',
+    borderRadius: 8,
+    padding: '7px 14px',
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+  };
+  const chipStyle: CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    background: theme.inputBg,
+    border: `1px solid ${theme.border}`,
+    borderRadius: 999,
+    padding: '4px 10px',
+    fontSize: 12,
+    color: theme.text,
+  };
+  const removeBtnStyle: CSSProperties = {
+    background: 'transparent',
+    border: 'none',
+    color: theme.textMuted,
+    cursor: 'pointer',
+    fontSize: 12,
+    padding: 0,
+    lineHeight: 1,
+  };
+
   return (
-    <div
-      style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 12,
-        minHeight: 0,
-      }}
-    >
-      <span
-        style={{
-          fontSize: 20,
-          fontWeight: 700,
-          color: theme.textMuted,
-          letterSpacing: '0.04em',
-        }}
-      >
-        Coming Soon
-      </span>
-      <span
-        style={{
-          fontSize: 12,
-          color: theme.textMuted,
-          textAlign: 'center',
-          maxWidth: 260,
-          lineHeight: 1.5,
-        }}
-      >
-        Agent settings will be available in a future update.
-      </span>
+    <section>
+      <Label text="My Dictionary" color={theme.textMuted} />
+      <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 6, lineHeight: 1.5 }}>
+        Add names, brands, and jargon you actually say. When dictation mishears one of them,
+        only that word is corrected — the rest of your sentence is never touched.
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <input
+          type="text"
+          placeholder="Add a word (e.g. Wiztant)"
+          value={newWord}
+          onChange={(e) => setNewWord(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && addWord()}
+          style={inputStyle}
+        />
+        <button onClick={addWord} style={addBtnStyle}>Add</button>
+      </div>
+
+      {words.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+          {words.map((w) => (
+            <span key={w} style={chipStyle}>
+              {w}
+              <button
+                onClick={() => sendBridgeMessage({ type: 'vocab/delete_word', word: w })}
+                style={removeBtnStyle}
+                title="Remove word"
+              >
+                ✕
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div style={{ fontSize: 11, color: theme.textMuted, marginTop: 16 }}>
+        Exact replacements (optional): map a specific mis-hearing to the correct word.
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <input
+          type="text"
+          placeholder="Heard as (e.g. whiz tent)"
+          value={pairHeard}
+          onChange={(e) => setPairHeard(e.target.value)}
+          style={inputStyle}
+        />
+        <input
+          type="text"
+          placeholder="Correct word"
+          value={pairActual}
+          onChange={(e) => setPairActual(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && addPair()}
+          style={inputStyle}
+        />
+        <button onClick={addPair} style={addBtnStyle}>Add</button>
+      </div>
+
+      {corrections.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10 }}>
+          {corrections.map((c) => (
+            <div
+              key={c.heard}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: 12,
+                color: theme.text,
+                background: theme.inputBg,
+                border: `1px solid ${theme.border}`,
+                borderRadius: 8,
+                padding: '5px 10px',
+              }}
+            >
+              <span>
+                <span style={{ color: theme.textMuted }}>{c.heard}</span>
+                {' → '}
+                {c.actual}
+              </span>
+              <button
+                onClick={() => sendBridgeMessage({ type: 'vocab/delete_correction', heard: c.heard })}
+                style={removeBtnStyle}
+                title="Remove replacement"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+type AgentSettings = {
+  agent_max_steps: number;
+  AGENT_PLANNER_MODEL: string;
+  AGENT_OMNI_MODEL: string;
+};
+
+function AgentTab({ theme }: { theme: Theme['panel'] }) {
+  const [settings, setSettings] = useState<AgentSettings>({
+    agent_max_steps: 100,
+    AGENT_PLANNER_MODEL: '',
+    AGENT_OMNI_MODEL: '',
+  });
+  const [statusMsg, setStatusMsg] = useState<string>('');
+
+  useBridgeMessage((msg: any) => {
+    if (msg?.type === 'settings/agent/update' && msg.settings) {
+      setSettings({
+        agent_max_steps: Number(msg.settings.agent_max_steps) || 100,
+        AGENT_PLANNER_MODEL: msg.settings.AGENT_PLANNER_MODEL ?? '',
+        AGENT_OMNI_MODEL: msg.settings.AGENT_OMNI_MODEL ?? '',
+      });
+      setStatusMsg('Saved.');
+    }
+  });
+
+  useEffect(() => {
+    sendBridgeMessage({ type: 'settings/agent/get' });
+  }, []);
+
+  const save = () => {
+    setStatusMsg('');
+    sendBridgeMessage({ type: 'settings/agent/save', ...settings });
+  };
+
+  const labelStyle: CSSProperties = { fontSize: 11, color: theme.textMuted, letterSpacing: '0.02em' };
+  const inputStyle: CSSProperties = {
+    background: theme.inputBg,
+    border: `1px solid ${theme.border}`,
+    borderRadius: 8,
+    padding: '8px 10px',
+    fontSize: 12,
+    color: theme.text,
+    outline: 'none',
+    width: '100%',
+  };
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0, overflowY: 'auto', padding: '4px 2px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>Agent Settings</span>
+        <span style={{ fontSize: 11, color: theme.textMuted, lineHeight: 1.5 }}>
+          Limits and model overrides for the screen agent. Changes apply to the next agent run.
+        </span>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span style={labelStyle}>Max steps per task</span>
+        <input
+          type="number"
+          min={1}
+          max={500}
+          value={settings.agent_max_steps}
+          onChange={(e) => setSettings({ ...settings, agent_max_steps: Number(e.target.value) })}
+          style={inputStyle}
+        />
+        <span style={{ fontSize: 10, color: theme.textMuted }}>
+          Safety ceiling on actions the agent may take in one task (default 100).
+        </span>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span style={labelStyle}>Planner model</span>
+        <input
+          type="text"
+          placeholder="qwen/qwen3-vl-235b-a22b-instruct"
+          value={settings.AGENT_PLANNER_MODEL}
+          onChange={(e) => setSettings({ ...settings, AGENT_PLANNER_MODEL: e.target.value })}
+          style={inputStyle}
+        />
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span style={labelStyle}>Vision model</span>
+        <input
+          type="text"
+          placeholder="google/gemini-3-flash-preview"
+          value={settings.AGENT_OMNI_MODEL}
+          onChange={(e) => setSettings({ ...settings, AGENT_OMNI_MODEL: e.target.value })}
+          style={inputStyle}
+        />
+        <span style={{ fontSize: 10, color: theme.textMuted }}>
+          OpenRouter model ids. Leave blank to use the built-in defaults. Model changes apply after restart.
+        </span>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <button
+          onClick={save}
+          style={{
+            background: theme.aiAccent,
+            color: '#07070f',
+            border: 'none',
+            borderRadius: 8,
+            padding: '8px 18px',
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Save
+        </button>
+        {statusMsg && <span style={{ fontSize: 11, color: theme.textMuted }}>{statusMsg}</span>}
+      </div>
+    </div>
+  );
+}
+
+// ─── Integrations tab ──────────────────────────────────────
+// Lets the user authorize apps so the agent can log into them automatically.
+// OAuth for apps that support it; a local encrypted credential vault otherwise.
+// Nothing is sent to any Wiztant cloud DB — all secrets stay encrypted on the
+// user's machine (handled by core/integrations.py).
+function IntegrationsTab({ theme }: { theme: Theme['panel'] }) {
+  const [items, setItems] = useState<PublicIntegration[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [oauthBusy, setOauthBusy] = useState<string | null>(null);
+  const [statusMsg, setStatusMsg] = useState<string>('');
+
+  useBridgeMessage((msg: any) => {
+    if (msg?.type === 'integrations/update' && Array.isArray(msg.integrations)) {
+      setItems(msg.integrations as PublicIntegration[]);
+    } else if (msg?.type === 'integrations/error') {
+      setStatusMsg(`Error: ${msg.error}`);
+    } else if (msg?.type === 'integrations/oauth/result') {
+      setOauthBusy(null);
+      setStatusMsg(msg.ok ? `${msg.app}: connected.` : `${msg.app}: ${msg.error}`);
+    }
+  });
+
+  useEffect(() => {
+    sendBridgeMessage({ type: 'integrations/list' });
+  }, []);
+
+  const remove = (id: string) => sendBridgeMessage({ type: 'integrations/delete', id });
+
+  const labelStyle: CSSProperties = { fontSize: 11, color: theme.textMuted, letterSpacing: '0.02em' };
+  const cardStyle: CSSProperties = {
+    background: theme.inputBg,
+    border: `1px solid ${theme.border}`,
+    borderRadius: 10,
+    padding: 12,
+  };
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, minHeight: 0, overflowY: 'auto', padding: '4px 2px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: theme.text }}>App Integrations</span>
+        <span style={{ fontSize: 11, color: theme.textMuted, lineHeight: 1.5 }}>
+          Authorize apps once so the agent can sign in automatically. Credentials are
+          encrypted and stored only on this device — never uploaded.
+        </span>
+      </div>
+
+      {statusMsg && (
+        <div style={{ ...cardStyle, fontSize: 11, color: theme.text }}>{statusMsg}</div>
+      )}
+
+      {items.length === 0 && !showForm && (
+        <span style={{ fontSize: 12, color: theme.textMuted, padding: '8px 0' }}>No integrations yet.</span>
+      )}
+
+      {items.map((it) => (
+        <div key={it.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: theme.text }}>{it.app}</span>
+            <span style={{ ...labelStyle }}>
+              {it.auth_type === 'oauth'
+                ? it.oauth_connected ? 'OAuth · connected' : 'OAuth · not connected'
+                : `Vault · ${it.field_keys.join(', ') || 'no fields'}`}
+            </span>
+          </div>
+          <button
+            onClick={() => remove(it.id)}
+            style={{ background: 'transparent', border: `1px solid ${theme.border}`, color: theme.textMuted, borderRadius: 8, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+
+      {showForm ? (
+        <IntegrationForm
+          theme={theme}
+          onClose={() => setShowForm(false)}
+          oauthBusy={oauthBusy}
+          onConnectOauth={(app, provider, clientId, clientSecret) => {
+            setOauthBusy(app);
+            setStatusMsg(`${app}: opening browser…`);
+            sendBridgeMessage({ type: 'integrations/oauth/start', app, provider, client_id: clientId, client_secret: clientSecret });
+          }}
+        />
+      ) : (
+        <button
+          onClick={() => { setShowForm(true); setStatusMsg(''); }}
+          style={{ background: theme.accent, color: isLightBg(theme.bg) ? '#000' : '#000', border: 'none', borderRadius: 10, padding: '10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+        >
+          + Add integration
+        </button>
+      )}
+    </div>
+  );
+}
+
+function IntegrationForm({
+  theme,
+  onClose,
+  oauthBusy,
+  onConnectOauth,
+}: {
+  theme: Theme['panel'];
+  onClose: () => void;
+  oauthBusy: string | null;
+  onConnectOauth: (app: string, provider: string, clientId: string, clientSecret: string) => void;
+}) {
+  const [app, setApp] = useState('');
+  const [authType, setAuthType] = useState<IntegrationAuthType>('credential');
+  // Credential fields as editable key/value rows.
+  const [fields, setFields] = useState<{ key: string; value: string }[]>([
+    { key: 'email', value: '' },
+    { key: 'password', value: '' },
+  ]);
+  // OAuth provider config.
+  const [provider, setProvider] = useState<string>('google');
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+
+  const inputStyle: CSSProperties = {
+    background: theme.bg,
+    border: `1px solid ${theme.border}`,
+    borderRadius: 8,
+    color: theme.text,
+    padding: '7px 9px',
+    fontSize: 12,
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+  };
+  const labelStyle: CSSProperties = { fontSize: 11, color: theme.textMuted, marginBottom: 4, display: 'block' };
+
+  const setField = (i: number, patch: Partial<{ key: string; value: string }>) =>
+    setFields((f) => f.map((row, idx) => (idx === i ? { ...row, ...patch } : row)));
+  const addField = () => setFields((f) => [...f, { key: '', value: '' }]);
+  const removeField = (i: number) => setFields((f) => f.filter((_, idx) => idx !== i));
+
+  const saveCredential = () => {
+    if (!app.trim()) return;
+    const fieldObj: Record<string, string> = {};
+    fields.forEach(({ key, value }) => {
+      if (key.trim() && value.trim()) fieldObj[key.trim()] = value;
+    });
+    sendBridgeMessage({
+      type: 'integrations/save',
+      integration: { app: app.trim(), auth_type: 'credential', fields: fieldObj },
+    });
+    onClose();
+  };
+
+  const connectOauth = () => {
+    if (!app.trim() || !clientId.trim()) return;
+    onConnectOauth(app.trim(), provider, clientId.trim(), clientSecret.trim());
+  };
+
+  return (
+    <div style={{ background: theme.inputBg, border: `1px solid ${theme.border}`, borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div>
+        <label style={labelStyle}>App name</label>
+        <input style={inputStyle} placeholder="e.g. Slack" value={app} onChange={(e) => setApp(e.target.value)} />
+      </div>
+
+      <div style={{ display: 'flex', gap: 6 }}>
+        {(['credential', 'oauth'] as IntegrationAuthType[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => setAuthType(t)}
+            style={{
+              flex: 1,
+              background: authType === t ? theme.accent : 'transparent',
+              color: authType === t ? '#000' : theme.textMuted,
+              border: `1px solid ${theme.border}`,
+              borderRadius: 8,
+              padding: '6px',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {t === 'credential' ? 'Credential vault' : 'OAuth'}
+          </button>
+        ))}
+      </div>
+
+      {authType === 'credential' ? (
+        <>
+          <span style={{ fontSize: 10, color: theme.textMuted, lineHeight: 1.5 }}>
+            Stored encrypted on this device. The agent types these into the app's
+            login screen and pauses to ask you for any OTP / 2FA code.
+          </span>
+          {fields.map((row, i) => (
+            <div key={i} style={{ display: 'flex', gap: 6 }}>
+              <input style={{ ...inputStyle, flex: 1 }} placeholder="field (email)" value={row.key} onChange={(e) => setField(i, { key: e.target.value })} />
+              <input style={{ ...inputStyle, flex: 1.4 }} placeholder="value" value={row.value} onChange={(e) => setField(i, { value: e.target.value })} />
+              <button onClick={() => removeField(i)} style={{ background: 'transparent', border: `1px solid ${theme.border}`, color: theme.textMuted, borderRadius: 8, padding: '0 9px', fontSize: 14, cursor: 'pointer' }}>×</button>
+            </div>
+          ))}
+          <button onClick={addField} style={{ background: 'transparent', border: `1px dashed ${theme.border}`, color: theme.textMuted, borderRadius: 8, padding: '6px', fontSize: 11, cursor: 'pointer' }}>+ Add field</button>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={onClose} style={{ flex: 1, background: 'transparent', border: `1px solid ${theme.border}`, color: theme.textMuted, borderRadius: 8, padding: '8px', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+            <button onClick={saveCredential} style={{ flex: 1, background: theme.accent, color: '#000', border: 'none', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Save</button>
+          </div>
+        </>
+      ) : (
+        <>
+          <span style={{ fontSize: 10, color: theme.textMuted, lineHeight: 1.5 }}>
+            Real OAuth sign-in. Provide your OAuth client ID (and secret if
+            required). A browser window opens to authorize; the token is stored
+            encrypted on this device.
+          </span>
+          <div>
+            <label style={labelStyle}>Provider</label>
+            <select style={inputStyle} value={provider} onChange={(e) => setProvider(e.target.value)}>
+              {OAUTH_PROVIDERS.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Client ID</label>
+            <input style={inputStyle} value={clientId} onChange={(e) => setClientId(e.target.value)} />
+          </div>
+          <div>
+            <label style={labelStyle}>Client secret (optional)</label>
+            <input style={inputStyle} type="password" value={clientSecret} onChange={(e) => setClientSecret(e.target.value)} />
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button onClick={onClose} style={{ flex: 1, background: 'transparent', border: `1px solid ${theme.border}`, color: theme.textMuted, borderRadius: 8, padding: '8px', fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+            <button
+              onClick={connectOauth}
+              disabled={!!oauthBusy}
+              style={{ flex: 1, background: theme.accent, color: '#000', border: 'none', borderRadius: 8, padding: '8px', fontSize: 12, fontWeight: 600, cursor: oauthBusy ? 'default' : 'pointer', opacity: oauthBusy ? 0.6 : 1 }}
+            >
+              {oauthBusy ? 'Connecting…' : 'Connect'}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1113,7 +1719,7 @@ function CreditsTab({ theme }: { theme: Theme['panel'] }) {
               borderRadius: 8,
               background: 'rgba(239,68,68,0.12)',
               border: '1px solid rgba(239,68,68,0.3)',
-              color: '#fca5a5',
+              color: theme.text,
               fontSize: 12,
               lineHeight: 1.5,
             }}
@@ -1124,6 +1730,57 @@ function CreditsTab({ theme }: { theme: Theme['panel'] }) {
           </div>
         )}
       </section>
+
+      {/* Per-Feature Usage Summary */}
+      {credits.summary.length > 0 && (
+        <section>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <Label text="Usage by Feature" color={theme.textMuted} />
+            <button
+              onClick={() => credits.refreshSummary()}
+              style={{
+                fontSize: 11,
+                color: theme.textMuted,
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = theme.text)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = theme.textMuted)}
+            >
+              Refresh
+            </button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {credits.summary.map((item) => (
+              <div
+                key={item.feature}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 10px',
+                  borderRadius: 6,
+                  background: theme.inputBg,
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 500, color: theme.text }}>
+                  {featureLabel(item.feature)}
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#EF4444' }}>
+                    −{item.total}
+                  </div>
+                  <div style={{ fontSize: 10, color: theme.textMuted }}>
+                    {item.count} use{item.count === 1 ? '' : 's'}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Plan Comparison */}
       <section>
@@ -1252,7 +1909,7 @@ function CreditsTab({ theme }: { theme: Theme['panel'] }) {
                   <div style={{ fontSize: 12, fontWeight: 500, color: theme.text }}>
                     {featureLabel(tx.feature)}
                   </div>
-                  {tx.model && (
+                  {tx.model && tx.feature !== 'dictation' && (
                     <div style={{ fontSize: 10, color: theme.textMuted, marginTop: 1 }}>
                       {shortModel(tx.model)}
                     </div>
@@ -1945,9 +2602,7 @@ function primaryBtn(theme: Theme['panel'], enabled: boolean): CSSProperties {
 }
 
 function primaryBtnInk(theme: Theme['panel']): string {
-  return theme.accent.includes('#0') || theme.accent.includes('rgba(0')
-    ? '#fff'
-    : '#0a0a0a';
+  return inkFor(theme.aiAccent);
 }
 
 function TextField({

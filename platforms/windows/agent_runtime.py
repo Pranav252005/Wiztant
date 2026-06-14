@@ -6,7 +6,8 @@ Delegates app/window management to WindowsSystemAccess.
 from __future__ import annotations
 
 import logging
-from typing import Tuple
+import time
+from typing import List, Optional, Tuple
 
 from PIL import Image
 
@@ -68,11 +69,9 @@ class WindowsAgentRuntime(BaseAgentRuntime):
     # ── Keyboard ──────────────────────────────────────────────────────────────
 
     def type_text(self, text: str, interval: float = 0.01) -> Tuple[bool, str]:
-        try:
-            self._pg().typewrite(text, interval=interval)
-            return True, f"typed '{text[:50]}{'...' if len(text) > 50 else ''}'"
-        except Exception as e:
-            return False, f"type failed: {e}"
+        # Delegate to WindowsSystemAccess for its clipboard fallback on
+        # non-ASCII text (pyautogui.typewrite drops unicode characters).
+        return self._sys().type_text(text, interval=interval)
 
     def press_key(self, key: str) -> Tuple[bool, str]:
         try:

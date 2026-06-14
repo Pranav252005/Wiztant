@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Theme } from '../shared/themes';
+import { inkFor } from '../shared/themes';
 import { sendBridgeMessage, useBridgeMessage } from '../shared/useBridge';
 
 type AgentMsg = {
@@ -11,7 +12,7 @@ type AgentMsg = {
   questionId?: string;
 };
 
-type AgentState = 'idle' | 'running' | 'done';
+type AgentState = 'idle' | 'running' | 'paused' | 'done';
 
 let idCounter = 0;
 const nextId = () => `a-${Date.now()}-${idCounter++}`;
@@ -73,6 +74,8 @@ export default function AgentPanel({ theme, onProcessChange }: Props) {
       setAgentState('running');
     } else if (msg.type === 'agent/blocked') {
       setAgentState('idle');
+    } else if (msg.type === 'agent_paused') {
+      setAgentState('paused');
     } else if (msg.type === 'agent/question') {
       const text = String(msg.text ?? '');
       const options = Array.isArray(msg.options) ? msg.options : [];
@@ -106,7 +109,7 @@ export default function AgentPanel({ theme, onProcessChange }: Props) {
 
   const send = () => {
     const text = input.trim();
-    if (!text || agentState === 'running') return;
+    if (!text || agentState === 'running' || agentState === 'paused') return;
     setInput('');
     setAgentState('running');
     sendBridgeMessage({ type: 'send_agent_task', text });
@@ -137,7 +140,8 @@ export default function AgentPanel({ theme, onProcessChange }: Props) {
   );
 
   const isLoading = agentState === 'running';
-  const empty = messages.length === 0 && !isLoading;
+  const isPaused = agentState === 'paused';
+  const empty = messages.length === 0 && !isLoading && !isPaused;
 
   return (
     <div
@@ -150,31 +154,6 @@ export default function AgentPanel({ theme, onProcessChange }: Props) {
         position: 'relative',
       }}
     >
-      {/* Coming Soon overlay */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 10,
-          background: 'rgba(7,7,15,0.82)',
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <span
-          style={{
-            fontSize: 22,
-            fontWeight: 700,
-            color: theme.textMuted,
-            letterSpacing: '0.04em',
-          }}
-        >
-          Coming Soon
-        </span>
-      </div>
       {/* Messages area */}
       <div
         style={{
@@ -277,6 +256,26 @@ export default function AgentPanel({ theme, onProcessChange }: Props) {
 
         {isLoading && <TypingDots theme={theme} />}
 
+        {isPaused && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.25 }}
+            style={{
+              alignSelf: 'center',
+              padding: '8px 16px',
+              borderRadius: 999,
+              border: `1.5px solid ${theme.accent}`,
+              color: theme.accent,
+              fontSize: 12,
+              fontWeight: 600,
+              marginTop: 4,
+            }}
+          >
+            Paused — waiting for review
+          </motion.div>
+        )}
+
         {agentState === 'done' && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -329,9 +328,9 @@ export default function AgentPanel({ theme, onProcessChange }: Props) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKey}
             placeholder={
-              isLoading ? 'Agent is working…' : 'Tell the agent what to do…'
+              isLoading ? 'Agent is working…' : isPaused ? 'Agent paused…' : 'Tell the agent what to do…'
             }
-            disabled={isLoading}
+            disabled={isLoading || isPaused}
             rows={1}
             style={{
               flex: 1,
@@ -350,20 +349,20 @@ export default function AgentPanel({ theme, onProcessChange }: Props) {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={send}
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || isLoading || isPaused}
             title="Send"
             style={{
               width: 32,
               height: 32,
               borderRadius: 8,
               background:
-                input.trim() && !isLoading
+                input.trim() && !isLoading && !isPaused
                   ? theme.accent
                   : `${theme.accent}33`,
-              color: input.trim() && !isLoading ? '#fff' : theme.textMuted,
+              color: input.trim() && !isLoading && !isPaused ? inkFor(theme.accent) : theme.textMuted,
               border: 'none',
               cursor:
-                input.trim() && !isLoading ? 'pointer' : 'not-allowed',
+                input.trim() && !isLoading && !isPaused ? 'pointer' : 'not-allowed',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -381,16 +380,7 @@ export default function AgentPanel({ theme, onProcessChange }: Props) {
 
 /** Pick ink color for the user bubble based on its filled background. */
 function userBubbleInk(theme: Theme['panel']): string {
-  const bubble = theme.userBubble;
-  const isLight =
-    bubble.includes('255,255') ||
-    bubble.includes('242,242') ||
-    bubble.includes('232,236') ||
-    bubble.includes('245,225') ||
-    bubble.includes('220,230') ||
-    bubble.includes('#fff') ||
-    bubble.includes('#F');
-  return isLight ? '#0a0a0a' : theme.text;
+  return inkFor(theme.userBubble);
 }
 
 function TypingDots({ theme }: { theme: Theme['panel'] }) {

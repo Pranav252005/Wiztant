@@ -1,6 +1,7 @@
 import { app, BrowserWindow, globalShortcut, screen, session, systemPreferences, type Display } from 'electron';
 import { createPillWindow, createOverlayWindow, setLinuxSticky } from './windows';
 import { registerIpcHandlers } from './ipc';
+import { initUpdater } from './updater';
 import { registerShortcuts } from './shortcuts';
 import { bindPill } from './pillState';
 import {
@@ -107,18 +108,12 @@ function handleCommandFile(): void {
     } else if (cmd === 'toggle') {
       if (overlay.isDestroyed()) return;
       if (overlay.isVisible()) {
-        // On Linux the overlay is a persistent HUD — never hide, just refocus
-        if (process.platform === 'linux') {
-          overlay.focus();
-        } else {
-          overlay.hide();
-        }
+        overlay.hide();
       } else {
         showOverlay();
       }
     } else if (cmd === 'collapse' || cmd === 'hide') {
-      // On Linux the overlay stays visible; hide commands are ignored
-      if (process.platform !== 'linux' && !overlay.isDestroyed() && overlay.isVisible()) {
+      if (!overlay.isDestroyed() && overlay.isVisible()) {
         overlay.hide();
       }
     }
@@ -284,6 +279,9 @@ function bootstrap(): void {
 
   // Heartbeat to Python bridge so launcher knows we are alive
   startBridgeHeartbeat();
+
+  // Initialize silent auto-updater (checks GitHub Releases on startup)
+  initUpdater(pill, overlay);
 }
 
 app.whenReady().then(bootstrap);

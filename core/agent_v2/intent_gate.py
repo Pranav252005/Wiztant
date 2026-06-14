@@ -268,7 +268,7 @@ def _llm_fallback_check(text: str) -> Tuple[bool, str, float]:
     Returns (permitted, reason, confidence).
     """
     try:
-        from core.credit_system import can_afford, deduct, get_current_user_id
+        from core.credit_system import can_afford, get_current_user_id
         from core.agent_engine import parse_json
         import os
 
@@ -312,11 +312,22 @@ def _llm_fallback_check(text: str) -> Tuple[bool, str, float]:
         if isinstance(result, dict) and "allowed" in result:
             allowed = bool(result["allowed"])
             reason = result.get("reason", "")
+            # Bill only when the request is allowed and goes on to do real work.
+            # A blocked request delivered no value to the user, so it is free —
+            # consistent with the "never charge for failures" rule. We bill by
+            # the classifier's actual token usage × model price.
             if allowed:
-                deduct(user_id, "intent_gate_allowed", 1)
+                from core.credit_system import charge_task
+                usage = getattr(response, "usage", None)
+                in_tok = getattr(usage, "prompt_tokens", 0) if usage else 0
+                out_tok = getattr(usage, "completion_tokens", 0) if usage else 0
+                model_id = os.getenv("PLANNER_MODEL", "google/gemini-3-flash-preview")
+                charge_task(
+                    user_id, "intent_gate", True,
+                    model=model_id, input_tokens=in_tok, output_tokens=out_tok,
+                )
                 return True, "", 0.8
             else:
-                deduct(user_id, "intent_gate_blocked", 1)
                 return False, _rejection_message("off_topic"), 0.8
 
     except Exception as e:

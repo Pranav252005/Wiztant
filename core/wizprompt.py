@@ -186,6 +186,19 @@ FAST_SINGLE_SHOT = (
     "- If a preset focus is provided, bias the optimization toward that focus."
 )
 
+PRESET_MODE_HEADER = (
+    "You are a versatile text enhancement specialist. Follow the task instructions below precisely.\n\n"
+)
+
+PRESET_MODE_FOOTER = (
+    "\n\nOUTPUT RULES:\n"
+    "- Return ONLY the enhanced output. No preamble, no 'Here is the result', no markdown code blocks around the whole output.\n"
+    "- Use plain text with simple formatting (bullet points, numbered lists) where helpful.\n"
+    "- Do NOT frame the output as an AI prompt or add a role/persona to it.\n"
+    "- Preserve the original intent and voice of the input while enhancing it.\n"
+    "- Do not include a summary or 'Optimizations Applied' section."
+)
+
 AGENTS = {"structure": STRUCTURE, "semantic": SEMANTIC, "edge_case": EDGE, "emotional": EMOTIONAL}
 
 
@@ -324,10 +337,69 @@ def parse_emotional(text: str) -> Optional[Dict[str, str]]:
     return {"emotion": emo.group(1).strip().lower(), "framing_directive": (frame.group(1).strip() if frame else "")}
 
 
-def _synthesize(user_prompt: str, critiques: dict, emotional: Optional[dict], model: str | None = None, preset: str | None = None) -> str:
+def _get_synthesis_output_rules(preset_id: str | None) -> str:
+    """Return preset-aware output rules for deep mode synthesis."""
+    if preset_id == "prompt_engineer":
+        persona_rule = "- DO frame the output as an AI prompt with a clear role/persona."
+        scope_rule = "- Do NOT add new tasks not mentioned in the original input."
+    elif preset_id == "idea_refinement":
+        persona_rule = "- Do NOT frame the output as an AI prompt or add a role/persona."
+        scope_rule = "- You MAY expand and ideate on the core concept, but do NOT diverge into unrelated areas or implementation details."
+    else:
+        persona_rule = "- Do NOT frame the output as an AI prompt or add a role/persona unless explicitly required by the task."
+        scope_rule = "- Do NOT expand scope or add information not present in the original input."
+    return (
+        "OUTPUT RULES:\n"
+        "- Return ONLY the final enhanced output. No preamble.\n"
+        f"{persona_rule}\n"
+        f"{scope_rule}\n"
+        "- Preserve the original intent while incorporating improvements.\n"
+        "- Do NOT include an 'Optimizations Applied' summary section.\n"
+    )
+
+
+def _synthesize(
+    user_prompt: str,
+    critiques: dict,
+    emotional: Optional[dict],
+    model: str | None = None,
+    preset: str | None = None,
+    preset_id: str | None = None,
+    preset_variant: str | None = None,
+) -> str:
     synthesis_prompt = SYNTHESIS
     if preset:
-        synthesis_prompt = synthesis_prompt + "\n\nADDITIONAL OPTIMIZATION FOCUS:\n" + preset
+        task = preset
+        if preset_variant and "{variant}" in task:
+            task = task.replace("{variant}", preset_variant)
+        output_rules = _get_synthesis_output_rules(preset_id)
+        synthesis_prompt = (
+            "You are a versatile text enhancement specialist. "
+            "Synthesize all expert critiques into ONE cohesive, production-ready output.\n\n"
+            "TASK:\n" + task + "\n\n"
+            + output_rules + "\n"
+            "You will receive:\n"
+            "1. Structural critique (from Agent 1)\n"
+            "2. Semantic critique (from Agent 2)\n"
+            "3. Edge case critique (from Agent 3, if provided)\n"
+            "4. Emotional calibration directive (from Agent 4, if provided)\n"
+            "5. The original user input\n\n"
+            "Your task:\n"
+            "1. Identify the top 3-4 priority improvements across all critiques\n"
+            "2. Integrate structural changes (Agent 1 suggestions)\n"
+            "3. Refine vocabulary and examples (Agent 2 suggestions)\n"
+            "4. Add guardrails for edge cases (Agent 3 suggestions, if present)\n"
+            "5. Embed emotional framing (Agent 4 directive, if present)\n"
+            "6. Ensure the final output is coherent, not fragmented\n\n"
+            "Output Format (IMPORTANT - NO MARKDOWN):\n"
+            "- Use plain text only. Do NOT use markdown syntax like #, ##, **, *, `, or tables.\n"
+            "- Use clear section labels in plain text (e.g., 'Role:', 'Context:', 'Goal:', 'Constraints:').\n"
+            "- Use simple numbered lists (1., 2., 3.) or bullet points (-) where helpful.\n"
+            "- Preserve the original intent while incorporating all improvements.\n"
+            "- If emotional framing is provided, embed it naturally in the opening directive.\n"
+            "- Do NOT include an 'Optimizations Applied' summary section. Just give the final output.\n\n"
+            "Quality bar: The output should be something an expert could have produced from scratch, formatted as clean plain text."
+        )
     parts = [f"STRUCTURAL CRITIQUE:\n{critiques.get('structure','N/A')}\n",
              f"SEMANTIC CRITIQUE:\n{critiques.get('semantic','N/A')}\n"]
     if "edge_case" in critiques:
@@ -361,6 +433,8 @@ async def _optimize_deep(
     user_prompt: str,
     model: str | None = None,
     preset: str | None = None,
+    preset_id: str | None = None,
+    preset_variant: str | None = None,
     selected: list[str] | None = None,
     config: dict | None = None,
 ) -> dict:
@@ -370,7 +444,9 @@ async def _optimize_deep(
     critiques = {a: await c for a, c in coros}
     emotional = parse_emotional(critiques.get("emotional", "")) if "emotional" in critiques else None
     try:
-        optimized = await loop.run_in_executor(None, _synthesize, user_prompt, critiques, emotional, model, preset)
+        optimized = await loop.run_in_executor(
+            None, _synthesize, user_prompt, critiques, emotional, model, preset, preset_id, preset_variant
+        )
         synthesis_failed = False
     except Exception as e:
         optimized = ""
@@ -385,7 +461,7 @@ async def _optimize_deep(
         "critiques": critiques,
         "line_count": len(user_prompt.split("\n")),
         "synthesis_failed": synthesis_failed,
-        "preset_used": preset,
+        "preset_used": preset_id or preset,
         "examples_used": 0,
         "example_ids": [],
         "cluster_id": None,
@@ -439,29 +515,61 @@ def _parse_fast_response(text: str) -> dict:
     }
 
 
+def _is_full_system_prompt(text: str) -> bool:
+    """Heuristic to detect if a preset string is a complete system prompt."""
+    return bool(text) and ("You are" in text or "Your task:" in text or "Return ONLY" in text)
+
+
 async def _optimize_fast(
     user_prompt: str,
     model: str | None = None,
     preset: str | None = None,
+    preset_id: str | None = None,
+    preset_variant: str | None = None,
     line_count: int = 1,
+    selected: list[str] | None = None,
+    persona_weights: dict | None = None,
 ) -> dict:
     """Single LLM call optimization. Target latency ~1–2s."""
     mem = _get_memory()
-    examples, cluster_id, style_bias = await mem.retrieve_examples_for_prompt(user_prompt, preset, limit=3)
+    examples, cluster_id, style_bias = await mem.retrieve_examples_for_prompt(user_prompt, preset_id or preset, limit=3)
     example_ids = [ex["id"] for ex in examples]
 
-    few_shot_block = mem.format_few_shot_block(examples)
-    system = FAST_SINGLE_SHOT
+    few_shot_block = mem.format_few_shot_block(examples, mode="preset" if preset else "prompt")
     if preset:
-        system = system + "\n\nADDITIONAL OPTIMIZATION FOCUS:\n" + preset
-    if few_shot_block:
-        system = few_shot_block + "\n" + system
-    if style_bias:
-        system = system + "\n\n" + style_bias
+        # Preset mode: use full system prompt if available, else fall back to generic wrapping
+        if _is_full_system_prompt(preset):
+            system = preset
+        else:
+            # Legacy/user preset that is just a task addendum
+            system = PRESET_MODE_HEADER + "TASK:\n" + preset + PRESET_MODE_FOOTER
+        if preset_variant and "{variant}" in system:
+            system = system.replace("{variant}", preset_variant)
+        if few_shot_block:
+            system = few_shot_block + "\n" + system
+        if style_bias:
+            system = system + "\n\n" + style_bias
+    else:
+        # Classic prompt-engineering mode (no preset)
+        system = FAST_SINGLE_SHOT
+        if few_shot_block:
+            system = few_shot_block + "\n" + system
+        if style_bias:
+            system = system + "\n\n" + style_bias
 
+    # Inject TuneHub persona weights into the system prompt so they influence the LLM
+    if persona_weights:
+        weight_lines = "\n".join(f"- {k}: {v:.2f}" for k, v in persona_weights.items())
+        system += (
+            "\n\nPersona blend weights (prioritize dimensions with higher weights):\n"
+            + weight_lines
+        )
+        log.info("WizPrompt: injected persona weights into fast-mode system prompt")
+
+    user_msg = f"Enhance the following:\n{user_prompt}" if preset else f"Optimize this prompt:\n{user_prompt}"
     messages = [
         {"role": "system", "content": system},
-        {"role": "user", "content": f"Optimize this prompt:\n{user_prompt}"},
+        {"role": "user", "content": user_msg},
     ]
 
     client = _get_async_client()
@@ -480,7 +588,7 @@ async def _optimize_fast(
     parsed = _parse_fast_response(content)
 
     config = select_agents_by_size(line_count)
-    selected = config["selected_agents"]
+    selected = selected or config["selected_agents"]
 
     return {
         "optimized_prompt": parsed["optimized_prompt"],
@@ -491,7 +599,7 @@ async def _optimize_fast(
         "critiques": parsed["critiques"],
         "line_count": line_count,
         "synthesis_failed": not parsed["optimized_prompt"],
-        "preset_used": preset,
+        "preset_used": preset_id or preset,
         "examples_used": len(examples),
         "example_ids": example_ids,
         "cluster_id": cluster_id,
@@ -505,6 +613,20 @@ async def _optimize_fast(
 _GREETINGS = {"hello", "hi", "hey", "test", "testing", "ok", "okay", "yes", "no", "yep", "nope", "lol", "haha"}
 _URL_RE = re.compile(r"^\s*https?://\S+\s*$", re.IGNORECASE)
 
+_INJECTION_PATTERNS = [
+    r"ignore\s+(?:previous|all\s+prior|earlier)\s+(?:instructions|prompts|directives)",
+    r"disregard\s+(?:previous|all\s+prior|the\s+above)",
+    r"you\s+are\s+now\s+(?:a\s+)?DAN",
+    r"system\s+override",
+    r"new\s+instructions\s*:",
+    r"do\s+not\s+follow\s+(?:previous|above)\s+(?:instructions|rules)",
+]
+_COMPILED_INJECTION = [re.compile(p, re.IGNORECASE) for p in _INJECTION_PATTERNS]
+
+
+# Hardcoded security limits
+MAX_REPROMPT_INPUT = 10_000
+
 
 def validate_prompt(text: str) -> str | None:
     """Return a human-readable error string if the prompt is silly/invalid, else None."""
@@ -515,6 +637,10 @@ def validate_prompt(text: str) -> str | None:
     # Too short
     if len(stripped) < 15:
         return "That's too short to be a real prompt. Write at least a full sentence."
+
+    # Hard limit on input length (prevents token bombing / DoS)
+    if len(stripped) > MAX_REPROMPT_INPUT:
+        return f"Prompt is too long ({len(stripped):,} chars). Max allowed is {MAX_REPROMPT_INPUT:,}."
 
     # Just a URL
     if _URL_RE.match(stripped):
@@ -542,6 +668,21 @@ def validate_prompt(text: str) -> str | None:
     if len(words) <= 3 and all(w.strip(".,!?;:") in _GREETINGS for w in words):
         return "That's a greeting, not a prompt. Tell the AI what you want it to optimize."
 
+    # Prompt injection attempt detection
+    for pattern in _COMPILED_INJECTION:
+        if pattern.search(stripped):
+            return "Potential prompt injection detected. Remove attempts to override instructions."
+
+    # Secret / PII scan — prevents leaking credentials to the LLM
+    try:
+        from core.guardrails import scan_secrets
+        secrets = scan_secrets(stripped)
+        if secrets:
+            labels = ", ".join(sorted(set(label for _, label in secrets)))
+            return f"Security warning: detected potential {labels} in input. Remove sensitive data before optimizing."
+    except Exception:
+        pass
+
     return None
 
 
@@ -553,6 +694,15 @@ _PERSONA_WEIGHT_TO_AGENT = {
     "debug": "edge_case",
     "plan": "structure",
 }
+
+
+def _load_reprompt_tune() -> dict | None:
+    """Read reprompt tuned parameters directly from the canonical file."""
+    try:
+        from core.tune_hub.single_file_store import read_tune_file
+        return read_tune_file("reprompt")
+    except Exception:
+        return None
 
 
 def _apply_persona_weights(selected: list, persona_weights: dict) -> list:
@@ -582,6 +732,7 @@ async def optimize_prompt_with_dynamic_agents(
     model: str | None = None,
     feature_input: dict | None = None,
     preset: str | None = None,
+    preset_variant: str | None = None,
     mode: str = "fast",
 ) -> dict:
     """Optimize a prompt.
@@ -591,6 +742,7 @@ async def optimize_prompt_with_dynamic_agents(
         model: Optional override model ID.
         feature_input: Optional TuneHub feature input.
         preset: Optional preset ID or system prompt addendum string.
+        preset_variant: Optional variant for presets that support templating (e.g. communication channel).
         mode: "fast" (single-shot, default) or "deep" (multi-agent legacy).
     """
     if not user_prompt or not user_prompt.strip():
@@ -604,24 +756,34 @@ async def optimize_prompt_with_dynamic_agents(
     config = select_agents_by_size(line_count)
     selected = list(config["selected_agents"])
 
-    # Apply TuneHub persona weights if present
+    # Apply TuneHub persona weights if present (from middleware)
     persona_weights = (feature_input or {}).get("persona_weights")
+    # Fallback: read directly from canonical tune file so the feature always
+    # keeps the latest tuned parameters in its brain.
+    if not persona_weights:
+        tune_data = _load_reprompt_tune()
+        if tune_data:
+            persona_weights = tune_data.get("persona_weights")
     if persona_weights:
         selected = _apply_persona_weights(selected, persona_weights)
         log.info("WizPrompt: persona weights applied, agent order: %s", selected)
 
     # Resolve preset addendum if an ID was passed
     preset_addendum: str | None = None
+    preset_id: str | None = None
     if preset:
         try:
             from core.presets import get_preset_by_id
             p = get_preset_by_id(preset)
             if p:
                 preset_addendum = p.system_prompt_addendum
+                preset_id = p.id
             else:
                 preset_addendum = preset  # treat as raw addendum string
+                preset_id = preset
         except Exception:
             preset_addendum = preset
+            preset_id = preset
 
     cache_key = _cache_key(user_prompt, model, preset_addendum, mode)
 
@@ -642,8 +804,8 @@ async def optimize_prompt_with_dynamic_agents(
     _inflight[cache_key] = future
 
     log.info(
-        "WizPrompt: %s prompt (%d lines), mode=%s, model=%s, preset=%s",
-        config["size_category"], line_count, mode, model or WIZPROMPT_MODEL, preset if preset else "none"
+        "WizPrompt: %s prompt (%d lines), mode=%s, model=%s, preset=%s, variant=%s",
+        config["size_category"], line_count, mode, model or WIZPROMPT_MODEL, preset if preset else "none", preset_variant or "none"
     )
 
     # Credit pre-check for RePrompt (actual deduction happens post-call based on real tokens)
@@ -665,9 +827,16 @@ async def optimize_prompt_with_dynamic_agents(
 
     try:
         if mode == "deep":
-            result = await _optimize_deep(user_prompt, model=model, preset=preset_addendum, selected=selected, config=config)
+            result = await _optimize_deep(
+                user_prompt, model=model, preset=preset_addendum, preset_id=preset_id,
+                preset_variant=preset_variant, selected=selected, config=config
+            )
         else:
-            result = await _optimize_fast(user_prompt, model=model, preset=preset_addendum, line_count=line_count)
+            result = await _optimize_fast(
+                user_prompt, model=model, preset=preset_addendum, preset_id=preset_id,
+                preset_variant=preset_variant, line_count=line_count,
+                selected=selected, persona_weights=persona_weights
+            )
     except Exception as e:
         log.error("WizPrompt optimization failed: %s", e)
         future.set_exception(e)

@@ -94,8 +94,8 @@ Wiztant is a voice-first AI desktop assistant composed of **three separate appli
 
 ### 1. Python Backend
 - **Entry point:** `main.py` → `app/main.py` → `run_app()`
-- **What it does:** Loads `.env`, runs health checks, initializes data directories (`data/`, `memory/`), imports core subsystems (voice → agent → WS bridge), registers global hotkeys via the Platform Abstraction Layer (PAL), starts uvicorn on `localhost:8765`, starts WebSocket bridge on `localhost:9120`, spins up background threads (system context scanner, background agent, system tray, task reminders, overlay launcher).
-- **Core logic:** `core/` — 50+ modules (~17,600 lines of Python).
+- **What it does:** Loads `.env`, runs health checks, initializes data directories (`data/`, `memory/`), imports core subsystems (voice → agent → WS bridge), registers global hotkeys via the Platform Abstraction Layer (PAL), starts uvicorn on `127.0.0.1:8765`, starts WebSocket bridge on `localhost:9120`, spins up background threads (system context scanner, background agent, system tray, task reminders, overlay launcher).
+- **Core logic:** `core/` — 50+ top-level modules (~26,000 lines) plus `core/agent_v2/` (~2,200 lines) and `core/tune_hub/` (~3,000 lines).
 - **Agent rules:** `agent_rules/` — markdown specs for navigation, shortcuts, and apps consumed by the UI-TARS agent.
 - **Platform abstraction:** `platforms/` — isolates all OS-specific code (window management, input, screenshots, TTS, hotkeys) behind abstract base classes. Factory at `platforms/factory.py` performs lazy imports so Linux never loads `win32api` and vice versa.
 - **No PyQt6 main window** — the Python side is headless backend + tray icon only (`core/tray.py`). PyQt6 is used solely for the tray icon and minimal tkinter overlays (`ui/`).
@@ -114,7 +114,8 @@ Wiztant is a voice-first AI desktop assistant composed of **three separate appli
 
 ### 3. Marketing Website
 - **Location:** `whiztant-website/`
-- **Stack:** React 19 + Vite 6 + Tailwind CSS v3 + PostCSS + Autoprefixer
+- **Stack:** React 19 + Vite 6 + Tailwind CSS v3 + PostCSS + Autoprefixer + GSAP + Framer Motion + Spline + React Router 7
+- **Payments:** Stripe + Razorpay
 - **Build:** `npm run build` → static `dist/` (SPA)
 - **Deploy:** Manual to Netlify (`netlify.toml` present; no CI/CD pipeline)
 - **PostCSS config:** `postcss.config.cjs` (CJS, not `.js`, because `package.json` has `"type": "module"`)
@@ -135,7 +136,8 @@ Wiztant is a voice-first AI desktop assistant composed of **three separate appli
 | Electron overlay | TypeScript | React 18, Electron 33, Vite, Framer Motion |
 | Website | TypeScript / JSX | React 19, Vite 6, Tailwind CSS v3 |
 | STT | — | Groq Whisper Large v3 Turbo (cloud) + faster-whisper (local fallback) |
-| Agent planner | — | Qwen 3.6 Plus free via OpenRouter (text-only) |
+| TTS | — | Kokoro (local, requires espeak-ng) + edge-tts (cloud fallback) |
+| Agent planner | — | Qwen 3-VL-235B via OpenRouter (vision + text) |
 | Agent executor | — | UI-TARS 1.5 7B via OpenRouter (vision) |
 | Auth | — | Supabase |
 | Cost tracking | — | Helicone |
@@ -146,6 +148,8 @@ Wiztant is a voice-first AI desktop assistant composed of **three separate appli
 - **`ui/whiztant-overlay/package.json`** — Electron overlay dependencies and build scripts.
 - **`ui/whiztant-overlay/electron.vite.config.ts`** — electron-vite build configuration.
 - **`ui/whiztant-overlay/tailwind.config.js`** — Tailwind config for overlay (CJS).
+- **`ui/whiztant-overlay/electron-builder.yml`** — Electron packaging config (GitHub Releases, macOS/Windows/Linux).
+- **`ui/whiztant-overlay/postcss.config.js`** — PostCSS pipeline for overlay.
 - **`whiztant-website/package.json`** — Website dependencies.
 - **`whiztant-website/tailwind.config.js`** — Website Tailwind config (ESM).
 - **`whiztant-website/netlify.toml`** — Netlify deploy config (SPA redirects + build command).
@@ -154,7 +158,7 @@ Wiztant is a voice-first AI desktop assistant composed of **three separate appli
 - **`build.bat`** — Root-level Windows build script (pip install + PyInstaller).
 
 ### Notable Absences
-- No `pyproject.toml`, `pytest.ini`, `conftest.py`, or `tox.ini` in the project root.
+- No `pyproject.toml`, `setup.py`, or `setup.cfg`.
 - No `build/windows/` or `build/linux/` directories currently in the repo.
 - No PyInstaller `.spec` files currently tracked in git (`.gitignore` ignores `*.spec` and `build/`).
 
@@ -162,44 +166,94 @@ Wiztant is a voice-first AI desktop assistant composed of **three separate appli
 
 ## Code Organization
 
-### Python (`core/` — ~17,600 lines)
+### Python (`core/` — ~26,000 lines top-level + subpackages)
 | Module | Purpose |
 |---|---|
 | `app/main.py` | Application bootstrap, health checks, feature flags, background timers |
-| `core/agent.py` | Tool registry, prompts, `ask_ai()` routing loop (~1,305 lines) |
+| `core/agent.py` | Tool registry, prompts, `ask_ai()` routing loop (~1,300 lines) |
 | `core/agent_engine.py` | Shared agent orchestration constants, OpenRouter client, image encoding |
-| `core/agent_unified.py` | Unified agent runtime (~710 lines) |
-| `core/background_agent.py` | Ambient background task manager (~1,071 lines) |
+| `core/agent_unified.py` | Unified agent runtime (legacy; being superseded by orchestrator) |
+| `core/agent_orchestrator.py` | Three-Brain Agent orchestrator — F9×2 entry point (Planner → Vision → Executor) |
+| `core/agent_executor.py` | Executor Brain (UI-TARS) — predicts GUI actions from screenshots |
+| `core/agent_actions.py` | Action primitives for the agent (click, type, scroll, etc.) |
+| `core/agent_prompts.py` | Prompt templates for agent brains |
+| `core/agent_screenshots.py` | Screenshot capture and preprocessing for vision models |
+| `core/agent_vision.py` | Vision model client wrapper |
+| `core/agent_state.py` | Agent session state management |
+| `core/agent_task_queue.py` | Background agent task queue |
+| `core/agent_planner.py` | Planner brain for agent tasks |
+| `core/agent_isolation.py` | `AgentInputContext` — sends input to background windows without stealing focus |
+| `core/agent_profiles.py` | Agent personality / profile definitions |
+| `core/agent_presets.py` | 11 built-in agent presets (The Bridge) |
+| `core/background_agent.py` | Ambient background task manager (~1,070 lines) |
 | `core/hotkeys.py` | F9 tap handler, dictation trigger, recording control (~1,440 lines) |
 | `core/voice.py` | Groq Whisper transcription + local fallback (~850 lines) |
-| `core/stt_engine.py` | Streaming STT pipeline, VAD, smart paste (~581 lines) |
+| `core/stt_engine.py` | Streaming STT pipeline, VAD, smart paste (~580 lines) |
 | `core/stt_refiner.py` | Post-transcription LLM polish |
 | `core/dictation_smart.py` | Smart formatting for dictation output |
 | `core/dictation_correction.py` | Dictation correction engine |
 | `core/dictation_memory.py` | Learns user dictation patterns |
 | `core/smart_paste.py` | Cross-platform paste at cursor with fallback |
-| `core/tasks.py` | Task CRUD, voice parsing, due-time extraction, reminders (~1,178 lines) |
+| `core/tasks.py` | Task CRUD, voice parsing, due-time extraction, reminders (~1,180 lines) |
+| `core/task_classifier.py` | Classifies tasks by intent and urgency |
+| `core/task_categorizer.py` | Categorizes tasks into buckets |
+| `core/reminder_scheduler.py` | Periodic reminder check cycle |
 | `core/memory.py` | Persistent memory system |
 | `core/wizprompt.py` | RePrompt / WizPrompt optimization engine |
 | `core/wizprompt_memory.py` | Prompt optimization memory / feedback loop |
 | `core/presets.py` | 5 default presets for WizPrompt |
 | `core/tune_hub/` | Adaptive tuning subsystem (Phase 1: manual/seed tuning) |
-| `core/ws_bridge.py` | WebSocket server for Electron IPC (~1,149 lines) |
+| `core/tune.py` | TuneHub integration layer |
+| `core/tune_prompts.py` | TuneHub prompt templates |
+| `core/ws_bridge.py` | WebSocket server for Electron IPC (~1,580 lines) |
 | `core/server.py` | FastAPI REST server (port 8765) |
 | `core/guardrails.py` | Safety regex, coordinate validation, loop detection |
-| `core/system_context.py` | System context scanner and scheduler (~813 lines) |
+| `core/system_context.py` | System context scanner and scheduler (~810 lines) |
 | `core/navigation_brain.py` | Agent navigation logic |
 | `core/vocab.py` | Vocab correction / phonetic matching |
+| `core/vlm.py` | Vision-Language Model abstraction |
 | `core/tray.py` | System tray icon |
 | `core/usage.py` | Usage tracking / Helicone integration |
 | `core/license.py` | LemonSqueezy license validation |
 | `core/supabase_client.py` | Supabase auth client |
+| `core/credit_system.py` | Credit balance, history, and gating |
+| `core/insights_tracker.py` | Usage insights and analytics |
+| `core/platform_backends.py` | Platform backend driver helpers |
+| `core/system_access.py` | System-level access helpers |
+| `core/window_manager.py` | Window management abstraction |
+| `core/shortcuts_loader.py` | Keyboard shortcuts loader |
+| `core/toast.py` | Toast notification system |
+| `core/workflow_runtime.py` | Workflow execution runtime |
+| `core/shared/` | Shared types and utilities (`agent.py`, `memory.py`, `vocab.py`) |
 
-### Platform Abstraction (`platforms/` — ~5,300 lines)
+### Agent V2 / The Bridge (`core/agent_v2/` + `core/agent_v2_*.py`)
+These modules power the multi-app workflow agent ("The Bridge"):
+
+| Module | Purpose |
+|---|---|
+| `core/agent_v2_engine.py` | Bridge orchestrator — coordinates Vision → Planner → Executor + TuneHub learning (~1,000 lines) |
+| `core/agent_v2_profiles.py` | App profiles for 9 apps (terminal, cursor, vscode, windsurf, browser, github, figma, slack, notion, jira) |
+| `core/agent_v2_templates.py` | `WorkflowTemplate` dataclasses for multi-app recipes |
+| `core/agent_v2_filefinder.py` | Identifies files by name/path for the IDE to open |
+| `core/agent_v2_clipboard.py` | Clipboard monitoring for agent workflows |
+| `core/agent_v2_revert.py` | Safe revert / undo for agent actions |
+| `core/agent_v2/intent_gate.py` | Regex-based intent classifier with LLM fallback |
+| `core/agent_v2/master_planner.py` | Tech-stack detection and `MasterPlan` generation |
+| `core/agent_v2/phase_engine.py` | `PhaseEngine` state machine (`EngineState` enum) |
+| `core/agent_v2/plan_executor.py` | `PlanExecutor` — step-by-step execution with human-in-the-loop gates |
+| `core/agent_v2/models.py` | Pydantic models: `Phase`, `Subphase`, `MasterPlan`, etc. |
+| `core/agent_v2/memory.py` | `AgentMemoryV2` — project/run artifact indexing |
+| `core/agent_v2/guardrails.py` | v2-specific guards: cost/file/step ceilings, secret scanning, path sandboxing |
+| `core/agent_v2/prompt_optimizer.py` | Prompt refinement per subphase |
+| `core/agent_v2/ui_analyzer.py` | Screenshot-based UI analysis with pass/fail scoring |
+| `core/agent_v2/browser_verify.py` | Dev-server readiness checks and screenshot capture |
+| `core/agent_v2/checkpoint.py` | Git checkpoint helper for safe rollback |
+
+### Platform Abstraction (`platforms/` — ~5,400 lines)
 - `platforms/factory.py` — Lazy factory for OS-specific drivers (hotkeys, TTS, VLM, window mgmt, system access).
-- `platforms/abstract/` — Abstract base classes.
-- `platforms/linux/` — Linux implementations (`hotkeys.py`, `system_access.py`, `window_mgmt.py`, `tts.py`, `vlm.py`, `_vlm_impl.py`, `agent_runtime.py`).
-- `platforms/windows/` — Windows implementations (same interface).
+- `platforms/abstract/` — Abstract base classes (`base_agent_runtime.py`).
+- `platforms/linux/` — Linux implementations (`agent_runtime.py`, `config.py`, `hotkeys.py`, `system_access.py`, `tts.py`, `vlm.py`, `_vlm_impl.py`, `window_mgmt.py`).
+- `platforms/windows/` — Windows implementations (same interface; `_vlm_impl.py` is larger due to Win32-specific VLM code).
 
 ### UI Layer (`ui/` — ~1,500 lines Python)
 - `ui/react_overlay.py` — Legacy React overlay launcher (still used).
@@ -208,10 +262,12 @@ Wiztant is a voice-first AI desktop assistant composed of **three separate appli
 - `ui/agent_results_panel.py` — tkinter results panel.
 - `ui/constants.py` / `ui/theme.py` — Python-side design tokens.
 
-### Tests (`tests/` — ~24 files)
-- `tests/test_*.py` — Core system tests (tasks, agent, guardrails, vocab, wizprompt, etc.).
-- `tests/stt_tests/test_*.py` — STT-specific tests (integration, refiner, smart paste, vocab, edge cases).
-- `core/tune_hub/tests/test_*.py` — TuneHub unit tests.
+### Tests (`tests/` — ~5,200 lines across ~50 files)
+- `tests/conftest.py` — pytest config: inserts project root into `sys.path`.
+- `tests/fixtures/agent_mocks.py` — Shared mocks for agent tests.
+- `tests/test_*.py` — Core system tests (tasks, agent, guardrails, vocab, wizprompt, credit race, workflow, overlay IPC, etc.).
+- `tests/stt_tests/test_*.py` — STT-specific tests (integration, refiner, smart paste, vocab, edge cases, Groq retry, VAD auto stop, spoken symbols).
+- `core/tune_hub/tests/test_*.py` — TuneHub unit tests (base, guardrails, middleware, orchestrator, storage, tuners, utils).
 
 ---
 
@@ -255,9 +311,10 @@ npm run build
 ```
 
 ### Full Desktop Build
-- **Windows:** `build.bat` at project root — installs deps, runs PyInstaller.
+- **Windows:** `build.bat` at project root — installs deps, runs `pyinstaller whiztant.spec --clean`.
 - **Linux:** No dedicated build script currently in repo.
 - **Packaging formats:** `.exe` (Windows), binary / AppImage / Snap (Linux — planned).
+- **Electron auto-release:** GitHub Actions `.github/workflows/release.yml` triggers on `v*.*.*` tags, builds on macOS/Windows/Ubuntu matrix, and publishes to GitHub Releases via `electron-builder`.
 
 ---
 
@@ -300,13 +357,14 @@ pytest tests/
 ```bash
 pytest tests/test_tasks.py
 pytest tests/stt_tests/test_integration.py
+pytest core/tune_hub/tests/test_orchestrator.py
 ```
 
 **Testing patterns observed:**
 - Use `unittest.mock.patch` and `pytest.monkeypatch` to isolate external APIs (OpenRouter, Groq, screenshots).
 - Use `tmp_path` fixtures for hermetic file I/O (tasks.json, agent memory).
 - Integration tests may launch actual subprocesses (React overlay lifecycle, WebSocket bridge roundtrip).
-- No `pytest.ini`, `pyproject.toml`, or `conftest.py` in the project root — tests rely on default pytest discovery and manual `sys.path.insert(0, ...)` at the top of test files.
+- `tests/conftest.py` exists and injects the project root into `sys.path` before any test imports.
 
 **Manual / stress test scripts:**
 - `scripts/stress_test_stt.py` — runs 100 iterations of the full STT pipeline and reports latency p95.
@@ -320,6 +378,7 @@ pytest tests/stt_tests/test_integration.py
 
 - **`.env` contains secrets** — API keys for OpenAI, OpenRouter, Groq, Supabase, Helicone, and LemonSqueezy. Never commit `.env` to git.
 - **Agent guardrails** — `core/guardrails.py` blocks destructive actions via regex (delete files, format drives, drop tables, shutdown, etc.), validates screen coordinates, and detects no-progress loops via screenshot hashing. Always respect and update these rules when adding new agent capabilities.
+- **Agent v2 guardrails** — `core/agent_v2/guardrails.py` adds cost/file/step ceilings, command validation, path sandboxing, and secret scanning.
 - **Isolated input** — background agent tasks use `AgentInputContext` (`core/agent_isolation.py`) to send input to background windows without stealing focus.
 - **No sandbox escape** — the agent runs with the user's permissions. Do not add elevation prompts or UAC bypasses.
 - **Tasks file** — both Python (`core/tasks.py`) and Electron main (`ipc.ts`) read/write `memory/tasks.json`. Ensure file locking or atomic writes if concurrency issues arise.
@@ -351,11 +410,11 @@ Muted:       #6b7280
 | Trigger | Mode | What it does |
 |---|---|---|
 | **F9 ×1** | Dictation | STT engine transcribes → smart paste at cursor |
-| **F9 ×2+** | Agent toggle | Toggles Agent mode on/off (UI-TARS screen-to-action loop) |
+| **F9 ×2+** | Agent toggle | Toggles Agent mode on/off (Three-Brain screen-to-action loop) |
 | **Ctrl+Space** | Overlay toggle | Show/hide chat+tasks+agent overlay |
 | **Ctrl+Shift+Space** | WizPrompt / RePrompt | Reads clipboard → optimizes via TuneHub persona weights + preset → writes back |
 | **Esc** | Dismiss overlay | Closes overlay |
-| **F10** | Task voice | PLANNED — voice-only task creation with "Add Task" pill state |
+| **F10** | Task voice | Configurable task creation hotkey (`data/settings.json` → `task_hotkey`). Partially implemented. |
 
 **Note:** The old "Conversation" mode (F9×2 voice loop with GPT + TTS) was removed when `core/tts.py` was deleted. Platform-specific TTS lives in `platforms/*/tts.py`.
 
@@ -396,6 +455,23 @@ Muted:       #6b7280
 - **UI:** Dropdown selector in `WizPromptPanel.tsx`
 - **API:** `GET /presets` exposed in `core/server.py`
 - **Integration:** `core/wizprompt.py` consumes the selected preset's `system_prompt_addendum` + `agent_focus`
+
+---
+
+## Agent Preset System (The Bridge)
+
+- **File:** `core/agent_presets.py`
+- **Default presets:** 11 built-in presets covering Development, Productivity, and System tasks
+  - **Development:** `describe_freely`, `replicate_component`, `pr_context_assembly`, `visual_bug_report`, `git_commit_push`, `staging_verification`, `clone_private_repo`
+  - **Productivity:** `slack_to_notion_prd`, `doc_screenshot_update`, `browser_research`
+  - **System:** `app_optimizer`
+- **UI:** Dropdown selector in `AgentV2Panel.tsx` with info cards (what it does, usage, limitations)
+- **API:** `GET /agent_presets` exposed in `core/server.py`
+- **Bridge message:** `agent_v2:run_preset` → `core/ws_bridge.py` → `core/agent_v2_engine.py`
+- **No emojis** in the agent UI — clean text-only design
+- **Rotating examples** in the freeform textarea placeholder (cycles every 4 seconds)
+- **Button label:** "Run Agent"
+- **Tab label:** "Agent" (not "Builder")
 
 ---
 
@@ -468,6 +544,7 @@ progress, reminder_sent, snoozed_until
 | Implementation plans | `Plans_Implementation/` |
 | Python deps | `requirements.txt` |
 | Windows build script | `build.bat` |
+| Electron builder config | `ui/whiztant-overlay/electron-builder.yml` |
 | Tests | `tests/` |
 | STT tests | `tests/stt_tests/` |
 | Tune Hub specs | `TuneHubSpecifications/` |
@@ -496,7 +573,7 @@ For Python changes: task is NOT done until `python main.py` starts without error
 - File upload refs in attach menu are wired but not connected to a backend handler.
 - No E2E tests for the overlay IPC protocol.
 - Website deploy is manual — no CI/CD pipeline.
-- F10 task hotkey is planned but not fully implemented.
+- F10 task hotkey is configurable but not fully wired end-to-end.
 - Build verification (TypeScript `tsc --noEmit`) not yet automated.
 - Python import test (`python -c "import main"`) not yet automated.
 - TuneHub Phase 2 (actual model training) not yet implemented — currently Phase 1 manual/seed only.

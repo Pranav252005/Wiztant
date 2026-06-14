@@ -131,6 +131,24 @@ class WindowsSystemAccess(BaseSystemAccess):
     def type_text(self, text: str, interval: float = 0.01) -> Tuple[bool, str]:
         if self._pyautogui_ok:
             try:
+                # pyautogui.typewrite silently drops characters not on a US
+                # keyboard (unicode, accents). Paste those via clipboard instead.
+                if any(ord(c) > 126 for c in text):
+                    import pyperclip
+                    old_clip = ""
+                    try:
+                        old_clip = pyperclip.paste() or ""
+                    except Exception:
+                        pass
+                    pyperclip.copy(text)
+                    time.sleep(0.05)
+                    self._pyautogui.hotkey("ctrl", "v")
+                    time.sleep(0.15)
+                    try:
+                        pyperclip.copy(old_clip)
+                    except Exception:
+                        pass
+                    return True, f"typed (clipboard) '{text[:50]}{'...' if len(text) > 50 else ''}'"
                 self._pyautogui.typewrite(text, interval=interval)
                 return True, f"typed '{text[:50]}{'...' if len(text) > 50 else ''}'"
             except Exception as e:
@@ -274,6 +292,10 @@ class WindowsSystemAccess(BaseSystemAccess):
 
     def ensure_app_open(self, app_name: str, url: Optional[str] = None, profile: Optional[str] = None) -> str:
         name_lower = app_name.lower().strip()
+        from core.agent_engine import BROWSER_APPS, KNOWN_APPS
+        canonical = KNOWN_APPS.get(name_lower, name_lower)
+        if canonical in BROWSER_APPS or name_lower in BROWSER_APPS:
+            return self.launch_browser(app_name, url, profile=profile)
         try:
             import win32gui, win32con
         except Exception:

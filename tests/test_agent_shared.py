@@ -80,7 +80,7 @@ def test_import_platform_backends():
 
 
 def test_import_vlm_linux():
-    from platforms.linux._vlm_impl import (
+    from core.agent_loop import (
         capture_window_screenshot,
         run_agent_loop,
         run_agent_task,
@@ -170,7 +170,7 @@ def test_entry_category():
 
 
 def test_vlm_linux_legacy_helpers_exist():
-    from platforms.linux._vlm_impl import (
+    from core.agent_loop import (
         _ensure_app_open,
         _get_foreground_app,
         _perform_click,

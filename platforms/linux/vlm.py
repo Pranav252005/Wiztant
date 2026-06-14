@@ -49,8 +49,8 @@ class LinuxVLM(BaseVLM):
         progress_cb: Callable | None = None,
     ) -> str:
         """Execute agent task on Linux."""
-        from platforms.linux._vlm_impl import run_agent_loop as _legacy_loop
-        return _legacy_loop(task, toast=toast, progress_cb=progress_cb)
+        from core.agent_loop import run_agent_loop as _loop
+        return _loop(task, toast=toast, progress_cb=progress_cb)
 
     # ── Legacy helpers ──────────────────────────────────────────────────────────
 

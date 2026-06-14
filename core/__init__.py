@@ -35,9 +35,10 @@ MEMORY_FILE = MEMORY_DIR / "memory.json"
 recording            = False
 agent_mode           = False
 thinking             = False
-conversation_history = []
-audio_frames         = []
-audio_level          = 0.0
+conversation_history      = []
+conversation_history_lock = threading.RLock()
+audio_frames              = []
+audio_level               = 0.0
 
 tts_process          = None
 tts_lock             = threading.Lock()

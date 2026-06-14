@@ -168,5 +168,51 @@ export const themes: Record<ThemeName, Theme> = {
   },
 };
 
+/**
+ * Return the best ink color (#ffffff or #0a0a0a) for a given background color.
+ * Uses perceived brightness (HSP model) so it works for any theme accent.
+ */
+export function inkFor(color: string): string {
+  let hex = color.replace('#', '');
+  if (hex.length === 3) {
+    hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+  }
+  if (hex.length >= 6) {
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    if (!Number.isNaN(r) && !Number.isNaN(g) && !Number.isNaN(b)) {
+      const brightness = Math.sqrt(0.299 * r * r + 0.587 * g * g + 0.114 * b * b);
+      return brightness < 128 ? '#ffffff' : '#0a0a0a';
+    }
+  }
+  const lowered = color.toLowerCase();
+  if (
+    lowered.includes('255,255,255') ||
+    lowered.includes('242,242') ||
+    lowered.includes('232,236') ||
+    lowered.includes('245,225') ||
+    lowered.includes('220,230')
+  ) {
+    return '#0a0a0a';
+  }
+  if (lowered.includes('rgba(0') || lowered.includes('#0') || lowered.includes('#1') || lowered.includes('#2')) {
+    return '#ffffff';
+  }
+  return '#0a0a0a';
+}
+
+/** Detect whether a background color is light (for theme-aware UI decisions). */
+export function isLightBg(bg: string): boolean {
+  const match = bg.match(/rgba?\((\d+)/);
+  if (match) return parseInt(match[1], 10) > 128;
+  const hex = bg.replace('#', '');
+  if (hex.length >= 6) {
+    const r = parseInt(hex.substring(0, 2), 16);
+    if (!Number.isNaN(r)) return r > 128;
+  }
+  return false;
+}
+
 // Onyx is the default — true-black pill, near-white ink, no chromatic glow.
 export const defaultTheme: ThemeName = 'onyx';

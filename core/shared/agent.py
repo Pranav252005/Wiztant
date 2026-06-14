@@ -485,7 +485,8 @@ def add_history_message(role: str, content: str):
         return
     if not state.conversation_history:
         reset_conversation_history()
-    state.conversation_history.append({"role": role, "content": text})
+    with state.conversation_history_lock:
+        state.conversation_history.append({"role": role, "content": text})
     _trim_conversation_history()
     _notify_overlay_history_updated()
 
@@ -1109,13 +1110,6 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
         add_history_message("assistant", summary)
         if state.MEMORY_ENABLED and summary:
             memory_mod.update_from_exchange(user_text, summary)
-        # Save agent summary to dictation memories so it appears in the Memories tab
-        if summary:
-            try:
-                from core.dictation_memory import add_memory
-                add_memory(original_text=user_text, final_text=summary, mode="agent")
-            except Exception:
-                pass
         return
 
     # Chat feature removed — only agent mode is supported via F9×2

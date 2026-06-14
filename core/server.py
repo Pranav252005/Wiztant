@@ -15,7 +15,7 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 try:
-    from fastapi import FastAPI, HTTPException
+    from fastapi import FastAPI, HTTPException, Request
     from fastapi.middleware.cors import CORSMiddleware
     from pydantic import BaseModel
     import uvicorn
@@ -23,12 +23,31 @@ except ImportError:
     print("Installing required packages: fastapi uvicorn pydantic")
     import subprocess
     subprocess.check_call([sys.executable, "-m", "pip", "install", "fastapi", "uvicorn[standard]", "pydantic"])
-    from fastapi import FastAPI, HTTPException
+    from fastapi import FastAPI, HTTPException, Request
     from fastapi.middleware.cors import CORSMiddleware
     from pydantic import BaseModel
     import uvicorn
 
 app = FastAPI(title="Wiztant Core API", version="1.0.0")
+
+# ── In-memory rate limiter (IP → {endpoint: [timestamps]}) ──
+_rate_limit_store: dict[str, dict[str, list[float]]] = {}
+_RATE_LIMIT_MAX = 10       # requests per window
+_RATE_LIMIT_WINDOW = 60.0  # seconds
+
+
+def _check_rate_limit(client_ip: str, endpoint: str) -> bool:
+    now = time.time()
+    if client_ip not in _rate_limit_store:
+        _rate_limit_store[client_ip] = {}
+    timestamps = _rate_limit_store[client_ip].get(endpoint, [])
+    # Prune old entries
+    timestamps = [t for t in timestamps if now - t < _RATE_LIMIT_WINDOW]
+    if len(timestamps) >= _RATE_LIMIT_MAX:
+        return False
+    timestamps.append(now)
+    _rate_limit_store[client_ip][endpoint] = timestamps
+    return True
 
 # ── Tune Hub integration ──
 try:
@@ -39,21 +58,31 @@ try:
 except Exception as _e:
     print(f"[TuneHub] Could not initialize: {_e}")
 
+from core.local_security import ALLOWED_ORIGINS, origin_allowed
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5174",
-        "http://localhost:5173",
-        "http://127.0.0.1:5174",
-        "http://127.0.0.1:5173",
-        "app://.",
-        "file://",
-        "null",
-    ],
+    allow_origins=sorted(ALLOWED_ORIGINS),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def _enforce_origin(request: "Request", call_next):
+    """Block cross-origin requests server-side.
+
+    CORS only stops a remote page from *reading* our responses; a cross-origin
+    POST to e.g. /agent/run still executes. This rejects any request whose
+    Origin header isn't one we ship (the Electron main process sends none and is
+    allowed), closing the CSRF surface on the loopback API.
+    """
+    if not origin_allowed(request.headers.get("origin")):
+        from starlette.responses import JSONResponse
+
+        return JSONResponse(status_code=403, content={"detail": "origin not allowed"})
+    return await call_next(request)
 
 # Try importing core modules (graceful fallback if not available)
 _core_available = False
@@ -91,6 +120,7 @@ class WizPromptRequest(BaseModel):
     prompt: str
     model: str | None = None
     preset: str | None = "general_polish"
+    preset_variant: str | None = None
     ephemeral: bool | None = False
 
 class WizPromptFeedbackRequest(BaseModel):
@@ -154,19 +184,74 @@ def auth_signout():
 @app.post("/tune")
 async def tune(req: TuneRequest):
     try:
-        from core.credit_system import can_afford, deduct, get_current_user_id
+        from core.credit_system import can_afford, charge_task, get_current_user_id
         user_id = get_current_user_id()
         if not can_afford(user_id, 1):
             return {"ok": False, "type": "error", "reply": "Insufficient credits for chat. Upgrade at whiztant.app/pricing", "applied": [], "errors": ["credits"]}
         from core.tune import process_tune, tune_reply_to_dict
         result = await asyncio.to_thread(process_tune, req.content)
-        await asyncio.to_thread(deduct, user_id, "chat", 1)
-        return tune_reply_to_dict(result)
+        reply = tune_reply_to_dict(result)
+        # Charge only on a successful tune — failures are free.
+        if reply.get("ok", True) and not reply.get("errors"):
+            await asyncio.to_thread(
+                charge_task, user_id, "chat", True,
+                model=None, input_tokens=0, output_tokens=0,
+            )
+        return reply
     except Exception as e:
         return {"ok": False, "type": "error", "reply": f"Tune error: {e}", "applied": [], "errors": [str(e)]}
 
 @app.post("/agent/run")
-async def agent_run(req: AgentRequest):
+async def agent_run(req: AgentRequest, request: "Request"):
+    client_ip = request.client.host if request.client else "unknown"
+    if not _check_rate_limit(client_ip, "/agent/run"):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded: max 10 agent runs per minute")
+    # ── Guardrail pre-flight ──
+    try:
+        from core.guardrails import classify_action, is_blocked_domain, is_blocked_app, AgentAuditLogger
+        safety, reason = classify_action(req.task)
+        AgentAuditLogger.log_decision(intent=req.task, action="/agent/run", safety=safety, reason=reason)
+        if safety == "blocked":
+            return {"ok": False, "detail": f"Blocked by safety guardrail: {reason}"}
+        # Extract URL / app from task for domain/app blocklist checks
+        url, site_label = "", ""
+        app_name = ""
+        try:
+            from core.agent_engine import extract_requested_url, extract_requested_app
+            url, site_label = extract_requested_url(req.task)
+            app_name = extract_requested_app(req.task) or ""
+        except Exception:
+            pass
+        if url:
+            blocked, domain_reason = is_blocked_domain(url)
+            if blocked:
+                AgentAuditLogger.log_decision(
+                    intent=req.task, action="/agent/run", safety="blocked", reason=domain_reason
+                )
+                return {"ok": False, "detail": f"Blocked by safety guardrail: {domain_reason}"}
+        if app_name:
+            blocked, app_reason = is_blocked_app(app_name)
+            if blocked:
+                AgentAuditLogger.log_decision(
+                    intent=req.task, action="/agent/run", safety="blocked", reason=app_reason
+                )
+                return {"ok": False, "detail": f"Blocked by safety guardrail: {app_reason}"}
+        if safety == "dangerous":
+            from ui.agent_confirmation_overlay import get_agent_confirmation_overlay
+            choice = get_agent_confirmation_overlay().show_dangerous_confirmation(
+                action_desc=f"Agent wants to: {req.task}",
+                reason=reason,
+                timeout=3.0,
+            )
+            if choice != "confirm":
+                AgentAuditLogger.log_decision(
+                    intent=req.task, action="/agent/run", safety="cancelled", reason="user_timeout_or_cancel"
+                )
+                return {"ok": False, "detail": "Dangerous action cancelled or timed out."}
+    except Exception as e:
+        # Fail-safe: log and continue if guardrail system itself errors
+        print(f"[Guardrail] Pre-flight error (fail-open): {e}")
+
     if _core_available and agent_module:
         try:
             from core.credit_system import can_afford, get_current_user_id, calculate_agent_credits
@@ -301,10 +386,13 @@ def voice_stop():
     return {"ok": True}
 
 @app.post("/wizprompt/optimize")
-async def wizprompt_optimize(req: WizPromptRequest):
+async def wizprompt_optimize(req: WizPromptRequest, request: "Request"):
+    client_ip = request.client.host if request.client else "unknown"
+    if not _check_rate_limit(client_ip, "/wizprompt/optimize"):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded: max 10 optimizations per minute")
     try:
         from core.wizprompt import optimize_prompt_with_dynamic_agents
-        result = await optimize_prompt_with_dynamic_agents(req.prompt, model=req.model, preset=req.preset)
+        result = await optimize_prompt_with_dynamic_agents(req.prompt, model=req.model, preset=req.preset, preset_variant=req.preset_variant)
         return {"ok": True, **result, "ephemeral": req.ephemeral or False}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -315,6 +403,11 @@ async def wizprompt_optimize(req: WizPromptRequest):
 async def get_presets():
     from core.presets import get_all_presets, preset_to_dict
     return {"presets": [preset_to_dict(p) for p in get_all_presets()]}
+
+@app.get("/agent_presets")
+async def get_agent_presets():
+    from core.agent_presets import get_all_agent_presets, agent_preset_to_dict
+    return {"presets": [agent_preset_to_dict(p) for p in get_all_agent_presets()]}
 
 @app.post("/wizprompt/feedback")
 async def wizprompt_feedback(req: WizPromptFeedbackRequest):
@@ -400,6 +493,37 @@ def credits_history(limit: int = 50):
             "user_id": user_id,
             "transactions": transactions[-limit:],
             "count": len(transactions),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/credits/summary")
+def credits_summary():
+    """Return per-feature credit usage summary for the current user."""
+    try:
+        from core.credit_system import _get_manager, get_current_user_id
+        user_id = get_current_user_id()
+        manager = _get_manager()
+        user_data = manager._get_user_data(user_id)
+        transactions = user_data.get("transactions", [])
+
+        # Aggregate by feature
+        summary: dict[str, dict] = {}
+        for tx in transactions:
+            feat = tx.get("feature", "unknown")
+            if feat == "monthly_reset":
+                continue
+            if feat not in summary:
+                summary[feat] = {"feature": feat, "total": 0, "count": 0}
+            summary[feat]["total"] += tx.get("amount", 0)
+            summary[feat]["count"] += 1
+
+        return {
+            "ok": True,
+            "user_id": user_id,
+            "summary": list(summary.values()),
+            "total_used": sum(s["total"] for s in summary.values()),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

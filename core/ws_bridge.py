@@ -71,7 +71,29 @@ def wait_for_agent_answer(question_id: str, timeout: float = 60.0) -> Optional[s
 
 async def _handler(websocket):
     """Handle a single WebSocket client connection."""
+    # Reject cross-site WebSocket hijacking: a remote web page can open this
+    # loopback socket (WS is exempt from the same-origin policy), so only serve
+    # connections from the Electron app (no Origin) or our own renderer origins.
+    try:
+        from core.local_security import origin_allowed
+
+        origin = None
+        request = getattr(websocket, "request", None)
+        if request is not None:
+            origin = request.headers.get("Origin")
+        if not origin_allowed(origin):
+            print(f"[WsBridge] Rejected connection from disallowed origin: {origin!r}")
+            await websocket.close(code=1008, reason="origin not allowed")
+            return
+    except Exception as e:
+        print(f"[WsBridge] Origin check error (rejecting): {e}")
+        try:
+            await websocket.close(code=1011, reason="origin check failed")
+        finally:
+            return
+
     _clients.add(websocket)
+    websocket._wz_meta = {"connected_at": datetime.now().isoformat()}
     print(f"[WsBridge] Client connected ({len(_clients)} total)")
 
     try:
@@ -179,8 +201,55 @@ async def _handler(websocket):
                 elif msg_type == "tasks/settings/get":
                     await _handle_tasks_settings_get(websocket)
 
+                elif msg_type == "settings/agent/save":
+                    await _handle_agent_settings_set(websocket, msg)
+
+                elif msg_type == "settings/agent/get":
+                    await _handle_agent_settings_get(websocket)
+
                 elif msg_type == "vocab_add":
                     _handle_vocab_add(msg)
+
+                elif msg_type == "vocab/list":
+                    try:
+                        await websocket.send(json.dumps(_vocab_snapshot()))
+                    except Exception as e:
+                        print(f"[WsBridge] vocab/list error: {e}")
+
+                elif msg_type == "vocab/add_word":
+                    try:
+                        from core.vocab import add_word
+                        add_word(str(msg.get("word", "")))
+                        broadcast_sync(_vocab_snapshot())
+                    except Exception as e:
+                        print(f"[WsBridge] vocab/add_word error: {e}")
+
+                elif msg_type == "vocab/delete_word":
+                    try:
+                        from core.vocab import delete_word
+                        delete_word(str(msg.get("word", "")))
+                        broadcast_sync(_vocab_snapshot())
+                    except Exception as e:
+                        print(f"[WsBridge] vocab/delete_word error: {e}")
+
+                elif msg_type == "vocab/add_pair":
+                    try:
+                        from core.vocab import add_correction
+                        heard = str(msg.get("heard", "")).strip()
+                        actual = str(msg.get("actual", "")).strip()
+                        if heard and actual:
+                            add_correction(heard, actual)
+                        broadcast_sync(_vocab_snapshot())
+                    except Exception as e:
+                        print(f"[WsBridge] vocab/add_pair error: {e}")
+
+                elif msg_type == "vocab/delete_correction":
+                    try:
+                        from core.vocab import delete_correction
+                        delete_correction(str(msg.get("heard", "")))
+                        broadcast_sync(_vocab_snapshot())
+                    except Exception as e:
+                        print(f"[WsBridge] vocab/delete_correction error: {e}")
 
                 elif msg_type == "agent/undo":
                     _handle_agent_undo(msg)
@@ -193,6 +262,39 @@ async def _handler(websocket):
 
                 elif msg_type == "save_session":
                     _handle_save_session(msg)
+
+                elif msg_type == "agent_v2:initiate":
+                    _handle_agent_v2_initiate(msg)
+
+                elif msg_type == "agent_v2:select_template":
+                    _handle_agent_v2_select_template(msg)
+
+                elif msg_type == "agent_v2:run_preset":
+                    _handle_agent_v2_run_preset(msg)
+
+                elif msg_type == "agent_v2:pause":
+                    _handle_agent_v2_pause(msg)
+
+                elif msg_type == "agent_v2:resume":
+                    _handle_agent_v2_resume(msg)
+
+                elif msg_type == "agent_v2:decision":
+                    _handle_agent_v2_decision(msg)
+
+                elif msg_type == "agent_v2:abort":
+                    _handle_agent_v2_abort(msg)
+
+                elif msg_type == "workflow:decision":
+                    _handle_workflow_decision(msg)
+
+                elif msg_type == "tunehub:trigger_learning":
+                    _handle_tunehub_trigger_learning(msg)
+
+                elif msg_type == "tunehub:approve_learned":
+                    _handle_tunehub_approve_learned(msg)
+
+                elif msg_type == "tunehub:reject_learned":
+                    _handle_tunehub_reject_learned(msg)
 
                 elif msg_type == "hotkey":
                     _handle_hotkey(msg)
@@ -407,6 +509,90 @@ async def _handler(websocket):
                     except Exception as e:
                         print(f"[WsBridge] settings/set error: {e}")
 
+                elif msg_type == "integrations/list":
+                    try:
+                        from core import integrations as _intg
+                        await websocket.send(json.dumps({
+                            "type": "integrations/update",
+                            "integrations": _intg.list_public(),
+                        }))
+                    except Exception as e:
+                        print(f"[WsBridge] integrations/list error: {e}")
+
+                elif msg_type == "integrations/save":
+                    try:
+                        from core import integrations as _intg
+                        _intg.save_integration(msg.get("integration", {}))
+                        broadcast_sync({
+                            "type": "integrations/update",
+                            "integrations": _intg.list_public(),
+                        })
+                    except Exception as e:
+                        await websocket.send(json.dumps({
+                            "type": "integrations/error",
+                            "error": str(e),
+                        }))
+
+                elif msg_type == "integrations/delete":
+                    try:
+                        from core import integrations as _intg
+                        _intg.delete_integration(msg.get("id", ""))
+                        broadcast_sync({
+                            "type": "integrations/update",
+                            "integrations": _intg.list_public(),
+                        })
+                    except Exception as e:
+                        print(f"[WsBridge] integrations/delete error: {e}")
+
+                elif msg_type == "integrations/oauth/start":
+                    # Runs the blocking PKCE loopback flow in a background thread
+                    # so the websocket loop stays responsive.
+                    try:
+                        from core import integrations as _intg
+                        import threading
+                        app_name = msg.get("app", "")
+                        provider = (msg.get("provider") or app_name).strip().lower()
+                        client_id = msg.get("client_id", "")
+                        client_secret = msg.get("client_secret", "")
+                        iid = msg.get("id")
+
+                        if not _intg.oauth_provider_known(provider):
+                            await websocket.send(json.dumps({
+                                "type": "integrations/oauth/result",
+                                "app": app_name,
+                                "ok": False,
+                                "error": f"No OAuth support for '{provider}'. Use credential vault instead.",
+                            }))
+                        else:
+                            def _do_oauth():
+                                try:
+                                    tok = _intg.run_oauth_flow(provider, client_id, client_secret)
+                                    _intg.save_integration({
+                                        "id": iid,
+                                        "app": app_name or provider,
+                                        "auth_type": "oauth",
+                                        "oauth": tok,
+                                    })
+                                    broadcast_sync({
+                                        "type": "integrations/oauth/result",
+                                        "app": app_name or provider,
+                                        "ok": True,
+                                    })
+                                    broadcast_sync({
+                                        "type": "integrations/update",
+                                        "integrations": _intg.list_public(),
+                                    })
+                                except Exception as oe:
+                                    broadcast_sync({
+                                        "type": "integrations/oauth/result",
+                                        "app": app_name or provider,
+                                        "ok": False,
+                                        "error": str(oe),
+                                    })
+                            threading.Thread(target=_do_oauth, daemon=True).start()
+                    except Exception as e:
+                        print(f"[WsBridge] integrations/oauth/start error: {e}")
+
                 elif msg_type == "features/update":
                     try:
                         import sys
@@ -552,6 +738,10 @@ def _handle_agent_task(text: str):
     print(f"[WsBridge] _handle_agent_task received: {text[:80]}")
     def _run():
         try:
+            from core.hotkeys import _agent_feature_enabled
+            if not _agent_feature_enabled():
+                print("[WsBridge] Agent task ignored (agent feature disabled)")
+                return
             from core.agent import ask_ai
             ask_ai(text, force_agent=True)
         except Exception as e:
@@ -617,9 +807,11 @@ def broadcast_sync(data: dict):
     """Thread-safe broadcast — callable from any thread."""
     if _loop is None or not _clients:
         return
+    coro = _broadcast(data)
     try:
-        asyncio.run_coroutine_threadsafe(_broadcast(data), _loop)
+        asyncio.run_coroutine_threadsafe(coro, _loop)
     except Exception as e:
+        coro.close()
         print(f"[WsBridge] broadcast_sync error: {e}")
 
 
@@ -627,6 +819,33 @@ def send_wave_state(state_name: str):
     """Push wave/overlay state change."""
     print(f"[WsBridge] send_wave_state: {state_name}")
     broadcast_sync({"type": "wave_state", "state": state_name})
+
+
+def send_history_update():
+    """Push updated conversation history to all overlay clients."""
+    try:
+        import core as state
+        history = getattr(state, "conversation_history", [])
+        # If history was wiped by a module reload, attempt to restore from disk.
+        if not history:
+            try:
+                from core.agent import _load_conversation_history
+                restored = _load_conversation_history()
+                if restored:
+                    state.conversation_history = restored
+                    history = restored
+            except Exception:
+                pass
+        broadcast_sync({
+            "type": "history",
+            "messages": [
+                {"role": m.get("role", ""), "content": m.get("content", "")}
+                for m in history
+                if m.get("content", "").strip() and len(m.get("content", "")) < 5000
+            ]
+        })
+    except Exception:
+        pass
 
 
 def send_agent_step(step: int, total: int, text: str):
@@ -639,7 +858,14 @@ def send_voice_state(voice_state: str, text: str = "") -> None:
 
     The overlay uses this to drive the pill wave animation and the green
     paste-complete flash.
+
+    Wave-state arbitration: if the agent is currently running, dictation must
+    not reset the wave to 'idle' — that would hide the agent's progress indicator.
     """
+    import core as _state
+    if voice_state == "idle" and getattr(_state, "_agent_running", False):
+        # Agent is active — suppress the idle reset so the agent wave persists
+        return
     broadcast_sync({"type": "voice_state", "state": voice_state, "text": text or ""})
 
 
@@ -958,6 +1184,73 @@ async def _handle_tasks_settings_get(websocket):
         print(f"[WsBridge] tasks/settings/get error: {e}")
 
 
+_AGENT_SETTING_KEYS = ("agent_max_steps", "AGENT_PLANNER_MODEL", "AGENT_OMNI_MODEL")
+
+
+async def _handle_agent_settings_set(websocket, msg: dict):
+    """Save agent settings to settings.json and acknowledge."""
+    try:
+        import json as _json
+        import os
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        data = {}
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = _json.load(f)
+        for key in _AGENT_SETTING_KEYS:
+            if key in msg:
+                data[key] = msg[key]
+        if "agent_max_steps" in data:
+            try:
+                data["agent_max_steps"] = max(0, int(data["agent_max_steps"]))
+            except Exception:
+                data.pop("agent_max_steps", None)
+        with open(settings_path, "w", encoding="utf-8") as f:
+            _json.dump(data, f, indent=2)
+        await websocket.send(_json.dumps({
+            "type": "settings/agent/update",
+            "settings": {k: data.get(k) for k in _AGENT_SETTING_KEYS},
+        }))
+    except Exception as e:
+        print(f"[WsBridge] settings/agent/save error: {e}")
+
+
+async def _handle_agent_settings_get(websocket):
+    """Return current agent settings from settings.json."""
+    try:
+        import json as _json
+        import os
+        settings_path = os.path.join(os.path.dirname(__file__), "..", "data", "settings.json")
+        data = {}
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                data = _json.load(f)
+        await websocket.send(_json.dumps({
+            "type": "settings/agent/update",
+            "settings": {
+                "agent_max_steps": data.get("agent_max_steps", 100),
+                "AGENT_PLANNER_MODEL": data.get("AGENT_PLANNER_MODEL", ""),
+                "AGENT_OMNI_MODEL": data.get("AGENT_OMNI_MODEL", ""),
+            },
+        }))
+    except Exception as e:
+        print(f"[WsBridge] settings/agent/get error: {e}")
+
+
+def _vocab_snapshot() -> dict:
+    """Build the vocab/update payload: dictionary words + heard->actual pairs."""
+    from core.vocab import list_words, load_vocab
+    data = load_vocab()
+    return {
+        "type": "vocab/update",
+        "words": [e.get("word", "") for e in list_words()],
+        "corrections": [
+            {"heard": c.get("heard", ""), "actual": c.get("actual", "")}
+            for c in data.get("corrections", [])
+        ],
+    }
+
+
 def _handle_vocab_add(msg: dict):
     def _run():
         try:
@@ -1268,6 +1561,24 @@ def _attach_engine_listeners(engine):
     engine.add_listener(listener)
 
 
+# ── TuneHub Learning broadcast helpers ───────────────────────────────────────
+
+def send_tunehub_learning_started(workflow_name: str, query: str, estimated_time: int):
+    broadcast_sync({"type": "tunehub:learning_started", "workflow_name": workflow_name, "query": query, "estimated_time": estimated_time})
+
+
+def send_tunehub_learning_progress(percent: int, current_source: str, steps_found: int):
+    broadcast_sync({"type": "tunehub:learning_progress", "percent": percent, "current_source": current_source, "steps_found": steps_found})
+
+
+def send_tunehub_learning_complete(template: dict, confidence: float, sources: list[str], requires_review: bool):
+    broadcast_sync({"type": "tunehub:learning_complete", "template": template, "confidence": confidence, "sources": sources, "requires_review": requires_review})
+
+
+def send_tunehub_learning_failed(reason: str, fallback: str):
+    broadcast_sync({"type": "tunehub:learning_failed", "reason": reason, "fallback": fallback})
+
+
 async def _run_server():
     """Run the WebSocket server."""
     global _loop
@@ -1275,13 +1586,230 @@ async def _run_server():
 
     try:
         import websockets
-        async with websockets.serve(_handler, "localhost", WS_PORT):
+        async with websockets.serve(
+            _handler,
+            "localhost",
+            WS_PORT,
+            ping_interval=30,
+            ping_timeout=60,
+        ):
             print(f"[WsBridge] WebSocket server running on ws://localhost:{WS_PORT}")
             await asyncio.Future()  # Run forever
     except ImportError:
         print("[WsBridge] websockets package not installed. Run: pip install websockets")
     except OSError as e:
         print(f"[WsBridge] Server start failed (port {WS_PORT} in use?): {e}")
+
+
+# ── Agent V2 broadcast helpers ───────────────────────────────────────────────
+
+def send_agent_v2_template_list(templates: list[dict]):
+    """Push available workflow templates to the overlay."""
+    broadcast_sync({"type": "agent_v2/template_list", "templates": templates})
+
+
+def send_agent_v2_plan_ready(workflow: dict, estimated_steps: int, estimated_budget: int):
+    """Push generated workflow plan to the overlay."""
+    broadcast_sync({
+        "type": "agent_v2/plan_ready",
+        "workflow": workflow,
+        "estimated_steps": estimated_steps,
+        "estimated_budget": estimated_budget,
+    })
+
+
+def send_agent_v2_status_update(
+    workflow_name: str,
+    current_step: int,
+    total_steps: int,
+    current_app: str,
+    current_action: str,
+    steps_used: int,
+    steps_budget: int,
+    apps_chain: list[str],
+):
+    """Push real-time workflow status to the overlay."""
+    broadcast_sync({
+        "type": "agent_v2/status_update",
+        "workflow_name": workflow_name,
+        "current_step": current_step,
+        "total_steps": total_steps,
+        "current_app": current_app,
+        "current_action": current_action,
+        "steps_used": steps_used,
+        "steps_budget": steps_budget,
+        "apps_chain": apps_chain,
+    })
+
+
+def send_agent_v2_step_complete(step: dict, requires_decision: bool = False):
+    """Push step completion to the overlay."""
+    broadcast_sync({
+        "type": "agent_v2/step_complete",
+        "step": step,
+        "requires_decision": requires_decision,
+    })
+
+
+def send_agent_v2_paused(pause_context: dict, live_screenshot: str = ""):
+    """Push pause state to the overlay."""
+    broadcast_sync({
+        "type": "agent_v2/paused",
+        "pause_context": pause_context,
+        "live_screenshot": live_screenshot,
+    })
+
+
+def send_agent_v2_completed(summary: dict, total_steps_used: int, apps_used: list[str]):
+    """Push workflow completion to the overlay."""
+    broadcast_sync({
+        "type": "agent_v2/completed",
+        "summary": summary,
+        "total_steps_used": total_steps_used,
+        "apps_used": apps_used,
+    })
+
+
+def send_agent_v2_error(message: str, app: str = "", recoverable: bool = True):
+    """Push workflow error to the overlay."""
+    broadcast_sync({
+        "type": "agent_v2/error",
+        "message": message,
+        "app": app,
+        "recoverable": recoverable,
+    })
+
+
+# ── Agent V2 message handlers ────────────────────────────────────────────────
+
+_v2_engine = None
+
+
+def _get_v2_engine():
+    global _v2_engine
+    if _v2_engine is None:
+        from core.agent_v2_engine import AgentV2Engine
+        _v2_engine = AgentV2Engine()
+    return _v2_engine
+
+
+def _handle_agent_v2_initiate(msg: dict):
+    """Handle agent_v2:initiate from overlay."""
+    intent = msg.get("intent", "").strip()
+    voice = msg.get("voice", False)
+    engine = _get_v2_engine()
+    try:
+        session_id = engine.initiate_freeform(intent)
+        print(f"[WsBridge] AgentV2 freeform started: {session_id}")
+    except Exception as e:
+        print(f"[WsBridge] AgentV2 initiate error: {e}")
+        send_agent_v2_error(str(e), app="engine", recoverable=True)
+
+
+def _handle_agent_v2_select_template(msg: dict):
+    """Handle agent_v2:select_template from overlay."""
+    template_id = msg.get("template_id", "").strip()
+    params = msg.get("params", {})
+    engine = _get_v2_engine()
+    try:
+        session_id = engine.initiate_workflow(template_id, params)
+        print(f"[WsBridge] AgentV2 template started: {session_id}")
+    except Exception as e:
+        print(f"[WsBridge] AgentV2 template error: {e}")
+        send_agent_v2_error(str(e), app="engine", recoverable=True)
+
+
+def _handle_agent_v2_run_preset(msg: dict):
+    """Handle agent_v2:run_preset from overlay."""
+    preset_id = msg.get("preset_id", "").strip()
+    intent = msg.get("intent", "").strip()
+    params = msg.get("params", {})
+    engine = _get_v2_engine()
+    try:
+        session_id = engine.initiate_preset(preset_id, intent, params)
+        print(f"[WsBridge] AgentV2 preset started: {preset_id} session={session_id}")
+    except Exception as e:
+        print(f"[WsBridge] AgentV2 preset error: {e}")
+        send_agent_v2_error(str(e), app="engine", recoverable=True)
+
+
+def _handle_agent_v2_pause(msg: dict):
+    """Handle agent_v2:pause from overlay."""
+    reason = msg.get("reason", "user_request")
+    engine = _get_v2_engine()
+    engine.pause(reason)
+
+
+def _handle_agent_v2_resume(msg: dict):
+    """Handle agent_v2:resume from overlay."""
+    engine = _get_v2_engine()
+    engine.resume()
+
+
+def _handle_agent_v2_decision(msg: dict):
+    """Handle agent_v2:decision from overlay."""
+    decision = msg.get("decision", "accept")
+    engine = _get_v2_engine()
+    engine.submit_decision(decision)
+
+
+def _handle_agent_v2_abort(msg: dict):
+    """Handle agent_v2:abort from overlay."""
+    engine = _get_v2_engine()
+    engine.abort()
+
+
+# ── Workflow decision gates ──────────────────────────────────────────────────
+
+_gate_manager = None
+
+def _get_gate_manager():
+    global _gate_manager
+    if _gate_manager is None:
+        from core.workflow_gates import GateManager
+        _gate_manager = GateManager()
+    return _gate_manager
+
+def _handle_workflow_decision(msg: dict):
+    """Handle workflow:decision from overlay — resolves a pending gate."""
+    gate_id = msg.get("gate_id", "").strip()
+    choice = msg.get("choice", "").strip()
+    if gate_id and choice:
+        manager = _get_gate_manager()
+        manager.resolve(gate_id, choice)
+
+
+def _handle_tunehub_trigger_learning(msg: dict):
+    """Handle tunehub:trigger_learning from overlay."""
+    intent = msg.get("intent", "").strip()
+    if not intent:
+        return
+    engine = _get_v2_engine()
+    result = engine.initiate_with_matching(intent, msg.get("params", {}))
+    if result.get("action") == "learning":
+        print(f"[WsBridge] TuneHub learning triggered: {intent}")
+    else:
+        print(f"[WsBridge] TuneHub matched action: {result.get('action')}")
+
+
+def _handle_tunehub_approve_learned(msg: dict):
+    """Handle tunehub:approve_learned from overlay."""
+    template_id = msg.get("template_id", "").strip()
+    if template_id:
+        print(f"[WsBridge] Learned template approved: {template_id}")
+
+
+def _handle_tunehub_reject_learned(msg: dict):
+    """Handle tunehub:reject_learned from overlay."""
+    template_id = msg.get("template_id", "").strip()
+    reason = msg.get("reason", "")
+    if template_id:
+        try:
+            from core.tune_hub.adaptive_matcher import delete_learned_template
+            delete_learned_template(template_id)
+            print(f"[WsBridge] Learned template rejected and deleted: {template_id} ({reason})")
+        except Exception as e:
+            print(f"[WsBridge] Failed to delete learned template: {e}")
 
 
 def start_ws_bridge():

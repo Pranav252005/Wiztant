@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import re
+import threading
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -40,6 +41,7 @@ def _load_model_setting(key: str, default: str) -> str:
 
 OMNI_MODEL = _load_model_setting("AGENT_OMNI_MODEL", "google/gemini-3-flash-preview")
 EXECUTOR_MODEL = _load_model_setting("AGENT_EXECUTOR_MODEL", "bytedance/ui-tars-1.5-7b")
+PLANNER_MODEL = _load_model_setting("AGENT_PLANNER_MODEL", "qwen/qwen3-vl-235b-a22b-instruct")
 
 TEMP_THINK = float(os.getenv("QWEN_THINK_TEMP", "0.1"))
 TEMP_PLAN = float(os.getenv("QWEN_PLANNING_TEMP", "0.1"))
@@ -67,12 +69,43 @@ LOAD_POLL_SECONDS    = 0.5
 OCR_MAX_LINES        = 60
 
 
+# ── Per-session token-usage tracking ─────────────────────────────────────────
+# call_api records the actual prompt/completion tokens of every LLM call into a
+# thread-local store, keyed by model. The agent runs its whole session on one
+# thread, so a caller can reset_token_usage() before the run and get_token_usage()
+# after it to bill by real tokens × model price. Tracking is opt-in: until
+# reset_token_usage() is called on a thread, recording is a no-op.
+_usage_store = threading.local()
+
+
+def reset_token_usage() -> None:
+    """Start (or restart) token tracking on the current thread."""
+    _usage_store.data = {}
+
+
+def get_token_usage() -> Dict[str, list]:
+    """Return {model: [input_tokens, output_tokens]} accumulated since reset."""
+    return {m: list(v) for m, v in (getattr(_usage_store, "data", {}) or {}).items()}
+
+
+def _record_token_usage(model: str, usage: Any) -> None:
+    data = getattr(_usage_store, "data", None)
+    if data is None or usage is None:
+        return  # tracking not active on this thread
+    in_tok = getattr(usage, "prompt_tokens", 0) or 0
+    out_tok = getattr(usage, "completion_tokens", 0) or 0
+    agg = data.setdefault(model, [0, 0])
+    agg[0] += in_tok
+    agg[1] += out_tok
+
+
 def call_api(model: str, messages: list, temperature: float, max_tokens: int, thinking: bool = False) -> str:
     try:
         kwargs: dict[str, Any] = dict(model=model, messages=messages, temperature=temperature, max_tokens=max_tokens)
         if thinking is False:
             kwargs["extra_body"] = {"include_reasoning": False}
         resp = _client.chat.completions.create(**kwargs, timeout=60.0)
+        _record_token_usage(model, getattr(resp, "usage", None))
         return resp.choices[0].message.content or ""
     except Exception as e:
         log.error("API call failed: %s", e)

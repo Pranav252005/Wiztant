@@ -10,6 +10,11 @@ from __future__ import annotations
 
 import re
 import hashlib
+import json
+import threading
+import time
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional, Tuple, List
 
 # Screen bounds (conservative — agent should not click near edges)
@@ -24,8 +29,8 @@ SCREEN_MAX_Y = 2160
 
 DESTRUCTIVE_KEYWORDS = [
     # Classic destructive
-    r"\bdelete\b.*\bfile\b",
-    r"\bremove\b.*\bfile\b",
+    r"\bdelete\b.*\bfiles?\b",
+    r"\bremove\b.*\bfiles?\b",
     r"\bformat\b.*\b(drive|disk|partition|volume)\b",
     r"\b(rm|del)\b.*(-rf?|/s|/q)\b",
     r"\bdrop\b.*\b(table|database|db)\b",
@@ -149,3 +154,309 @@ def scan_secrets(text: str) -> List[Tuple[str, str]]:
         for match in pattern.finditer(text):
             findings.append((match.group(0), label))
     return findings
+
+
+# =============================================================
+#  ACTION SAFETY CLASSIFICATION
+# =============================================================
+
+SAFE = "safe"
+DANGEROUS = "dangerous"
+BLOCKED = "blocked"
+
+# Dangerous action patterns — require overlay confirmation
+_DANGEROUS_PATTERNS = [
+    # Clicking risky UI elements
+    r"\bclick\b.*\b(delete|remove|send|purchase|buy|pay|checkout|confirm|uninstall|erase|wipe)\b",
+    r"\bclick\b.*\b(submit\b.*\bform|submit\b.*\bbutton)\b",
+    r"\bdouble_click\b.*\b(delete|remove|send|purchase|buy|pay|checkout)\b",
+    r"\bright_click\b.*\b(delete|remove|send|purchase|buy|pay|checkout)\b",
+    # Typing sensitive data
+    r"\btype\b.*\b(password|passcode|pin\b|cvv|credit card|ssn\b|social security)\b",
+    r"\btype\b.*\b\d{3}-\d{2}-\d{4}\b",
+    # File system operations
+    r"\b(write_file|delete_file|move_file|rename_file)\b",
+    r"\brun_command\b",
+    # Explicit destructive keywords that aren't in the total blocklist (e.g. "delete" without "file")
+    r"\bdelete\b.*\b(all|everything|every)\b",
+    r"\bclear\b.*\b(history|cache|data|all)\b",
+    r"\breset\b.*\b(account|password|settings|factory)\b",
+    r"\bdisable\b.*\b(firewall|antivirus|defender|security)\b",
+    r"\bstop\b.*\b(service|process|daemon)\b",
+    r"\bend\b.*\b(task|process)\b",
+]
+
+_COMPILED_DANGEROUS = [re.compile(p, re.IGNORECASE) for p in _DANGEROUS_PATTERNS]
+
+
+def classify_action(action_text: str) -> tuple[str, str]:
+    """
+    Classify an agent action as SAFE, DANGEROUS, or BLOCKED.
+    Returns (safety, reason).
+    """
+    if not action_text:
+        return SAFE, ""
+
+    text = str(action_text).lower()
+
+    # First check hard blocklist (destructive keywords)
+    is_dest, dest_reason = is_destructive_action(action_text)
+    if is_dest:
+        return BLOCKED, dest_reason
+
+    # Check dangerous patterns
+    for pattern in _COMPILED_DANGEROUS:
+        m = pattern.search(action_text)
+        if m:
+            return DANGEROUS, f"dangerous_pattern:{m.group(0)}"
+
+    return SAFE, ""
+
+
+# =============================================================
+#  DOMAIN / URL BLOCKLIST
+# =============================================================
+
+BLOCKED_DOMAINS = {
+    # Known phishing / malware examples (expand as needed)
+    "phishing-site.example",
+    "malware-dl.example",
+    "evil.example",
+    # Common suspicious TLDs used in phishing (heuristic fallback in is_blocked_domain)
+}
+
+_SUSPICIOUS_TLD_PATTERNS = [
+    r"\.(tk|ml|ga|cf|gq)$",  # Free TLDs commonly abused
+]
+
+_COMPILED_SUSPICIOUS_TLDS = [re.compile(p, re.IGNORECASE) for p in _SUSPICIOUS_TLD_PATTERNS]
+
+
+def is_blocked_domain(url: str) -> tuple[bool, str]:
+    """
+    Check if a URL navigates to a blocked or suspicious domain.
+    Returns (blocked, reason).
+    """
+    if not url:
+        return False, ""
+
+    # Extract domain
+    m = re.search(r"(?:https?://)?(?:www\.)?([^/\s:]+)", str(url).lower())
+    if not m:
+        return False, ""
+
+    domain = m.group(1).strip()
+
+    # Exact match against blocklist
+    if domain in BLOCKED_DOMAINS:
+        return True, f"blocked_domain:{domain}"
+
+    # Check suspicious TLDs
+    for pattern in _COMPILED_SUSPICIOUS_TLDS:
+        if pattern.search(domain):
+            return True, f"suspicious_tld:{domain}"
+
+    # IP-address literal navigation (often malicious)
+    if re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", domain):
+        return True, f"ip_literal_blocked:{domain}"
+
+    return False, ""
+
+
+# =============================================================
+#  BLOCKED APPLICATIONS
+# =============================================================
+
+BLOCKED_APPS = {
+    "settings",
+    "system settings",
+    "control panel",
+    "registry editor",
+    "regedit",
+    "task manager",
+    "terminal",
+    "windows terminal",
+    "cmd",
+    "command prompt",
+    "powershell",
+    "password manager",
+    "1password",
+    "bitwarden",
+    "lastpass",
+    "keepass",
+    "sudo",
+    "su",
+    "pkexec",
+}
+
+
+def is_blocked_app(app_name: str) -> tuple[bool, str]:
+    """
+    Check if the agent is trying to open a blocked system app.
+    Returns (blocked, reason).
+    """
+    if not app_name:
+        return False, ""
+
+    normalized = str(app_name).lower().strip()
+    if normalized in BLOCKED_APPS:
+        return True, f"blocked_app:{normalized}"
+
+    return False, ""
+
+
+# =============================================================
+#  AUDIT LOGGER
+# =============================================================
+
+class AgentAuditLogger:
+    """Thread-safe append-only audit log for agent guardrail decisions."""
+
+    _LOG_PATH: Path = Path("memory/agent_log.jsonl")
+    _lock = threading.Lock()
+
+    @classmethod
+    def _ensure_dir(cls) -> None:
+        cls._LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    @classmethod
+    def log_decision(
+        cls,
+        *,
+        intent: str,
+        action: str,
+        safety: str,
+        reason: str,
+        user_id: str = "",
+    ) -> None:
+        """Append a single guardrail decision to the audit log."""
+        entry = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "intent": intent,
+            "action": action,
+            "safety": safety,
+            "reason": reason,
+            "user_id": user_id,
+        }
+
+        with cls._lock:
+            cls._ensure_dir()
+            with open(cls._LOG_PATH, "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+    @classmethod
+    def read_recent(cls, limit: int = 100) -> list[dict]:
+        """Read the most recent N audit entries."""
+        if not cls._LOG_PATH.exists():
+            return []
+
+        with cls._lock:
+            lines = cls._LOG_PATH.read_text(encoding="utf-8").strip().split("\n")
+
+        entries = []
+        for line in lines[-limit:]:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entries.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return entries
+
+
+# =============================================================
+#  WORKFLOW GUARDRAILS
+# =============================================================
+
+# Filesystem path patterns that suggest file write attempts
+_FILE_PATH_PATTERNS = [
+    r"[A-Z]:\\[^\s]*",  # Windows absolute paths
+    r"/etc/[^\s]*",
+    r"/usr/[^\s]*",
+    r"/home/[^\s]*",
+    r"/var/[^\s]*",
+    r"/tmp/[^\s]*",
+    r"~/[^\s]*",
+    r"\.ssh/[^\s]*",
+    r"\.git/[^\s]*",
+    r"\.env[^\s]*",
+    r"\.bashrc",
+    r"\.zshrc",
+    r"\.profile",
+]
+
+_COMPILED_FILE_PATHS = [re.compile(p) for p in _FILE_PATH_PATTERNS]
+
+# Allowed work domains for navigate_to
+_ALLOWED_WORK_DOMAINS = {
+    "jira", "atlassian", "slack", "notion", "github", "gitlab", "linear",
+    "figma", "gmail", "google", "outlook", "office365", "teams",
+    "linkedin", "twitter", "x.com", "reddit", "stackoverflow",
+    "docs.google", "sheets.google", "drive.google",
+    "amazon", "aws", "azure", "cloud.google",
+    "zoom", "meet.google", "webex",
+}
+
+# Max screenshots per workflow
+MAX_SCREENSHOTS_PER_WORKFLOW = 50
+
+# Max workflow duration in seconds
+MAX_WORKFLOW_DURATION_SECONDS = 600  # 10 minutes
+
+
+class WorkflowGuardrails:
+    """Guardrails specific to Workflow Mode: no file writes, URL filtering, budget limits."""
+
+    def __init__(self) -> None:
+        self.screenshot_count = 0
+        self.start_time = time.time()
+
+    def check_type_input(self, text: str) -> tuple[bool, str]:
+        """Check if typed text contains filesystem paths."""
+        if not text:
+            return False, ""
+        for pattern in _COMPILED_FILE_PATHS:
+            m = pattern.search(text)
+            if m:
+                return True, f"file_path_detected:{m.group(0)}"
+        return False, ""
+
+    def check_navigate_url(self, url: str) -> tuple[bool, str]:
+        """Check if a URL is blocked or suspicious."""
+        if not url:
+            return False, ""
+        # Use existing domain checker
+        blocked, reason = is_blocked_domain(url)
+        if blocked:
+            return True, reason
+        # Allowlist check — if domain is not in allowlist, warn but don't block
+        # (we're permissive for workflows since users may need various sites)
+        return False, ""
+
+    def check_screenshot_budget(self) -> tuple[bool, str]:
+        """Check if screenshot budget is exhausted."""
+        if self.screenshot_count >= MAX_SCREENSHOTS_PER_WORKFLOW:
+            return True, f"screenshot_budget_exceeded:{self.screenshot_count}/{MAX_SCREENSHOTS_PER_WORKFLOW}"
+        return False, ""
+
+    def check_time_ceiling(self) -> tuple[bool, str]:
+        """Check if workflow has exceeded max duration."""
+        elapsed = time.time() - self.start_time
+        if elapsed >= MAX_WORKFLOW_DURATION_SECONDS:
+            return True, f"time_ceiling_exceeded:{elapsed:.0f}s/{MAX_WORKFLOW_DURATION_SECONDS}s"
+        return False, ""
+
+    def redact_credentials(self, text: str) -> str:
+        """Redact potential credentials from log text."""
+        if not text:
+            return text
+        findings = scan_secrets(text)
+        redacted = text
+        for match, label in findings:
+            redacted = redacted.replace(match, f"[{label}_REDACTED]")
+        return redacted
+
+    def record_screenshot(self) -> None:
+        """Increment screenshot counter."""
+        self.screenshot_count += 1

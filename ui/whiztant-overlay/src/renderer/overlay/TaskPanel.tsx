@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type { Task } from '../shared/ipc';
-import { defaultTheme, themes } from '../shared/themes';
+import { defaultTheme, themes, inkFor } from '../shared/themes';
 import type { ThemeName } from '../shared/ipc';
 import { sendBridgeMessage } from '../shared/useBridge';
 import CustomDropdown from '../shared/CustomDropdown';
@@ -363,7 +363,7 @@ export default function TaskPanel() {
               disabled={!title.trim() || status === 'saving'}
               style={{
                 background: theme.aiAccent,
-                color: '#0a0a0a',
+                color: inkFor(theme.aiAccent),
                 border: 'none',
                 borderRadius: 10,
                 padding: '8px 14px',

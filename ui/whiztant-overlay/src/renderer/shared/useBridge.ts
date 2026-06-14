@@ -1,29 +1,41 @@
 import { useEffect, useState } from 'react';
+import type { ConnectionState } from './ipc';
 
 type BridgeListener = (msg: Record<string, unknown>) => void;
-type ConnectionListener = (connected: boolean) => void;
+type ConnectionListener = (state: ConnectionState) => void;
 
 interface BridgeStore {
   socket: WebSocket | null;
   reconnectTimer: number | null;
   attempts: number;
   started: boolean;
-  connected: boolean;
+  state: ConnectionState;
   listeners: Set<BridgeListener>;
   connectionListeners: Set<ConnectionListener>;
+  outboundQueue: Record<string, unknown>[];
 }
 
 const DEFAULT_PORT = 9120;
+const RECONNECT_DELAYS = [1000, 2000, 4000, 8000];
+const RECONNECT_CAP = 30000;
 
 const store: BridgeStore = {
   socket: null,
   reconnectTimer: null,
   attempts: 0,
   started: false,
-  connected: false,
+  state: 'disconnected',
   listeners: new Set(),
   connectionListeners: new Set(),
+  outboundQueue: [],
 };
+
+function getReconnectDelay(attempts: number): number {
+  if (attempts <= 0) return RECONNECT_DELAYS[0];
+  const index = Math.min(attempts - 1, RECONNECT_DELAYS.length - 1);
+  const delay = RECONNECT_DELAYS[index];
+  return Math.min(delay, RECONNECT_CAP);
+}
 
 function emitMessage(msg: Record<string, unknown>) {
   store.listeners.forEach((listener) => {
@@ -35,21 +47,38 @@ function emitMessage(msg: Record<string, unknown>) {
   });
 }
 
-function emitConnection(connected: boolean) {
-  store.connected = connected;
+function emitConnection(state: ConnectionState) {
+  store.state = state;
   store.connectionListeners.forEach((listener) => {
     try {
-      listener(connected);
+      listener(state);
     } catch (_) {
       void 0;
     }
   });
 }
 
+function flushQueue() {
+  if (!store.socket || store.socket.readyState !== WebSocket.OPEN) return;
+  while (store.outboundQueue.length > 0) {
+    const msg = store.outboundQueue.shift();
+    if (msg) {
+      try {
+        store.socket.send(JSON.stringify(msg));
+      } catch (_) {
+        // If a single flush fails, stop to preserve order; next flush will retry
+        store.outboundQueue.unshift(msg);
+        break;
+      }
+    }
+  }
+}
+
 function scheduleReconnect() {
   if (store.reconnectTimer !== null) return;
   store.attempts += 1;
-  const delay = Math.min(8000, 500 * 2 ** Math.min(4, store.attempts));
+  const delay = getReconnectDelay(store.attempts);
+  emitConnection('reconnecting');
   store.reconnectTimer = window.setTimeout(() => {
     store.reconnectTimer = null;
     connect();
@@ -66,11 +95,13 @@ function connect() {
     store.socket = null;
   }
 
+  emitConnection('connecting');
+
   let socket: WebSocket;
   try {
     socket = new WebSocket(`ws://127.0.0.1:${DEFAULT_PORT}`);
   } catch (_) {
-    emitConnection(false);
+    emitConnection('disconnected');
     scheduleReconnect();
     return;
   }
@@ -84,13 +115,14 @@ function connect() {
     if (store.socket === socket) {
       store.socket = null;
     }
-    emitConnection(false);
+    emitConnection('disconnected');
     scheduleReconnect();
   };
 
   socket.addEventListener('open', () => {
     store.attempts = 0;
-    emitConnection(true);
+    emitConnection('connected');
+    flushQueue();
   });
 
   socket.addEventListener('message', (event) => {
@@ -124,22 +156,47 @@ export function useBridgeMessage(callback: BridgeListener) {
 }
 
 export function useBridgeConnected(): boolean {
-  const [connected, setConnected] = useState(store.connected);
+  const [connected, setConnected] = useState(store.state === 'connected');
 
   useEffect(() => {
     ensureStarted();
-    store.connectionListeners.add(setConnected);
-    setConnected(store.connected);
+    const listener: ConnectionListener = (state) => setConnected(state === 'connected');
+    store.connectionListeners.add(listener);
+    setConnected(store.state === 'connected');
     return () => {
-      store.connectionListeners.delete(setConnected);
+      store.connectionListeners.delete(listener);
     };
   }, []);
 
   return connected;
 }
 
+export function useBridgeConnectionState(): ConnectionState {
+  const [state, setState] = useState<ConnectionState>(store.state);
+
+  useEffect(() => {
+    ensureStarted();
+    const listener: ConnectionListener = (s) => setState(s);
+    store.connectionListeners.add(listener);
+    setState(store.state);
+    return () => {
+      store.connectionListeners.delete(listener);
+    };
+  }, []);
+
+  return state;
+}
+
 export function sendBridgeMessage(data: Record<string, unknown>) {
   if (store.socket?.readyState === WebSocket.OPEN) {
     store.socket.send(JSON.stringify(data));
+  } else {
+    store.outboundQueue.push(data);
+    // If we haven't started yet, kick it off so the queue isn't stranded
+    ensureStarted();
   }
+}
+
+export function getBridgeConnectionState(): ConnectionState {
+  return store.state;
 }

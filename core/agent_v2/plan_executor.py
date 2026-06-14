@@ -123,6 +123,62 @@ class PlanExecutor:
         subphase.started_at = datetime.now(timezone.utc).isoformat()
         self.plan.current_subphase_id = subphase.id
 
+        # ── Guardrail pre-flight ──
+        from core.guardrails import classify_action, is_blocked_domain, is_blocked_app, AgentAuditLogger
+        safety, reason = classify_action(subphase.description)
+        AgentAuditLogger.log_decision(
+            intent=subphase.description, action="v2_subphase", safety=safety, reason=reason
+        )
+        if safety == "blocked":
+            subphase.status = "failed"
+            self._emit("agent.subphase_blocked", {"subphaseId": subphase.id, "reason": reason})
+            return {"subphaseId": subphase.id, "error": f"Blocked by guardrail: {reason}"}
+        if safety == "dangerous":
+            self._emit("agent.subphase_needs_confirmation", {
+                "subphaseId": subphase.id,
+                "description": subphase.description,
+                "reason": reason,
+                "timeout": 3.0,
+            })
+            if self.plan.approval_mode in ("step-by-step", "checkpoint"):
+                return {"subphaseId": subphase.id, "needs_approval": True, "reason": reason}
+            from ui.agent_confirmation_overlay import get_agent_confirmation_overlay
+            choice = get_agent_confirmation_overlay().show_dangerous_confirmation(
+                action_desc=f"Agent v2 step: {subphase.description}",
+                reason=reason,
+                timeout=3.0,
+            )
+            if choice != "confirm":
+                subphase.status = "failed"
+                self._emit("agent.subphase_cancelled", {"subphaseId": subphase.id, "reason": "timeout_or_cancel"})
+                return {"subphaseId": subphase.id, "error": "Dangerous action cancelled by user"}
+
+        # Domain / app checks
+        try:
+            from core.agent_engine import extract_requested_url, extract_requested_app
+            url, _ = extract_requested_url(subphase.description)
+            app_name = extract_requested_app(subphase.description) or ""
+        except Exception:
+            url, app_name = "", ""
+        if url:
+            blocked, domain_reason = is_blocked_domain(url)
+            if blocked:
+                AgentAuditLogger.log_decision(
+                    intent=subphase.description, action="v2_subphase", safety="blocked", reason=domain_reason
+                )
+                subphase.status = "failed"
+                self._emit("agent.subphase_blocked", {"subphaseId": subphase.id, "reason": domain_reason})
+                return {"subphaseId": subphase.id, "error": f"Blocked by guardrail: {domain_reason}"}
+        if app_name:
+            blocked, app_reason = is_blocked_app(app_name)
+            if blocked:
+                AgentAuditLogger.log_decision(
+                    intent=subphase.description, action="v2_subphase", safety="blocked", reason=app_reason
+                )
+                subphase.status = "failed"
+                self._emit("agent.subphase_blocked", {"subphaseId": subphase.id, "reason": app_reason})
+                return {"subphaseId": subphase.id, "error": f"Blocked by guardrail: {app_reason}"}
+
         # 1. Optimize prompt
         try:
             optimized_prompt = await optimize_subphase_prompt(subphase, self.plan)

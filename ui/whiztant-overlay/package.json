@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@types/ws": "^8.18.1",
+    "electron-updater": "^6.3.9",
     "framer-motion": "^11.11.17",
     "lucide-react": "^1.14.0",
     "ws": "^8.20.0"
@@ -28,6 +29,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "electron": "^33.4.11",
+    "electron-builder": "^25.1.7",
     "electron-vite": "^2.3.0",
     "postcss": "^8.4.49",
     "react": "^18.3.1",

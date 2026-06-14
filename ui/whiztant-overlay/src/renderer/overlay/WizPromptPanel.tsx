@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import type { Theme } from '../shared/themes';
+import { inkFor } from '../shared/themes';
 import CustomDropdown from '../shared/CustomDropdown';
 import {
   Sparkles,
@@ -11,7 +12,6 @@ import {
   BookOpen,
   Mail,
   Bug,
-  Terminal,
 } from 'lucide-react';
 
 const PRESET_ICONS: Record<string, React.ReactNode> = {
@@ -24,13 +24,11 @@ const PRESET_ICONS: Record<string, React.ReactNode> = {
   technical_writing: <BookOpen size={14} />,
   communication: <Mail size={14} />,
   bug_report: <Bug size={14} />,
-  cli_command: <Terminal size={14} />,
 };
 
 const PRESET_CATEGORIES: Record<string, string> = {
   code_creation: 'Creation',
   prompt_engineer: 'Creation',
-  cli_command: 'Creation',
   code_review: 'Review',
   general_polish: 'Review',
   idea_refinement: 'Product',
@@ -39,6 +37,16 @@ const PRESET_CATEGORIES: Record<string, string> = {
   technical_writing: 'Communication',
   communication: 'Communication',
 };
+
+const COMMUNICATION_VARIANTS = [
+  { value: 'Email', label: 'Email' },
+  { value: 'Slack', label: 'Slack' },
+  { value: 'Discord', label: 'Discord' },
+  { value: 'Microsoft Teams', label: 'Microsoft Teams' },
+  { value: 'LinkedIn', label: 'LinkedIn' },
+  { value: 'DM / Chat', label: 'DM / Chat' },
+  { value: 'General Workplace Message', label: 'General Workplace Message' },
+];
 
 type Preset = {
   id: string;
@@ -182,6 +190,15 @@ export default function WizPromptPanel({ theme, preloaded, pendingText, onProces
     return 'general_polish';
   });
 
+  // Communication variant state
+  const [communicationVariant, setCommunicationVariant] = useState<string>(() => {
+    try {
+      const saved = window.localStorage.getItem('whiztant.wizprompt.communication_variant');
+      if (saved) return saved;
+    } catch { /* noop */ }
+    return 'Email';
+  });
+
   // Model state
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     try {
@@ -199,6 +216,10 @@ export default function WizPromptPanel({ theme, preloaded, pendingText, onProces
   useEffect(() => {
     try { window.localStorage.setItem('whiztant.wizprompt.preset', selectedPreset); } catch { /* noop */ }
   }, [selectedPreset]);
+
+  useEffect(() => {
+    try { window.localStorage.setItem('whiztant.wizprompt.communication_variant', communicationVariant); } catch { /* noop */ }
+  }, [communicationVariant]);
 
   // Auto-submit pending feedback on unmount (tab switch / overlay close)
   useEffect(() => {
@@ -246,7 +267,6 @@ export default function WizPromptPanel({ theme, preloaded, pendingText, onProces
           { id: 'technical_writing', name: 'Technical Writing', display_name: 'Technical Writing', description: 'Documentation, READMEs, API docs, or explanations that need professional polish.', recommended_for: 'Documentation, READMEs, API docs, or explanations that need professional polish.', category: 'company', system_prompt_addendum: '', agent_focus: 'documentation', icon: 'book-open' },
           { id: 'communication', name: 'Communication', display_name: 'Communication', description: 'Emails, Slack messages, DMs, or any workplace communication that needs tone adjustment.', recommended_for: 'Emails, Slack messages, DMs, or any workplace communication that needs tone adjustment.', category: 'company', system_prompt_addendum: '', agent_focus: 'communication', icon: 'mail' },
           { id: 'bug_report', name: 'Bug Report', display_name: 'Bug Report', description: 'Scattered complaints or screenshots of errors that need to become actionable bug reports.', recommended_for: 'Scattered complaints or screenshots of errors that need to become actionable bug reports.', category: 'company', system_prompt_addendum: '', agent_focus: 'technical', icon: 'bug' },
-          { id: 'cli_command', name: 'CLI Command', display_name: 'CLI Command', description: 'Natural language requests that need to be converted into accurate terminal commands.', recommended_for: 'Natural language requests that need to be converted into accurate terminal commands.', category: 'company', system_prompt_addendum: '', agent_focus: 'technical', icon: 'terminal' },
         ]);
       });
   }, []);
@@ -378,7 +398,12 @@ export default function WizPromptPanel({ theme, preloaded, pendingText, onProces
       const res = await fetch('http://localhost:8765/wizprompt/optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: input, model: model || undefined, preset: selectedPreset })
+        body: JSON.stringify({
+          prompt: input,
+          model: model || undefined,
+          preset: selectedPreset,
+          preset_variant: selectedPreset === 'communication' ? communicationVariant : undefined,
+        })
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -482,6 +507,16 @@ export default function WizPromptPanel({ theme, preloaded, pendingText, onProces
           showRecommendedFor
         />
 
+        {selectedPreset === 'communication' && (
+          <CustomDropdown
+            value={communicationVariant}
+            onChange={(v) => setCommunicationVariant(v)}
+            options={COMMUNICATION_VARIANTS}
+            theme={theme}
+            label="Channel"
+          />
+        )}
+
         <textarea
           value={input}
           onChange={(e) => {
@@ -507,7 +542,7 @@ export default function WizPromptPanel({ theme, preloaded, pendingText, onProces
           }}
         />
         {input.trim() && (
-          <span style={{ fontSize: 10, color: liveValidation ? '#fca5a5' : theme.textMuted }}>
+          <span style={{ fontSize: 10, color: liveValidation ? '#ef4444' : theme.textMuted }}>
             {liveValidation || `${input.split('\n').length} lines • ${liveLines.label}`}
           </span>
         )}
@@ -521,7 +556,7 @@ export default function WizPromptPanel({ theme, preloaded, pendingText, onProces
           borderRadius: 12,
           border: 'none',
           background: status === 'processing' ? `${theme.aiAccent}80` : theme.aiAccent,
-          color: '#07070f',
+          color: inkFor(theme.aiAccent),
           fontSize: 12,
           fontWeight: 600,
           cursor: status === 'processing' || !input.trim() || !!liveValidation ? 'not-allowed' : 'pointer',
@@ -552,7 +587,7 @@ export default function WizPromptPanel({ theme, preloaded, pendingText, onProces
       )}
 
       {error && (
-        <div style={{ padding: 10, borderRadius: 12, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', fontSize: 11 }}>
+        <div style={{ padding: 10, borderRadius: 12, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: theme.text, fontSize: 11 }}>
           {error}
         </div>
       )}
@@ -567,7 +602,7 @@ export default function WizPromptPanel({ theme, preloaded, pendingText, onProces
           </div>
 
           {result.synthesis_failed && (
-            <div style={{ padding: 8, borderRadius: 8, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', fontSize: 11 }}>
+            <div style={{ padding: 8, borderRadius: 8, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: theme.text, fontSize: 11 }}>
               Synthesis failed — showing raw critiques below.
             </div>
           )}
@@ -632,7 +667,7 @@ export default function WizPromptPanel({ theme, preloaded, pendingText, onProces
                 borderRadius: 8,
                 border: `1px solid ${feedback === 'down' ? '#ef4444' : theme.border}`,
                 background: feedback === 'down' ? 'rgba(239,68,68,0.12)' : 'transparent',
-                color: feedback === 'down' ? '#fca5a5' : theme.textMuted,
+                color: feedback === 'down' ? '#ef4444' : theme.textMuted,
                 fontSize: 11,
                 cursor: feedbackSubmitted ? 'not-allowed' : 'pointer',
                 fontFamily: 'inherit',

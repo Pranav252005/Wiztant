@@ -137,6 +137,23 @@ def _save_recording_focus() -> None:
     global _recording_start_focus
     focus = {"window_id": None, "desktop_id": None, "cursor": (0, 0), "timestamp": time.time()}
 
+    # Windows: use win32 APIs (xdotool below is Linux-only)
+    if sys.platform == "win32":
+        try:
+            import win32gui
+            hwnd = win32gui.GetForegroundWindow()
+            if hwnd:
+                focus["window_id"] = hwnd
+        except Exception:
+            pass
+        try:
+            import win32api
+            focus["cursor"] = win32api.GetCursorPos()
+        except Exception:
+            pass
+        _recording_start_focus = focus
+        return
+
     # 1. Try to get active window ID (X11 / XWayland)
     try:
         result = subprocess.run(
@@ -193,6 +210,19 @@ def _restore_recording_focus() -> None:
 
     # If no window was captured, nothing to restore
     if not window_id:
+        return
+
+    # Windows: restore via win32 (the xdotool logic below is Linux-only)
+    if sys.platform == "win32":
+        try:
+            import win32gui
+            if win32gui.GetForegroundWindow() == window_id:
+                return
+            from platforms.factory import get_system_access
+            if get_system_access().raise_window(window_id):
+                print(f"[Focus] Restored window {window_id}")
+        except Exception:
+            pass
         return
 
     # Check if the target window is already active
@@ -650,6 +680,38 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
     except Exception:
         pass
 
+    # Fallback: read directly from canonical tune file so dictation keeps
+    # the latest tuned corrections even when middleware has no SQLite entry.
+    if text:
+        try:
+            from core.tune_hub.single_file_store import read_tune_file
+            tune_data = read_tune_file("dictation")
+            if tune_data and tune_data.get("correction_map"):
+                corrections = tune_data["correction_map"]
+                words = text.split()
+                corrected = []
+                for word in words:
+                    clean = word.lower().strip(".,!?;:")
+                    if clean in corrections:
+                        candidates = corrections[clean]
+                        # Pick the candidate with highest frequency
+                        best = max(
+                            candidates.items(),
+                            key=lambda x: x[1].get("frequency", 0) if isinstance(x[1], dict) else 0,
+                        )[0]
+                        # Preserve capitalization
+                        if word and word[0].isupper() and best:
+                            best = best[0].upper() + best[1:]
+                        corrected.append(best)
+                    else:
+                        corrected.append(word)
+                new_text = " ".join(corrected)
+                if new_text != text:
+                    print(f"[TuneHub] Dictation tune applied from file: {text[:60]}... → {new_text[:60]}...")
+                    text = new_text
+        except Exception:
+            pass
+
     if state.agent_mode or _agent_is_active:
         # Agent mode — send to AI
         print("[STT] Transcribing for agent...")
@@ -658,7 +720,6 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
         _try_ws_send("state", "processing", text)
         from core.agent import add_history_message, ask_ai
         add_history_message("user", text)
-        _add_dictation_memory(text, text, mode="agent")
 
         def _run():
             try:
@@ -680,11 +741,20 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
         except Exception:
             pass
     else:
-        # ── Dictation credit deduction (after validation, before processing) ──
+        # ── Dictation billing ────────────────────────────────────────
+        # We only reach this branch with a valid, non-empty transcription,
+        # i.e. a successful dictation. charge_dictation enforces the rules:
+        # paid tiers get a free daily audio allowance (30 min default), then
+        # the fixed 1 credit applies; failures are never charged.
         try:
-            from core.credit_system import deduct, get_current_user_id
+            from core.credit_system import charge_dictation, get_current_user_id
             user_id = get_current_user_id()
-            deduct(user_id, "dictation", 1, model="whisper-large-v3-turbo")
+            # Audio is mono int16 at 16 kHz; duration = samples / 16000.
+            try:
+                duration_sec = sum(len(f) for f in (audio_frames or [])) / 16000.0
+            except Exception:
+                duration_sec = 0.0
+            charge_dictation(user_id, duration_sec)
         except Exception:
             pass
 
@@ -710,6 +780,15 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
                 print(f"[Phonetic] {', '.join(phonetic_changes)}")
         except Exception as e:
             print(f"[Phonetic] Error: {e}")
+
+        # ── User dictionary fuzzy pass (local, all tiers) ──────────
+        try:
+            from core.vocab import apply_dictionary_corrections
+            text, dict_changes = apply_dictionary_corrections(text)
+            if dict_changes:
+                print(f"[Dictionary] {', '.join(dict_changes)}")
+        except Exception as e:
+            print(f"[Dictionary] Error: {e}")
 
         # Check for voice task commands before pasting
         from core.tasks import (
@@ -875,11 +954,13 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
 
         # Production STT pipeline: refine -> vocab -> format -> paste/preview
         try:
-            # Step 1: AI refinement (Pro/Power tier or when USE_LLM_POLISH is on)
-            if getattr(state, "USE_LLM_POLISH", False) or os.getenv("TIER", "free").lower() in ["pro", "power"]:
+            # Step 1: AI refinement (settings-gated; needs GROQ_API_KEY)
+            if _load_setting("llm_refine", True) and os.getenv("GROQ_API_KEY"):
                 _refiner = STTRefiner()
                 _vocab_mgr = VocabManager()
                 _refiner.set_vocab(_vocab_mgr.vocab_db)
+                from core.vocab import list_words
+                _refiner.set_dictionary([e.get("word", "") for e in list_words()])
                 refined_result = _refiner.refine_transcript(text)
                 if not refined_result.get("error"):
                     text = refined_result["refined"]
@@ -1010,11 +1091,10 @@ def transcribe_and_dispatch(captured_stt: str = "", captured_frames: list = None
 
 _last_start_time = 0.0
 _START_DEBOUNCE_SEC = 0.3
-_start_recording_lock = threading.Lock()
-
 _last_stop_time = 0.0
 _STOP_DEBOUNCE_SEC = 0.3
-_stop_recording_lock = threading.Lock()
+# Unified lock for all recording state mutations — prevents start/stop races
+_recording_lock = threading.Lock()
 
 
 def start_recording():
@@ -1040,7 +1120,7 @@ def start_recording():
 
     cancel_pending_f9_taps()
 
-    with _start_recording_lock:
+    with _recording_lock:
         if state.recording:
             print("[Hotkeys] start_recording ignored — already recording")
             return
@@ -1094,7 +1174,7 @@ def _stop_recording(process_audio: bool):
 
     cancel_pending_f9_taps()
 
-    with _stop_recording_lock:
+    with _recording_lock:
         if not state.recording:
             return
 
@@ -1189,15 +1269,10 @@ def _on_f9_taps(count: int):
         return
 
     if count == 1:
-        # If an agent task is already running (e.g. from chat panel), treat F9×1
-        # as agent voice input rather than plain dictation.
-        if getattr(state, "_agent_running", False):
-            state.agent_mode = True
+        # F9×1 is always dictation, even if an agent task is running.
         start_recording()
     elif count >= 2:
-        # Agent mode coming soon — disabled for now.
-        # toggle_agent_mode()
-        pass
+        toggle_agent_mode()
 
 
 def f9_handler():
@@ -1243,6 +1318,19 @@ _last_toggle_time = 0.0
 _agent_toggle_lock = threading.Lock()
 
 
+def _agent_feature_enabled() -> bool:
+    """Check the 'agent' feature flag in data/settings.json (default True)."""
+    try:
+        import json as _json
+        from pathlib import Path as _Path
+        data = _json.loads(
+            (_Path(__file__).parent.parent / "data" / "settings.json").read_text(encoding="utf-8")
+        )
+        return bool(data.get("features", {}).get("agent", True))
+    except Exception:
+        return True
+
+
 def toggle_agent_mode():
     """Toggle agent_mode on/off. Mirrors the tray menu behavior."""
     global _last_toggle_time
@@ -1253,6 +1341,10 @@ def toggle_agent_mode():
             from core.ws_bridge import send_wave_state, broadcast_sync
 
             cancel_pending_f9_taps()
+
+            if not _agent_feature_enabled():
+                print("[Hotkeys] toggle_agent_mode ignored (agent feature disabled)")
+                return
 
             now = time.time()
             if now - _last_toggle_time < 0.6:

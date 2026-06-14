@@ -439,6 +439,35 @@ def convert_entities(text: str) -> Tuple[str, int, List[str]]:
     return result, count, changes
 
 
+# ── Dot compression ───────────────────────────────────────────
+# Converts spoken "dot" / "period" / "point" between words into a real
+# period with no spaces: "google dot com" → "google.com"
+_DOT_COMPRESS_PATTERN = re.compile(r'(\w+)\s+(?:dot|period|point)\s+(\w+)', re.IGNORECASE)
+
+
+def compress_dot_words(text: str) -> Tuple[str, int]:
+    """
+    Compress word + 'dot' + word sequences into dot-separated tokens.
+    Runs iteratively so "a dot b dot c" → "a.b.c".
+
+    Returns:
+        (compressed_text, replacement_count)
+    """
+    if not text or not text.strip():
+        return text, 0
+
+    count = 0
+    # Safety limit: avoid infinite loops on pathological input
+    for _ in range(50):
+        new_text, n = _DOT_COMPRESS_PATTERN.subn(r'\1.\2', text)
+        if n == 0:
+            break
+        text = new_text
+        count += n
+
+    return text, count
+
+
 # ── Re-glue spaced sequences ─────────────────────────────────
 # Fixes cases where upstream _smart_punctuation() split apart glued tokens.
 _REGLUE_PATTERNS: List[Tuple[re.Pattern, str]] = [
@@ -469,11 +498,12 @@ def smart_dictate(text: str) -> dict:
     Full smart dictation pipeline.
 
     Order matters:
-      1. scratch-that  (remove bad text first)
-      2. entity fixes  (AI names, frameworks, file extensions)
-      3. email conversion
-      4. symbol conversion
-      5. re-glue       (fix spaced-out extensions / paths)
+      1. scratch-that    (remove bad text first)
+      2. dot compression ("google dot com" → "google.com")
+      3. entity fixes    (AI names, frameworks, file extensions)
+      4. email conversion
+      5. symbol conversion
+      6. re-glue         (fix spaced-out extensions / paths)
 
     Returns:
         {
@@ -495,6 +525,7 @@ def smart_dictate(text: str) -> dict:
             "emails_converted": 0,
             "symbols_converted": 0,
             "reglued": 0,
+            "dots_compressed": 0,
             "changes": [],
         }
 
@@ -514,26 +545,32 @@ def smart_dictate(text: str) -> dict:
                 "emails_converted": 0,
                 "symbols_converted": 0,
                 "reglued": 0,
+                "dots_compressed": 0,
                 "changes": changes,
             }
 
-    # Step 2: entity / known-word fixes
+    # Step 2: compress spoken "dot" into real periods
+    text, dot_count = compress_dot_words(text)
+    if dot_count:
+        changes.append(f"dot: compressed {dot_count} spoken dot(s)")
+
+    # Step 3: entity / known-word fixes
     text, entity_count, entity_changes = convert_entities(text)
     if entity_count:
         changes.append(f"entity: fixed {entity_count} known word(s)")
         changes.extend(entity_changes)
 
-    # Step 3: emails
+    # Step 4: emails
     text, email_count = convert_emails(text)
     if email_count:
         changes.append(f"email: converted {email_count} spoken email(s)")
 
-    # Step 4: symbols
+    # Step 5: symbols
     text, sym_count = convert_symbols(text)
     if sym_count:
         changes.append(f"symbol: converted {sym_count} spoken symbol(s)")
 
-    # Step 5: re-glue spaced-out extensions / paths / emails
+    # Step 6: re-glue spaced-out extensions / paths / emails
     text, glue_count = _reglue_spaced_sequences(text)
     if glue_count:
         changes.append(f"re-glue: fixed {glue_count} spaced sequence(s)")
@@ -546,6 +583,7 @@ def smart_dictate(text: str) -> dict:
         "emails_converted": email_count,
         "symbols_converted": sym_count,
         "reglued": glue_count,
+        "dots_compressed": dot_count,
         "changes": changes,
     }
 
@@ -553,6 +591,11 @@ def smart_dictate(text: str) -> dict:
 # ── Standalone test ───────────────────────────────────────────
 if __name__ == "__main__":
     tests = [
+        # Dot compression
+        ("google dot com", "google.com"),
+        ("a dot b dot c", "a.b.c"),
+        ("Go to my site dot io", "Go to my site.io"),
+        ("check api dot example dot com", "check api.example.com"),
         # Emails
         ("My email is shivora at gmail dot com", "My email is shivora@gmail.com"),
         ("Contact me at john dot doe at company dot co dot uk", "Contact me at john.doe@company.co.uk"),

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { motion } from 'framer-motion';
 import type { Theme } from '../shared/themes';
+import { isLightBg } from '../shared/themes';
 import { useBridgeMessage, sendBridgeMessage } from '../shared/useBridge';
 
 // ─── Types ────────────────────────────────────────────────────
@@ -61,12 +62,13 @@ function useCountUp(target: number, duration = 1200) {
 }
 
 // ─── Gauge (semi-circle SVG) ───────────────────────────────────
-function Gauge({ value, max, label, sublabel, color }: {
+function Gauge({ value, max, label, sublabel, color, theme }: {
   value: number;
   max: number;
   label: string;
   sublabel: string;
   color: string;
+  theme: Theme['panel'];
 }) {
   const pct = Math.min(value / max, 1);
   const r = 36;
@@ -77,7 +79,7 @@ function Gauge({ value, max, label, sublabel, color }: {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
       <svg width="100" height="60" viewBox="0 0 100 60">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" strokeDasharray={`${c / 2} ${c}`} strokeLinecap="round" transform="rotate(180 50 50)" />
+        <circle cx="50" cy="50" r={r} fill="none" stroke={isLightBg(theme.bg) ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'} strokeWidth="8" strokeDasharray={`${c / 2} ${c}`} strokeLinecap="round" transform="rotate(180 50 50)" />
         <motion.circle
           cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth="8"
           strokeDasharray={`${dash} ${gap}`}
@@ -90,7 +92,7 @@ function Gauge({ value, max, label, sublabel, color }: {
       </svg>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 22, fontWeight: 700, color, lineHeight: 1 }}>{label}</div>
-        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>{sublabel}</div>
+        <div style={{ fontSize: 10, color: theme.textMuted, marginTop: 4 }}>{sublabel}</div>
       </div>
     </div>
   );
@@ -111,7 +113,7 @@ function StatCard({ value, label, sublabel, theme, delay = 0 }: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
       style={{
-        background: 'rgba(255,255,255,0.03)',
+        background: isLightBg(theme.bg) ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
         border: `1px solid ${theme.border}`,
         borderRadius: 12,
         padding: '16px 14px',
@@ -144,10 +146,10 @@ function Heatmap({ data, theme }: { data: DailyRow[]; theme: Theme['panel'] }) {
   // 120 minutes (~2 hours) = max intensity (level 4).
   const MAX_MINUTES = 120;
   const colorScale = [
-    'rgba(255,255,255,0.04)',
-    'rgba(255,255,255,0.12)',
-    'rgba(255,255,255,0.28)',
-    'rgba(255,255,255,0.50)',
+    isLightBg(theme.bg) ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
+    isLightBg(theme.bg) ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)',
+    isLightBg(theme.bg) ? 'rgba(0,0,0,0.28)' : 'rgba(255,255,255,0.28)',
+    isLightBg(theme.bg) ? 'rgba(0,0,0,0.50)' : 'rgba(255,255,255,0.50)',
     theme.aiAccent,
   ];
 
@@ -343,7 +345,7 @@ export default function InsightsTab({ theme }: { theme: Theme['panel'] }) {
               transition={{ duration: 0.4, delay: 0.32 }}
               onClick={openStreakPanel}
               style={{
-                background: 'rgba(255,255,255,0.03)',
+                background: isLightBg(theme.bg) ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
                 border: `1px solid ${theme.border}`,
                 borderRadius: 12,
                 padding: 14,
@@ -355,11 +357,11 @@ export default function InsightsTab({ theme }: { theme: Theme['panel'] }) {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = theme.aiAccent;
-                e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                e.currentTarget.style.background = isLightBg(theme.bg) ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = theme.border;
-                e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                e.currentTarget.style.background = isLightBg(theme.bg) ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)';
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -385,7 +387,7 @@ export default function InsightsTab({ theme }: { theme: Theme['panel'] }) {
               justifyContent: 'center',
               gap: 8,
               padding: '10px 14px',
-              background: 'rgba(255,255,255,0.03)',
+              background: isLightBg(theme.bg) ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
               border: `1px solid ${theme.border}`,
               borderRadius: 10,
             }}
@@ -396,6 +398,7 @@ export default function InsightsTab({ theme }: { theme: Theme['panel'] }) {
               label={totalWords > 0 ? `Top ${Math.max(1, Math.min(99, 100 - Math.round(totalWords / 100)))}%` : 'Top —%'}
               sublabel="of Wiztant users"
               color={accent}
+              theme={theme}
             />
           </motion.div>
         </>

@@ -166,6 +166,12 @@ class TestTuneModelPersistenceHardening:
 
 
 class TestSafeApply:
+    def setup_method(self):
+        from core.tune_hub.single_file_store import clear_tune_file
+        clear_tune_file("reprompt")
+        clear_tune_file("dictation")
+        clear_tune_file("agent")
+
     def test_safe_apply_allows_injectable_keys(self):
         from core.tune_hub.base import CreditBudget, LearnedModel, TuneStatus
         from core.tune_hub.tuners.reprompt_tuner import RePromptTuner

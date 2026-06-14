@@ -12,64 +12,76 @@
   },
   "models": {
     "qwen/qwen3.5-plus-20260420": {
-      "input": 0.40,
-      "output": 2.40,
+      "input": 0.4,
+      "output": 2.4,
       "category": "budget",
       "speed": "fast"
     },
     "google/gemini-3-flash-preview": {
-      "input": 0.50,
-      "output": 3.00,
+      "input": 0.5,
+      "output": 3.0,
       "category": "budget",
       "speed": "fast"
     },
     "x-ai/grok-4.3": {
       "input": 1.25,
-      "output": 2.50,
+      "output": 2.5,
       "category": "budget",
       "speed": "fast"
     },
     "moonshotai/kimi-k2.6": {
       "input": 0.75,
-      "output": 3.50,
+      "output": 3.5,
       "category": "budget",
       "speed": "fast"
     },
     "openai/gpt-5.4-mini": {
       "input": 0.75,
-      "output": 4.50,
+      "output": 4.5,
       "category": "budget",
       "speed": "fast"
     },
     "anthropic/claude-haiku-4.5": {
-      "input": 1.00,
-      "output": 5.00,
+      "input": 1.0,
+      "output": 5.0,
       "category": "mid",
       "speed": "fast"
     },
     "google/gemini-3.1-pro-preview": {
-      "input": 2.00,
-      "output": 12.00,
+      "input": 2.0,
+      "output": 12.0,
       "category": "pro",
       "speed": "medium"
     },
     "openai/gpt-5.4": {
-      "input": 2.50,
-      "output": 15.00,
+      "input": 2.5,
+      "output": 15.0,
       "category": "pro",
       "speed": "medium"
     },
     "anthropic/claude-sonnet-4.6": {
-      "input": 3.00,
-      "output": 15.00,
+      "input": 3.0,
+      "output": 15.0,
       "category": "pro",
       "speed": "medium"
     },
     "openai/gpt-5.5": {
-      "input": 5.00,
-      "output": 30.00,
+      "input": 5.0,
+      "output": 30.0,
       "category": "ultra",
       "speed": "slow"
+    },
+    "qwen/qwen3-vl-235b-a22b-instruct": {
+      "input": 0.3,
+      "output": 1.2,
+      "category": "budget",
+      "speed": "medium"
+    },
+    "bytedance/ui-tars-1.5-7b": {
+      "input": 0.1,
+      "output": 0.2,
+      "category": "budget",
+      "speed": "fast"
     }
   },
   "defaults": {
@@ -81,7 +93,8 @@
     "model": "whisper-large-v3-turbo",
     "price_per_hour": 0.04,
     "average_utterance_seconds": 5,
-    "fixed_credits": 1
+    "fixed_credits": 1,
+    "daily_free_seconds_paid": 1800
   },
   "tunehub_iterations": {
     "LOW": 3,

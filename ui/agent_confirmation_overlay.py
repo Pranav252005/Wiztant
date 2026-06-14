@@ -53,6 +53,7 @@ class AgentConfirmationOverlay:
         data.setdefault("complications", [])
         data.setdefault("full_plan", {})
         data.setdefault("task_id", "")
+        data.setdefault("confirmation_type", "task")
         data["themeVars"] = app_theme.to_css_var_map()
         data["themeName"] = app_theme.current_theme
         data["logoPath"] = str(app_theme.logo_path)
@@ -76,6 +77,37 @@ class AgentConfirmationOverlay:
         self._choice_event.wait(timeout=300)
         choice = self.user_choice or "cancel"
         if choice == "cancel" and self.is_visible:
+            self.hide()
+        self.user_choice = None
+        return choice
+
+    def show_dangerous_confirmation(self, action_desc: str, reason: str, timeout: float = 3.0) -> str:
+        """Show a compact, urgent dangerous-action confirmation with a short timeout."""
+        payload = {
+            "confirmation_type": "dangerous_action",
+            "action_desc": action_desc,
+            "reason": reason,
+            "timeout": timeout,
+            "themeVars": app_theme.to_css_var_map(),
+            "themeName": app_theme.current_theme,
+            "logoPath": str(app_theme.logo_path),
+        }
+        with self._lock:
+            self.pending_confirmation = payload
+            self.is_visible = True
+            self.is_minimized = False
+            self.user_choice = None
+            self._choice_event.clear()
+            state._agent_confirmation_overlay_active = True
+            state._agent_confirmation_overlay_minimized = False
+
+        show_react_overlay()
+        time.sleep(0.2)
+        self._broadcast("show", payload)
+
+        self._choice_event.wait(timeout=timeout)
+        choice = self.user_choice or "cancel"
+        if self.is_visible:
             self.hide()
         self.user_choice = None
         return choice

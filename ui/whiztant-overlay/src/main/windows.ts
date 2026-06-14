@@ -93,7 +93,7 @@ function applyX11FlagsSync(win: BrowserWindow, title: string): void {
   }
   console.log(`[LinuxFlags] Applying flags to 0x${id} ("${title}")`);
   const cmds = [
-    `xprop -id 0x${id} -f _NET_WM_WINDOW_TYPE 32a -set _NET_WM_WINDOW_TYPE _NET_WM_WINDOW_TYPE_DOCK`,
+    `xprop -id 0x${id} -f _NET_WM_WINDOW_TYPE 32a -set _NET_WM_WINDOW_TYPE _NET_WM_WINDOW_TYPE_NOTIFICATION`,
     `xprop -id 0x${id} -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_SKIP_TASKBAR,_NET_WM_STATE_SKIP_PAGER`,
     `xprop -id 0x${id} -f _NET_WM_DESKTOP 32c -set _NET_WM_DESKTOP 0xFFFFFFFF`,
     `xdotool set_desktop_for_window 0x${id} -1`,
@@ -253,12 +253,49 @@ export function createOverlayWindow(disp: Display, pill?: BrowserWindow, _pos?: 
         }
       }
 
-      if (process.platform !== 'linux' && !win.isDestroyed() && win.isVisible()) {
+      if (!win.isDestroyed() && win.isVisible()) {
         stampAutoHidden(win);
         win.hide();
       }
     }, 0);
   });
+
+  // Fallback: because alwaysOnTop + screen-saver on Windows prevents blur events
+  // from firing reliably when clicking lower-z-order windows, we poll focus state
+  // while the overlay is visible. This catches clicks on other apps / desktop that
+  // the blur handler misses.
+  let focusPollTimer: ReturnType<typeof setInterval> | null = null;
+  let shownAt = 0;
+
+  const stopFocusPoll = (): void => {
+    if (focusPollTimer) {
+      clearInterval(focusPollTimer);
+      focusPollTimer = null;
+    }
+  };
+
+  const startFocusPoll = (): void => {
+    stopFocusPoll();
+    shownAt = Date.now();
+    focusPollTimer = setInterval(() => {
+      if (win.isDestroyed() || !win.isVisible()) {
+        stopFocusPoll();
+        return;
+      }
+      // Grace period: don't hide immediately after show/focus transition
+      if (Date.now() - shownAt < 400) return;
+
+      const focused = BrowserWindow.getFocusedWindow();
+      if (!isWindowInOverlayGroup(focused, win, pill)) {
+        stopFocusPoll();
+        stampAutoHidden(win);
+        win.hide();
+      }
+    }, 300);
+  };
+
+  win.on('show', startFocusPoll);
+  win.on('hide', stopFocusPoll);
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(`${VITE_DEV_SERVER_URL}/overlay/index.html`);

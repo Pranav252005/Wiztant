@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Theme } from '../shared/themes';
+import { inkFor } from '../shared/themes';
 import { sendBridgeMessage, useBridgeMessage } from '../shared/useBridge';
 
 type Prompt = {
@@ -133,7 +134,7 @@ export default function VocabCorrectModal({ theme }: Props) {
               borderRadius: 9,
               border: 'none',
               background: actual.trim() ? theme.accent : `${theme.accent}33`,
-              color: actual.trim() ? '#0a0a0a' : theme.textMuted,
+              color: actual.trim() ? inkFor(theme.accent) : theme.textMuted,
               fontSize: 11,
               fontWeight: 700,
               cursor: actual.trim() ? 'pointer' : 'not-allowed',

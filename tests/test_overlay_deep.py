@@ -160,13 +160,9 @@ def test_6_tasks_module_no_crash():
 def test_7_paste_fallback():
     """Verify paste fallback functions exist."""
     _print_section("7. Paste fallback health")
-    try:
-        from core.hotkeys import _paste_clipboard
-        print("  [OK] _paste_clipboard function exists")
-        return True
-    except Exception as e:
-        print(f"  [FAIL] _paste_clipboard import failed: {e}")
-        return False
+    from core.hotkeys import _paste_clipboard
+    assert callable(_paste_clipboard)
+    print("  [OK] _paste_clipboard function exists")
 
 
 if __name__ == "__main__":
@@ -182,7 +178,7 @@ if __name__ == "__main__":
     ]
     for t in tests:
         try:
-            results.append(t())
+            results.append(t() is not False)
         except Exception as e:
             print(f"  [ERROR] {type(e).__name__}: {e}")
             results.append(False)

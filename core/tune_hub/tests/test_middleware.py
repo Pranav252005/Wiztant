@@ -28,6 +28,10 @@ class TestMiddleware:
             desktop_mode="desktop2",
         )
         self.middleware = TuneApplicationMiddleware(self.hub)
+        from core.tune_hub.single_file_store import clear_tune_file
+        clear_tune_file("reprompt")
+        clear_tune_file("dictation")
+        clear_tune_file("agent")
 
     def test_apply_with_no_tune(self):
         result = self.middleware.apply(

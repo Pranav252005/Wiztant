@@ -1,14 +1,14 @@
 {
   "lifetime": {
-    "total_words_dictated": 18698,
+    "total_words_dictated": 35287,
     "total_fixes_made": 0,
     "total_words_removed": 0,
     "dictionary_items_used": 0,
     "work_messages": 0,
-    "ai_prompts": 0,
-    "personal_messages": 202,
+    "ai_prompts": 2,
+    "personal_messages": 393,
     "documents_touched": 0,
-    "voice_commands": 203,
+    "voice_commands": 396,
     "other_tasks": 0,
     "apps_used": 0
   },
@@ -75,14 +75,123 @@
       "voice_commands": 35
     },
     "2026-05-17": {
-      "words_dictated": 1825,
-      "active_minutes": 23,
-      "personal_messages": 25,
-      "voice_commands": 25
+      "words_dictated": 3195,
+      "active_minutes": 42,
+      "personal_messages": 47,
+      "voice_commands": 47
+    },
+    "2026-05-18": {
+      "words_dictated": 753,
+      "active_minutes": 7,
+      "personal_messages": 8,
+      "voice_commands": 8
+    },
+    "2026-05-19": {
+      "words_dictated": 402,
+      "active_minutes": 4,
+      "personal_messages": 4,
+      "voice_commands": 4
+    },
+    "2026-05-20": {
+      "words_dictated": 479,
+      "active_minutes": 12,
+      "personal_messages": 15,
+      "voice_commands": 15
+    },
+    "2026-05-21": {
+      "words_dictated": 1685,
+      "active_minutes": 10,
+      "personal_messages": 10,
+      "voice_commands": 10
+    },
+    "2026-05-22": {
+      "words_dictated": 1010,
+      "active_minutes": 10,
+      "personal_messages": 10,
+      "voice_commands": 10
+    },
+    "2026-05-23": {
+      "words_dictated": 971,
+      "active_minutes": 7,
+      "personal_messages": 5,
+      "voice_commands": 7,
+      "ai_prompts": 2
+    },
+    "2026-05-25": {
+      "words_dictated": 284,
+      "active_minutes": 5,
+      "personal_messages": 5,
+      "voice_commands": 5
+    },
+    "2026-05-26": {
+      "words_dictated": 93,
+      "active_minutes": 1,
+      "personal_messages": 1,
+      "voice_commands": 1
+    },
+    "2026-05-27": {
+      "words_dictated": 957,
+      "active_minutes": 15,
+      "personal_messages": 17,
+      "voice_commands": 17
+    },
+    "2026-05-28": {
+      "words_dictated": 2654,
+      "active_minutes": 30,
+      "personal_messages": 30,
+      "voice_commands": 30
+    },
+    "2026-05-29": {
+      "words_dictated": 149,
+      "active_minutes": 3,
+      "personal_messages": 3,
+      "voice_commands": 3
+    },
+    "2026-05-30": {
+      "words_dictated": 1080,
+      "active_minutes": 14,
+      "personal_messages": 14,
+      "voice_commands": 14
+    },
+    "2026-06-06": {
+      "words_dictated": 1653,
+      "active_minutes": 21,
+      "personal_messages": 22,
+      "voice_commands": 22
+    },
+    "2026-06-07": {
+      "words_dictated": 364,
+      "active_minutes": 3,
+      "personal_messages": 3,
+      "voice_commands": 3
+    },
+    "2026-06-08": {
+      "words_dictated": 78,
+      "active_minutes": 1,
+      "personal_messages": 1,
+      "voice_commands": 1
+    },
+    "2026-06-09": {
+      "words_dictated": 1021,
+      "active_minutes": 6,
+      "personal_messages": 6,
+      "voice_commands": 6
+    },
+    "2026-06-10": {
+      "words_dictated": 219,
+      "active_minutes": 2,
+      "personal_messages": 2,
+      "voice_commands": 2
+    },
+    "2026-06-12": {
+      "words_dictated": 1367,
+      "active_minutes": 13,
+      "personal_messages": 13,
+      "voice_commands": 13
     }
   },
-  "current_streak": 7,
-  "longest_streak": 7,
-  "last_active_date": "2026-05-17",
-  "last_active_minute": "2026-05-17 02:56"
+  "current_streak": 1,
+  "longest_streak": 13,
+  "last_active_date": "2026-06-12",
+  "last_active_minute": "2026-06-12 16:31"
 }

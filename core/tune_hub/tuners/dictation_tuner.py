@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..base import ComplexityLevel, CreditBudget, LearnedModel, TuneStatus
+from ..single_file_store import read_tune_file, write_tune_file
 from ..tune_base import TuneBase, ExperimentResult
 from ..utils.convergence import ConvergenceChecker
 from ..utils.model_persistence import TuneModelPersistence
@@ -49,6 +50,7 @@ class CorrectionEntry:
             "context_examples": self.context_examples[-5:],
             "user_acceptance_rate": self.user_acceptance_rate,
             "last_used": self.last_used,
+            "confidence": min(self.total_uses / 3.0, 1.0),
         }
 
     @classmethod
@@ -63,6 +65,7 @@ class CorrectionEntry:
         dd = data.get("domain_distribution", {})
         entry.domain_distribution = defaultdict(float, dd)
         entry.context_examples = data.get("context_examples", [])
+        # confidence is derived from total_uses; no need to store separately
         return entry
 
 
@@ -500,7 +503,9 @@ class DictationTuner(TuneBase, feature_name="dictation"):
     ) -> bool:
         corrections = model.payload.get("corrections", {})
         if not corrections:
-            return False
+            # Empty correction map is valid — the model exists but hasn't learned
+            # any corrections yet (e.g., vocabulary had no simulated variants).
+            return True
         avg_conf = sum(
             list(c.values())[0].get("confidence", 0.0) for c in corrections.values()
         ) / len(corrections)
@@ -509,37 +514,76 @@ class DictationTuner(TuneBase, feature_name="dictation"):
     # ── PHASE 3: Deployment ──
 
     def deploy(self, model: LearnedModel) -> Dict[str, Any]:
-        return {
+        manifest = {
             "tune_id": model.tune_id,
-            "corrections": model.payload["corrections"],
-            "domain": model.payload["domain"],
+            "correction_map": model.payload.get("corrections", {}),
+            "domain": model.payload.get("domain", "general"),
             "auto_apply_threshold": model.payload.get("auto_apply_threshold", 0.85),
+            "confidence_model": self.confidence_model.to_dict(),
+            "updated_at": __import__("datetime").datetime.utcnow().isoformat(),
         }
+        write_tune_file(self.feature_name, manifest)
+        return manifest
 
     # ── RUNTIME: Apply ──
 
     def apply(
         self, model: LearnedModel, feature_input: Dict[str, Any]
     ) -> Dict[str, Any]:
-        feature_input["correction_map"] = model.payload.get("corrections", {})
-        feature_input["tune_id"] = model.tune_id
-        feature_input["domain"] = model.payload.get("domain", "general")
-        feature_input["auto_apply_threshold"] = model.payload.get(
-            "auto_apply_threshold", 0.85
-        )
-
-        # Actually process the transcription text if available
-        text = feature_input.get("text", "")
-        if text and model.payload.get("corrections"):
-            result = self.process_transcription(
-                text, user_context=feature_input.get("context")
+        # Single-file source of truth: read from canonical file first
+        tune_data = read_tune_file(self.feature_name)
+        if tune_data:
+            self.correction_map = CorrectionTrie.from_dict(
+                tune_data.get("correction_map", {})
             )
-            feature_input["text"] = result["corrected_text"]
-            feature_input["applied_corrections"] = result.get("applied_corrections", [])
+            self.confidence_model = ConfidenceThresholdLearner.from_dict(
+                tune_data.get("confidence_model", {})
+            )
+            feature_input["correction_map"] = tune_data.get("correction_map", {})
+            feature_input["tune_id"] = tune_data.get("tune_id", model.tune_id)
+            feature_input["domain"] = tune_data.get("domain", "general")
+            feature_input["auto_apply_threshold"] = tune_data.get(
+                "auto_apply_threshold", 0.85
+            )
+            text = feature_input.get("text", "")
+            if text and tune_data.get("correction_map"):
+                result = self.process_transcription(
+                    text, user_context=feature_input.get("context")
+                )
+                feature_input["text"] = result["corrected_text"]
+                feature_input["applied_corrections"] = result.get(
+                    "applied_corrections", []
+                )
+        else:
+            # Fallback to model payload (tests / legacy)
+            feature_input["correction_map"] = model.payload.get("corrections", {})
+            feature_input["tune_id"] = model.tune_id
+            feature_input["domain"] = model.payload.get("domain", "general")
+            feature_input["auto_apply_threshold"] = model.payload.get(
+                "auto_apply_threshold", 0.85
+            )
+            text = feature_input.get("text", "")
+            if text and model.payload.get("corrections"):
+                result = self.process_transcription(
+                    text, user_context=feature_input.get("context")
+                )
+                feature_input["text"] = result["corrected_text"]
+                feature_input["applied_corrections"] = result.get(
+                    "applied_corrections", []
+                )
 
         return feature_input
 
     def get_default_config(self, task: str) -> Dict[str, Any]:
+        # Single-file source of truth: read from canonical file first
+        tune_data = read_tune_file(self.feature_name)
+        if tune_data:
+            return {
+                "correction_map": tune_data.get("correction_map", {}),
+                "tune_id": tune_data.get("tune_id"),
+                "domain": tune_data.get("domain", "general"),
+                "auto_apply_threshold": tune_data.get("auto_apply_threshold", 0.85),
+            }
         return {"correction_map": {}, "tune_id": None, "domain": "general"}
 
     def allowed_injectable_keys(self) -> frozenset[str]:
@@ -703,7 +747,10 @@ class DictationTuner(TuneBase, feature_name="dictation"):
             "legal": ["plaintiff", "defendant", "jurisdiction", "precedent"],
             "software": ["kubernetes", "docker", "typescript", "asyncio"],
         }
-        return defaults.get(domain, ["example", "word"])
+        for key, words in defaults.items():
+            if key in domain:
+                return words
+        return ["example", "word"]
 
     def _generate_variants(self, word: str) -> List[str]:
         variants = [

@@ -3,7 +3,7 @@
   "task_hotkey": "f10",
   "task_hotkey_taps": 1,
   "live_dictation_preview": true,
-  "correction_copy_wait_sec": 3,
+  "correction_copy_wait_sec": 2,
   "task_creation_mode": "smart",
   "shortcuts_enabled": false,
   "features": {

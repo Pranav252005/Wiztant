@@ -14,6 +14,7 @@ import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..base import ComplexityLevel, CreditBudget, LearnedModel, TuneStatus
+from ..single_file_store import read_tune_file, write_tune_file
 from ..tune_base import TuneBase, ExperimentResult
 from ..utils.convergence import ConvergenceChecker
 from ..utils.feature_extraction import (
@@ -378,26 +379,49 @@ class RePromptTuner(TuneBase, feature_name="reprompt"):
     # ── PHASE 3: Deployment ──
 
     def deploy(self, model: LearnedModel) -> Dict[str, Any]:
-        return {
+        manifest = {
             "tune_id": model.tune_id,
-            "personas": model.payload["personas"],
+            "persona_weights": model.payload["personas"],
             "quality_score": model.quality_score,
             "task_type": model.payload.get("task_type", "general"),
+            "updated_at": __import__("datetime").datetime.utcnow().isoformat(),
         }
+        write_tune_file(self.feature_name, manifest)
+        return manifest
 
     # ── RUNTIME: Apply ──
 
     def apply(
         self, model: LearnedModel, feature_input: Dict[str, Any]
     ) -> Dict[str, Any]:
-        feature_input["persona_weights"] = model.payload.get(
-            "personas", self._default_blend()
-        )
-        feature_input["tune_id"] = model.tune_id
-        feature_input["task_type"] = model.payload.get("task_type", "general")
+        # Single-file source of truth: read from canonical file first
+        tune_data = read_tune_file(self.feature_name)
+        if tune_data:
+            feature_input["persona_weights"] = tune_data.get(
+                "persona_weights", self._default_blend()
+            )
+            feature_input["tune_id"] = tune_data.get("tune_id", model.tune_id)
+            feature_input["task_type"] = tune_data.get("task_type", "general")
+        else:
+            # Fallback to model payload (tests / legacy)
+            feature_input["persona_weights"] = model.payload.get(
+                "personas", self._default_blend()
+            )
+            feature_input["tune_id"] = model.tune_id
+            feature_input["task_type"] = model.payload.get("task_type", "general")
         return feature_input
 
     def get_default_config(self, task: str) -> Dict[str, Any]:
+        # Single-file source of truth: read from canonical file first
+        tune_data = read_tune_file(self.feature_name)
+        if tune_data:
+            return {
+                "persona_weights": tune_data.get(
+                    "persona_weights", self._default_blend()
+                ),
+                "tune_id": tune_data.get("tune_id"),
+                "task_type": tune_data.get("task_type", "general"),
+            }
         task_type, _ = self.classifier.classify(task)
         return {
             "persona_weights": self.classifier.get_default_blend(task_type),

@@ -7,6 +7,7 @@ from PIL import Image
 
 # Re-export agent runtime base for convenience
 from platforms.abstract.base_agent_runtime import BaseAgentRuntime
+from platforms.abstract.virtual_desktop import BaseVirtualDesktop
 
 
 class BaseHotkeys(abc.ABC):

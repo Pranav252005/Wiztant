@@ -20,3 +20,11 @@ models/
 *.log
 .pytest_cache/
 coverage/
+
+# Runtime logs, audit trails, and learned/personal data — never commit
+data/*.jsonl
+data/tune_models/
+memory/agent_log.jsonl
+memory/agent_sessions/
+memory/reminder_state.json
+ui/.overlay_cmd

@@ -1,0 +1,98 @@
+# electron-builder configuration for Wiztant
+# Builds the Electron overlay and publishes to GitHub Releases.
+#
+# To release:
+#   1. Bump version in package.json
+#   2. git tag v1.0.1
+#   3. git push origin v1.0.1
+#   4. GitHub Actions builds and publishes automatically.
+
+appId: com.pranav252005.wiztant
+productName: Wiztant
+copyright: Copyright © 2026 Pranav
+
+# Build output directory
+directories:
+  output: dist
+  buildResources: build
+
+# Files to include in the packaged app
+files:
+  - out/**/*
+  - package.json
+
+# ------------------------------------------------------------------
+#  PUBLISH — GitHub Releases
+# ------------------------------------------------------------------
+publish:
+  provider: github
+  owner: Pranav252005
+  repo: Wiztant
+  # releaseType: release   # uncomment to force stable releases (default is draft)
+
+# ------------------------------------------------------------------
+#  macOS
+# ------------------------------------------------------------------
+mac:
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  # ----------------------------------------------------------------
+  #  CODE SIGNING — Fill in before shipping signed macOS builds
+  # ----------------------------------------------------------------
+  # identity: "Developer ID Application: Your Name (TEAM_ID)"
+  # hardenedRuntime: true
+  # gatekeeperAssess: false
+  # entitlements: build/entitlements.mac.plist
+  # entitlementsInherit: build/entitlements.mac.plist
+
+# ------------------------------------------------------------------
+#  Windows
+# ------------------------------------------------------------------
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  # ----------------------------------------------------------------
+  #  CODE SIGNING — Fill in before shipping signed Windows builds
+  # ----------------------------------------------------------------
+  # certificateFile: "path/to/windows-certificate.p12"
+  # certificatePassword: "YOUR_CERT_PASSWORD"
+  # signingHashAlgorithms:
+  #   - sha256
+
+# ------------------------------------------------------------------
+#  Linux
+# ------------------------------------------------------------------
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  category: Office
+  maintainer: Pranav
+  synopsis: Wiztant AI desktop assistant
+  description: Voice-first AI desktop assistant overlay.
+
+# ------------------------------------------------------------------
+#  NSIS (Windows installer)
+# ------------------------------------------------------------------
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: Wiztant
+
+# ------------------------------------------------------------------
+#  NOTARIZATION — Uncomment after adding Apple credentials
+# ------------------------------------------------------------------
+# afterSign: scripts/notarize.js

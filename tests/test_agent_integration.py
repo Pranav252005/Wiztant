@@ -13,7 +13,7 @@ from PIL import Image
 def test_import_parity_vlm_linux_has_matching_concepts():
     """Every public symbol in vlm_linux has a matching concept in vlm (Windows)."""
     import platforms.windows._vlm_impl as vlm_win
-    import platforms.linux._vlm_impl as vlm_linux
+    import core.agent_loop as vlm_linux
 
     linux_exports = set(vlm_linux.__all__)
     # Core orchestration symbols must exist in both
@@ -55,14 +55,14 @@ def test_translate_coordinates_clamps_to_bounds():
 
 def test_end_to_end_dry_run_open_settings():
     """run_agent_task with mocked screenshot + API should return within 5s."""
-    import platforms.linux._vlm_impl as vlm_linux
+    import core.agent_loop as vlm_linux
 
     start = time.time()
-    with patch("platforms.linux._vlm_impl.screenshot", return_value=Image.new("RGB", (100, 100))):
-        with patch("platforms.linux._vlm_impl.ocr_image", return_value="Settings"):
-            with patch("platforms.linux._vlm_impl.call_api", return_value='{"action": "done", "result": "opened settings"}'):
-                with patch("platforms.linux._vlm_impl.parse_json", side_effect=lambda x: {"action": "done", "result": "opened settings"} if "done" in x else None):
-                    with patch("platforms.linux._vlm_impl.ensure_app_open", return_value="launched settings"):
+    with patch("core.agent_loop.screenshot", return_value=Image.new("RGB", (100, 100))):
+        with patch("core.agent_loop.ocr_image", return_value="Settings"):
+            with patch("core.agent_loop.call_api", return_value='{"action": "done", "result": "opened settings"}'):
+                with patch("core.agent_loop.parse_json", side_effect=lambda x: {"action": "done", "result": "opened settings"} if "done" in x else None):
+                    with patch("core.agent_loop.ensure_app_open", return_value="launched settings"):
                         result = vlm_linux.run_agent_task("open settings")
     elapsed = time.time() - start
     assert elapsed < 5.0, f"Dry run took {elapsed:.1f}s, expected < 5s"

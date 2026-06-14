@@ -561,26 +561,14 @@ def add_history_message(role: str, content: str):
         return
     if not state.conversation_history:
         reset_conversation_history()
-    state.conversation_history.append({"role": role, "content": text})
+    with state.conversation_history_lock:
+        state.conversation_history.append({"role": role, "content": text})
     _trim_conversation_history()
     _notify_overlay_history_updated()
 
 
 def add_system_message(content: str):
     add_history_message("system", content)
-
-
-async def execute_agent_task_fixed(task: str) -> dict:
-    from core.agent_s3_wrapper import get_agent_s3
-
-    return await get_agent_s3().execute_task(
-        instruction=task,
-        speak_fn=lambda *_args, **_kwargs: None,
-        set_wave_state_fn=lambda *_args, **_kwargs: None,
-        append_chat_fn=lambda *_args, **_kwargs: None,
-        stop_event=None,
-        max_steps=int(os.getenv("AGENT_MAX_STEPS", "20")),
-    )
 
 
 if not state.conversation_history:
@@ -619,7 +607,19 @@ def tool_clipboard_read(**_):
 @tool("clipboard_write",
       "Writes text to the clipboard. Args: text (str)")
 def tool_clipboard_write(text="", **_):
-    pyperclip.copy(str(text))
+    content = str(text)
+    # Guardrail: max length + secret scan
+    if len(content) > 5000:
+        return "Blocked: clipboard content exceeds 5,000 character limit."
+    try:
+        from core.agent_v2.guardrails import Guardrails
+        g = Guardrails(project_path=str(Path.cwd()))
+        ok, reason, _ = g.validate_content(content, source="clipboard_write")
+        if not ok:
+            return f"Blocked by safety guardrail: {reason}"
+    except Exception:
+        pass
+    pyperclip.copy(content)
     return "Clipboard updated."
 
 
@@ -672,8 +672,24 @@ def tool_run_command(cmd="", **_):
 def tool_open_app(target="", **_):
     if not target:
         return "No target specified."
+    # Guardrail: block system apps and dangerous URLs
+    _blocked_apps = {
+        "regedit", "registry editor",
+        "task manager", "taskmgr",
+        "control panel", "settings",
+        "powershell", "cmd", "terminal",
+        "sudo", "su", "pkexec",
+    }
+    lower = target.lower()
+    for blocked in _blocked_apps:
+        if blocked in lower:
+            return f"Blocked: opening '{target}' is not allowed for safety."
     try:
         if target.startswith("http://") or target.startswith("https://"):
+            from core.guardrails import is_blocked_domain
+            blocked, reason = is_blocked_domain(target)
+            if blocked:
+                return f"Blocked by safety guardrail: {reason}"
             import webbrowser
             webbrowser.open(target)
             return f"Opened in browser: {target}"
@@ -692,6 +708,15 @@ def tool_open_app(target="", **_):
 def tool_read_file(path="", **_):
     if not path:
         return "No file path given."
+    # Guardrail: path sandbox
+    try:
+        from core.agent_v2.guardrails import Guardrails
+        g = Guardrails(project_path=str(Path.cwd()))
+        ok, reason = g.validate_path(path, mode="read")
+        if not ok:
+            return f"Blocked by safety guardrail: {reason}"
+    except Exception:
+        pass
     try:
         with open(path, "r", encoding="utf-8", errors="replace") as f:
             return f.read(2000)
@@ -1218,6 +1243,68 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
         add_history_message("assistant", res)
         return
 
+    # ── Guardrail pre-flight ──
+    try:
+        from core.guardrails import classify_action, is_blocked_domain, is_blocked_app, AgentAuditLogger
+        safety, reason = classify_action(user_text)
+        AgentAuditLogger.log_decision(intent=user_text, action="ask_ai", safety=safety, reason=reason)
+        if safety == "blocked":
+            add_history_message("assistant", f"Blocked by safety guardrail: {reason}")
+            try:
+                from core.ws_bridge import send_pill_notice
+                send_pill_notice("error", "Action blocked", reason[:60])
+            except Exception:
+                pass
+            return
+        # Domain / app blocklist
+        try:
+            from core.agent_engine import extract_requested_url, extract_requested_app
+            url, _ = extract_requested_url(user_text)
+            app_name = extract_requested_app(user_text) or ""
+        except Exception:
+            url, app_name = "", ""
+        if url:
+            blocked, domain_reason = is_blocked_domain(url)
+            if blocked:
+                AgentAuditLogger.log_decision(
+                    intent=user_text, action="ask_ai", safety="blocked", reason=domain_reason
+                )
+                add_history_message("assistant", f"Blocked by safety guardrail: {domain_reason}")
+                try:
+                    from core.ws_bridge import send_pill_notice
+                    send_pill_notice("error", "Action blocked", domain_reason[:60])
+                except Exception:
+                    pass
+                return
+        if app_name:
+            blocked, app_reason = is_blocked_app(app_name)
+            if blocked:
+                AgentAuditLogger.log_decision(
+                    intent=user_text, action="ask_ai", safety="blocked", reason=app_reason
+                )
+                add_history_message("assistant", f"Blocked by safety guardrail: {app_reason}")
+                try:
+                    from core.ws_bridge import send_pill_notice
+                    send_pill_notice("error", "Action blocked", app_reason[:60])
+                except Exception:
+                    pass
+                return
+        if safety == "dangerous":
+            from ui.agent_confirmation_overlay import get_agent_confirmation_overlay
+            choice = get_agent_confirmation_overlay().show_dangerous_confirmation(
+                action_desc=f"Agent wants to: {user_text}",
+                reason=reason,
+                timeout=3.0,
+            )
+            if choice != "confirm":
+                AgentAuditLogger.log_decision(
+                    intent=user_text, action="ask_ai", safety="cancelled", reason="user_timeout_or_cancel"
+                )
+                add_history_message("assistant", "Dangerous action cancelled or timed out.")
+                return
+    except Exception as e:
+        print(f"[Guardrail] Pre-flight error in ask_ai (fail-open): {e}")
+
     tier = usage.get_tier()
     model = get_model(tier)
 
@@ -1239,7 +1326,11 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
 
         add_system_message(f"Agent task: {user_text}")
 
-        # ── Credit pre-flight ──────────────────────────────────────
+        # ── Credit pre-flight (GATE ONLY — no charge here) ──────────
+        # We never charge before the task runs. We only verify the user
+        # *could* afford the estimated cost so we don't start a task they
+        # can't pay for. The actual charge happens after the run, and ONLY
+        # if it succeeded (see the finally/after-summary block below).
         try:
             from core.credit_system import (
                 can_afford,
@@ -1247,8 +1338,6 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
                 deduct,
                 get_balance,
                 get_current_user_id,
-                true_up_credits,
-                refill,
             )
             user_id = get_current_user_id()
             # Heuristic: 1 step per ~10 words, minimum 3 steps
@@ -1260,13 +1349,7 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
                 print(f"[Agent] BLOCKED: {msg}")
                 add_history_message("assistant", msg)
                 return
-            # Reserve estimated cost upfront
-            if not deduct(user_id, "agent", estimated_cost, model=model):
-                msg = "Agent blocked: credit deduction failed."
-                print(f"[Agent] BLOCKED: {msg}")
-                add_history_message("assistant", msg)
-                return
-            print(f"[Agent] Reserved {estimated_cost} credits (est. {estimated_steps} steps)")
+            print(f"[Agent] Credit gate passed (est. {estimated_cost} credits, {estimated_steps} steps) — billed on success only")
         except Exception as e:
             print(f"[Agent] Credit pre-flight error: {e}")
             # Fail-open: allow agent to run if credit system is broken
@@ -1293,10 +1376,28 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
         except Exception:
             pass
 
+        # Fallback: read directly from canonical tune file so the agent keeps
+        # the latest tuned recipe in its brain even when middleware has no SQLite entry.
+        try:
+            from core.tune_hub.single_file_store import read_tune_file
+            tune_data = read_tune_file("agent")
+            if tune_data:
+                recipe = tune_data.get("recipe", [])
+                dsl_code = tune_data.get("dsl_code", "")
+                if recipe and tuned_task == user_text:
+                    hint = f"Follow this learned automation sequence: {recipe}"
+                    if dsl_code:
+                        hint += f"\nDSL: {dsl_code}"
+                    tuned_task = f"{user_text}\n\n[TUNED_HINT]: {hint}"
+                    print(f"[TuneHub] Agent tune loaded from file: {user_text[:60]}...")
+        except Exception:
+            pass
+
         stop_event = threading.Event()
         state._agent_stop_event = stop_event
         state._agent_running = True
         steps_taken = []
+        token_usage: dict = {}  # {model: [input_tokens, output_tokens]} filled by the session
 
         def _credit_check(step: int) -> bool:
             """Mid-flight credit check — called before each step after the first."""
@@ -1310,22 +1411,23 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
                 return True
 
         try:
-            from core.agent_unified import run_unified_agent
+            from core.agent_orchestrator import run_agent_session
             from platforms.factory import get_agent_runtime
 
-            print("[Agent] Starting run_unified_agent...")
-            summary = asyncio.run(run_unified_agent(
+            print("[Agent] Starting Three-Brain agent session...")
+            summary = asyncio.run(run_agent_session(
                 task=tuned_task,
                 runtime=get_agent_runtime(),
                 speak_fn=_speak_via_tts,
                 set_wave_state_fn=_set_agent_wave_state,
                 append_chat_fn=_append_agent_chat,
                 stop_event=stop_event,
-                max_steps=int(os.getenv("AGENT_MAX_STEPS", "15")),
+                max_steps=int(os.getenv("AGENT_MAX_STEPS", "100")),
                 credit_check_fn=_credit_check,
                 steps_taken_ref=steps_taken,
+                token_usage_ref=token_usage,
             ))
-            print(f"[Agent] run_unified_agent returned: {summary}")
+            print(f"[Agent] run_agent_session returned: {summary}")
         except Exception as e:
             summary = f"Agent stopped: {e}"
             print(f"[Agent] run_unified_agent EXCEPTION: {e}")
@@ -1333,23 +1435,6 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
             state._agent_running = False
             state._agent_stop_event = None
             _set_agent_wave_state("idle")
-            # True-up: refund unused reserved credits
-            if user_id and estimated_cost > 0 and steps_taken:
-                try:
-                    actual_steps = steps_taken[0]
-                    actual_cost = calculate_agent_credits(actual_steps)
-                    if actual_cost < estimated_cost:
-                        refund = estimated_cost - actual_cost
-                        refill(user_id, refund, source="agent_true_up_refund")
-                        print(f"[Agent] True-up: refunded {refund} credits (est. {estimated_cost}, actual {actual_cost})")
-                    elif actual_cost > estimated_cost:
-                        extra = actual_cost - estimated_cost
-                        if not deduct(user_id, "agent", extra, model=model):
-                            print(f"[Agent] True-up: could not charge extra {extra} credits")
-                        else:
-                            print(f"[Agent] True-up: charged extra {extra} credits")
-                except Exception as e:
-                    print(f"[Agent] True-up error: {e}")
 
         if summary is None:
             # Blocked by credit gate or internal error; message already spoken.
@@ -1357,23 +1442,55 @@ def ask_ai(user_text: str, user_already_added: bool = False, force_agent: bool =
 
         print(f"[Agent] {summary}")
         add_history_message("assistant", summary)
+
+        # ── Determine success, then bill ONLY on success ────────────
+        # An agent task is a "pass" only if it didn't fail or get stopped.
+        success = not summary.startswith(("Agent failed:", "Agent stopped:"))
+
+        # Bill by ACTUAL tokens × model price across all three brains
+        # (planner + vision + executor), summed from the per-model usage the
+        # session reported. Only on success; failures are free. If no token
+        # usage was captured (e.g. session errored before any API call), fall
+        # back to the step-based estimate so a successful run is never free.
+        if user_id and success:
+            try:
+                from core.credit_system import calculate_api_cost, calculate_credits
+                total_api_cost = 0.0
+                for m, toks in (token_usage or {}).items():
+                    in_tok = toks[0] if len(toks) > 0 else 0
+                    out_tok = toks[1] if len(toks) > 1 else 0
+                    total_api_cost += calculate_api_cost(m, in_tok, out_tok)
+
+                if total_api_cost > 0:
+                    actual_cost = calculate_credits(total_api_cost)
+                    bill_note = f"{sum(t[0] for t in token_usage.values())} in / {sum(t[1] for t in token_usage.values())} out tokens across {len(token_usage)} models"
+                else:
+                    # No usage captured — fall back to step-based estimate.
+                    actual_steps = steps_taken[0] if steps_taken else estimated_steps
+                    actual_cost = calculate_agent_credits(actual_steps)
+                    bill_note = f"{actual_steps} steps (token usage unavailable)"
+
+                if actual_cost > 0 and deduct(user_id, "agent", actual_cost, model=model):
+                    try:
+                        from core.ws_bridge import send_credit_consumed
+                        send_credit_consumed("agent", actual_cost, get_balance(user_id), model)
+                    except Exception:
+                        pass
+                    print(f"[Agent] Charged {actual_cost} credits — {bill_note} — success")
+            except Exception as e:
+                print(f"[Agent] Billing error (not charged): {e}")
+        elif user_id and not success:
+            print("[Agent] Task failed/stopped — no credits charged")
+
         # Notify React overlay that the agent task finished
         try:
             from core.ws_bridge import send_agent_done
-            success = not summary.startswith(("Agent failed:", "Agent stopped:"))
             send_agent_done("agent-task", summary, success=success)
         except Exception:
             pass
         if state.MEMORY_ENABLED and summary:
             memory_mod.update_from_exchange(user_text, summary)
             memory_mod.store_agent_task(user_text, summary)
-        # Save agent summary to dictation memories so it appears in the Memories tab
-        if summary:
-            try:
-                from core.dictation_memory import add_memory
-                add_memory(original_text=user_text, final_text=summary, mode="agent")
-            except Exception:
-                pass
         return
 
     # Chat feature removed — only agent mode is supported via F9×2

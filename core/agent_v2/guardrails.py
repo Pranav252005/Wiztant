@@ -173,7 +173,7 @@ _COMMAND_ALLOWLIST = {
     # Cloud
     "vercel", "netlify", "fly", "railway", "render",
     # Utilities
-    "curl", "mkdir", "cp", "mv", "ls", "cat", "echo", "touch",
+    "mkdir", "cp", "mv", "ls", "cat", "echo", "touch",
     "grep", "find", "sed", "awk", "sort", "uniq", "wc", "head", "tail",
     "less", "more", "which", "whereis", "file", "diff", "patch",
     "tar", "zip", "unzip", "gzip", "gunzip",
@@ -491,6 +491,18 @@ class Guardrails:
             guardrail_triggered=reason,
             metadata=metadata,
         )
+        # Mirror to unified agent audit log
+        try:
+            from core.guardrails import AgentAuditLogger
+            AgentAuditLogger.log_decision(
+                intent="guardrail",
+                action=action,
+                safety="blocked" if reason else "allowed",
+                reason=reason or "",
+                user_id=self.user_id,
+            )
+        except Exception:
+            pass
 
 
 # =============================================================

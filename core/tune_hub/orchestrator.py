@@ -52,6 +52,7 @@ class TuneResult:
     message: str
     reusable: bool
     sync_status: Optional[str] = None
+    credits_used: int = 0
 
 
 # =============================================================
@@ -107,6 +108,17 @@ class TuneHub:
                 reusable=False,
             )
 
+        # Early guard: Desktop 2 only
+        if self.desktop_mode != "desktop2":
+            return TuneResult(
+                success=False,
+                model=None,
+                iterations_used=0,
+                iterations_remaining=request.budget_limit,
+                message="Learning only available on Desktop 2",
+                reusable=False,
+            )
+
         try:
             # Step 1: Resolve tuner
             tuner = TuneBase.create(request.feature_name)
@@ -121,11 +133,18 @@ class TuneHub:
                     deduct,
                     get_current_user_id,
                 )
+                from .quality.judge import SimpleJudge
                 user_id = get_current_user_id()
+                # SimpleJudge is heuristic-based and costs zero API tokens
+                judge_override = 0 if (
+                    self.quality_judge_factory is None
+                    or self.quality_judge_factory is SimpleJudge
+                ) else None
                 credit_cost = calculate_tunehub_credits(
                     complexity=complexity.name,
                     feature_model=request.context.get("feature_model"),
                     judge_model=request.context.get("judge_model"),
+                    judge_credits_override=judge_override,
                 )
                 if not deduct(user_id, "tunehub", credit_cost):
                     return TuneResult(
@@ -138,20 +157,17 @@ class TuneHub:
                     )
             except Exception as e:
                 print(f"[CreditSystem] TuneHub credit deduction failed: {e}")
-
-            # Step 4: Budget initialization
-            budget = CreditBudget(approved=request.budget_limit)
-
-            # Step 5: LEARN (expensive, Desktop 2 only)
-            if self.desktop_mode != "desktop2":
                 return TuneResult(
                     success=False,
                     model=None,
                     iterations_used=0,
                     iterations_remaining=request.budget_limit,
-                    message="Learning only available on Desktop 2",
+                    message=f"Credit system error: {e}",
                     reusable=False,
                 )
+
+            # Step 4: Budget initialization
+            budget = CreditBudget(approved=request.budget_limit)
 
             judge = (
                 self.quality_judge_factory()
@@ -166,21 +182,21 @@ class TuneHub:
             )
 
             if learned_model.status == TuneStatus.FAILED:
-                # Refund 70% of upfront cost on failure
+                # Full refund on learning failure — user got no value
                 try:
                     from core.credit_system import refill, get_current_user_id
-                    refund = int(credit_cost * 0.7)
-                    if refund > 0:
-                        refill(get_current_user_id(), refund, source="tunehub_failure_refund")
+                    if credit_cost > 0:
+                        refill(get_current_user_id(), credit_cost, source="tunehub_failure_refund")
                 except Exception:
                     pass
                 return TuneResult(
                     success=False,
                     model=learned_model,
-                    credits_used=budget.consumed,
+                    iterations_used=budget.consumed,
                     iterations_remaining=budget.approved - budget.consumed,
                     message="Learning failed — could not find viable configuration",
                     reusable=False,
+                    credits_used=budget.consumed,
                 )
 
             # Step 7: VALIDATE
@@ -188,21 +204,21 @@ class TuneHub:
             if not validated:
                 learned_model.status = TuneStatus.FAILED
                 self.storage.store_tune(request.user_id, learned_model)
-                # Refund 70% of upfront cost on validation failure
+                # Full refund on validation failure — user got no value
                 try:
                     from core.credit_system import refill, get_current_user_id
-                    refund = int(credit_cost * 0.7)
-                    if refund > 0:
-                        refill(get_current_user_id(), refund, source="tunehub_validation_refund")
+                    if credit_cost > 0:
+                        refill(get_current_user_id(), credit_cost, source="tunehub_validation_refund")
                 except Exception:
                     pass
                 return TuneResult(
                     success=False,
                     model=learned_model,
-                    credits_used=budget.consumed,
+                    iterations_used=budget.consumed,
                     iterations_remaining=budget.approved - budget.consumed,
                     message="Validation failed — learned model did not generalize",
                     reusable=False,
+                    credits_used=budget.consumed,
                 )
 
             learned_model.status = TuneStatus.VALIDATED

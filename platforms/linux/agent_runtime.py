@@ -8,7 +8,8 @@ from __future__ import annotations
 import logging
 import os
 import shutil
-from typing import Tuple
+import subprocess
+from typing import Optional, Tuple
 
 from PIL import Image
 

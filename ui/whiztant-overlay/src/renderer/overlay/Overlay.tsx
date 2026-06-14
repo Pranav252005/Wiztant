@@ -19,17 +19,19 @@ import WizPromptPanel from './WizPromptPanel';
 import MemoriesPanel, { type DictationMemory } from './MemoriesPanel';
 import TuneHubPanel from './TuneHubPanel';
 import VocabCorrectModal from './VocabCorrectModal';
-import { ProjectBuilderPanel } from './ProjectBuilderPanel';
+import { AgentV2Panel } from './AgentV2Panel';
 
 import { sendBridgeMessage, useBridgeConnected, useBridgeMessage } from '../shared/useBridge';
 import { usePillNotifications, type PillNotification } from '../shared/usePillNotifications';
 import NotificationRenderer from '../shared/notifications/NotificationRenderer';
+import DangerousActionConfirm from '../shared/notifications/DangerousActionConfirm';
 import { useCreditToasts, CreditToastContainer } from '../shared/CreditToast';
 import type { Task } from '../shared/ipc';
 import { useTopTabNav, type TopTabId } from './useTopTabNav';
 import { readFeatureFlags, writeFeatureFlags, type FeatureFlags, type FeatureKey } from '../settings/Settings';
 import { useTasks } from './useTasks';
 import Settings from '../settings/Settings';
+import { OnboardingTour, HelpSheet, hasOnboarded } from './OnboardingTour';
 import { useCredits } from '../shared/useCredits';
 import type { SettingsTab } from '../settings/Settings';
 
@@ -133,7 +135,9 @@ export default function Overlay() {
   const bridgeConnected = useBridgeConnected();
   const [activeTopTab, setActiveTopTab] = useState<TopTabId>(() => {
     const stored = localStorage.getItem('wiz-top-tab');
-    return stored === 'agent' || stored === 'tasks' || stored === 'chat' || stored === 'wizprompt' || stored === 'memories' ? stored : 'chat';
+    if (stored === 'agent' || stored === 'tasks' || stored === 'chat' || stored === 'wizprompt' || stored === 'memories') return stored;
+    // First-time users land on Tasks — the most self-explanatory panel.
+    return 'tasks';
   });
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [taskHistory, setTaskHistory] = useState<TaskHistoryItem[]>([]);
@@ -149,6 +153,8 @@ export default function Overlay() {
   const tasksState = useTasks(tasks, taskHistory);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsTab | undefined>(undefined);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showTour, setShowTour] = useState(() => !hasOnboarded());
   const creditToasts = useCreditToasts();
 
   // ── Process tracking for tab indicators ───────────────────
@@ -185,10 +191,30 @@ export default function Overlay() {
   } | null>(null);
   const [taskPrefill, setTaskPrefill] = useState<Record<string, unknown> | null>(null);
   const [repromptPendingText, setRepromptPendingText] = useState<string | null>(null);
+  const [dangerousAction, setDangerousAction] = useState<{
+    actionDesc: string;
+    reason: string;
+    timeout: number;
+  } | null>(null);
 
   useEffect(() => {
     window.api.onShowSettings(() => setShowSettings(true));
     window.api.onHideSettings(() => setShowSettings(false));
+  }, []);
+
+  // First launch: open the overlay so new users aren't stranded at the pill,
+  // then run the welcome tour. Settings can replay it via a window event.
+  useEffect(() => {
+    if (!hasOnboarded()) {
+      window.api.showOverlay();
+    }
+    const replay = () => {
+      setShowSettings(false);
+      setShowHelp(false);
+      setShowTour(true);
+    };
+    window.addEventListener('wiz-replay-tour', replay);
+    return () => window.removeEventListener('wiz-replay-tour', replay);
   }, []);
 
   // Listen for navigate-to-tasks-edit from main process (pill edit flow)
@@ -260,6 +286,16 @@ export default function Overlay() {
             writeFeatureFlags(next);
             return next;
           });
+        }
+      } else if (msg.type === 'agent_confirmation') {
+        const payload = msg.payload as Record<string, unknown> | undefined;
+        if (payload && payload.confirmation_type === 'dangerous_action') {
+          setDangerousAction({
+            actionDesc: String(payload.action_desc ?? ''),
+            reason: String(payload.reason ?? ''),
+            timeout: Number(payload.timeout ?? 3),
+          });
+          window.api.showOverlay();
         }
       }
       // due_alert / due_reminder / task_duplicate / task_saved (as pill
@@ -413,12 +449,30 @@ export default function Overlay() {
       }}
     >
       {/* Overlay content — always mounted, hidden via CSS when Settings open */}
-      <div style={{ display: showSettings ? 'none' : 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+      <div style={{ display: showSettings ? 'none' : 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', position: 'relative' }}>
         <VocabCorrectModal theme={theme} />
+
+        {dangerousAction && (
+          <DangerousActionConfirm
+            actionDesc={dangerousAction.actionDesc}
+            reason={dangerousAction.reason}
+            timeoutSeconds={dangerousAction.timeout}
+            theme={theme}
+            onConfirm={() => {
+              sendBridgeMessage({ type: 'confirmation_response', choice: 'confirm' });
+              setDangerousAction(null);
+            }}
+            onCancel={() => {
+              sendBridgeMessage({ type: 'confirmation_response', choice: 'cancel' });
+              setDangerousAction(null);
+            }}
+          />
+        )}
 
         {/* ── Header + Tab strip ──────────────────────────── */}
         {/* ── Header ──────────────────────────────────────── */}
         <div
+          data-tour="header"
           style={{
             display: "flex",
             alignItems: "center",
@@ -429,6 +483,7 @@ export default function Overlay() {
             flexShrink: 0,
           }}
         >
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <button
             onClick={() => { setSettingsInitialTab(undefined); setShowSettings(true); }}
             title="Settings"
@@ -458,6 +513,40 @@ export default function Overlay() {
           >
             <GearIcon />
           </button>
+
+          <button
+            onClick={() => setShowHelp(true)}
+            title="Hotkeys & guide"
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 6,
+              border: `1px solid ${theme.border}`,
+              background: "transparent",
+              color: theme.textMuted,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              fontFamily: "inherit",
+              fontSize: 12,
+              fontWeight: 700,
+              lineHeight: 1,
+              ...( { WebkitAppRegion: "no-drag" } as any ),
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = theme.text;
+              e.currentTarget.style.background = `${theme.aiAccent}12`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = theme.textMuted;
+              e.currentTarget.style.background = "transparent";
+            }}
+          >
+            ?
+          </button>
+          </div>
 
           <CreditBadge theme={theme} onClick={() => { setSettingsInitialTab('credits'); setShowSettings(true); }} />
 
@@ -543,11 +632,28 @@ export default function Overlay() {
                   dismissNotification();
                 },
                 dismissReminder: () => dismissNotification(),
+                dismissOverdueReminder: () => dismissNotification(),
                 dismissDuplicate: () => dismissNotification(),
                 approveTaskConfirm: () => dismissNotification(),
                 rejectTaskConfirm: () => dismissNotification(),
                 editTaskConfirm: () => dismissNotification(),
                 openTaskNotification: () => dismissNotification(),
+                snoozeTask: (id: string, minutes: number) => {
+                  sendBridgeMessage({ type: 'tasks/snooze', task_id: id, minutes });
+                  dismissNotification();
+                },
+                toggleTaskDone: (id: string) => {
+                  void tasksState.markDone(id);
+                  dismissNotification();
+                },
+                openTaskById: (id: string, title: string) => {
+                  window.api.openOverlayToTasksEdit({
+                    prefillTitle: title,
+                    taskId: id,
+                    scrollToTask: true,
+                  });
+                  dismissNotification();
+                },
               }}
             />
           </div>
@@ -592,7 +698,7 @@ export default function Overlay() {
         <TopTabContent
           activeTab={activeTopTab}
           wizprompt={features.reprompt ? <WizPromptPanel theme={theme} preloaded={wizPromptPreloaded} pendingText={repromptPendingText} onProcessChange={(s) => updateProcess('wizprompt', s)} /> : null}
-          agent={features.agent ? <ProjectBuilderPanel theme={theme} /> : null}
+          agent={features.agent ? <AgentV2Panel theme={theme} /> : null}
           tasks={features.tasks ? (
             <TasksPanel
               theme={theme}
@@ -629,6 +735,27 @@ export default function Overlay() {
         <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column' }}>
           <Settings onBack={() => setShowSettings(false)} initialTheme={themeName} initialTab={settingsInitialTab} />
         </div>
+      )}
+
+      {/* Hotkey cheat-sheet */}
+      {showHelp && (
+        <HelpSheet
+          theme={theme}
+          onClose={() => setShowHelp(false)}
+          onReplayTour={() => {
+            setShowHelp(false);
+            setShowTour(true);
+          }}
+        />
+      )}
+
+      {/* First-run welcome tour */}
+      {showTour && !showSettings && (
+        <OnboardingTour
+          theme={theme}
+          features={{ agent: features.agent, reprompt: features.reprompt, tasks: features.tasks }}
+          onDone={() => setShowTour(false)}
+        />
       )}
 
       {/* Credit consumption toasts */}

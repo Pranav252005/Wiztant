@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Task, TaskDifficulty } from '../shared/ipc';
 import type { Theme } from '../shared/themes';
+import { inkFor } from '../shared/themes';
 import { sendBridgeMessage } from '../shared/useBridge';
 import CustomDropdown from '../shared/CustomDropdown';
 import TaskTile from './TaskTile';
@@ -546,7 +547,7 @@ export default function TasksPanel({
           disabled={!draftText.trim()}
           style={{
             background: theme.aiAccent,
-            color: '#0a0a0a',
+            color: inkFor(theme.aiAccent),
             border: 'none',
             borderRadius: 10,
             padding: '7px 16px',

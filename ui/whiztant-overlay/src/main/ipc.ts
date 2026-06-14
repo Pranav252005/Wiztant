@@ -19,6 +19,7 @@ import { dragState } from './dragState';
 import { setLastCursorDisplayId } from './monitorState';
 import { createTaskPanelWindow, createStreakPanelWindow, createMemoryPanelWindow } from './windows';
 import { reloadShortcuts } from './shortcuts';
+import { checkForUpdates, restartToUpdate } from './updater';
 
 // Theme persistence — stored next to the Python app in C:\whis\memory\theme.json
 // so the same file can be inspected or edited by the desktop side if needed.
@@ -660,6 +661,15 @@ export function registerIpcHandlers({ pill, overlay, showOverlay, setLastCursorD
     if (typeof url === 'string' && url.startsWith('http')) {
       shell.openExternal(url).catch(() => { /* ignore */ });
     }
+  });
+
+  // ─── Update system ──────────────────────────────────────────
+  ipcMain.on(IPC.CHECK_FOR_UPDATES, () => {
+    checkForUpdates();
+  });
+
+  ipcMain.on(IPC.RESTART_UPDATE, () => {
+    restartToUpdate();
   });
 
   // ─── Quit ───────────────────────────────────────────────────

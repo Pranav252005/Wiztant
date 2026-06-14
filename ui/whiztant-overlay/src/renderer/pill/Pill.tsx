@@ -9,7 +9,7 @@ import type {
   Task,
 } from '../shared/ipc';
 import { useBridgeMessage, sendBridgeMessage } from '../shared/useBridge';
-import { usePillNotifications, type TaskConfirmPayload, type PillNotificationPayload } from '../shared/usePillNotifications';
+import { usePillNotifications, type TaskConfirmPayload, type PillNotificationPayload, type PillNotificationKind } from '../shared/usePillNotifications';
 import NotificationRenderer, { pillSizeFor } from '../shared/notifications/NotificationRenderer';
 import SnoozeOptions from '../shared/notifications/SnoozeOptions';
 import DictationPreviewInline from './DictationPreviewInline';
@@ -228,9 +228,16 @@ export default function Pill() {
   const agentModeRef = useRef(agentModeEnabled);
   agentModeRef.current = agentModeEnabled;
 
+  // Workflow status tracking: idle | running | gate | result
+  const [workflowStatus, setWorkflowStatus] = useState<'idle' | 'running' | 'gate' | 'result'>('idle');
+  const workflowStatusRef = useRef(workflowStatus);
+  workflowStatusRef.current = workflowStatus;
+  const workflowNoticeTimerRef = useRef<number | null>(null);
+
   // Snooze view state: when user clicks a notification body, show snooze options
   const [snoozePayload, setSnoozePayload] = useState<PillNotificationPayload | null>(null);
 
+  // Connection state for reconnect indicator
   // Inline dictation preview state
   const [dictationPreview, setDictationPreview] = useState<{
     id: string;
@@ -351,6 +358,95 @@ export default function Pill() {
       setAgentStatus('error');
       setFlashState('error');
       clearAgentTimeout();
+    }
+
+    // ── Workflow events ──
+    if (msg?.type === 'workflow/started') {
+      setWorkflowStatus('running');
+      setState('agent');
+      setAgentModeEnabled(true);
+      const payload: PillNoticePayload = {
+        kind: 'added',
+        title: 'Workflow',
+        summary: 'Working...',
+        duration_ms: 4000,
+      };
+      setNotice(payload);
+      if (workflowNoticeTimerRef.current) clearTimeout(workflowNoticeTimerRef.current);
+      workflowNoticeTimerRef.current = window.setTimeout(() => {
+        setNotice((current) => (current === payload ? null : current));
+      }, 4000);
+    }
+
+    if (msg?.type === 'workflow/step') {
+      setWorkflowStatus('running');
+    }
+
+    if (msg?.type === 'workflow/gate') {
+      setWorkflowStatus('gate');
+      const payload: PillNoticePayload = {
+        kind: 'added',
+        title: 'Workflow',
+        summary: 'Needs input — tap to decide',
+        duration_ms: 30000,
+      };
+      setNotice(payload);
+      if (workflowNoticeTimerRef.current) clearTimeout(workflowNoticeTimerRef.current);
+      workflowNoticeTimerRef.current = window.setTimeout(() => {
+        setNotice((current) => (current === payload ? null : current));
+      }, 30000);
+    }
+
+    if (msg?.type === 'workflow/completed') {
+      setWorkflowStatus('result');
+      const resultText = String(msg.summary ?? 'Done');
+      const payload: PillNoticePayload = {
+        kind: 'added',
+        title: 'Workflow Complete',
+        summary: resultText.length > 60 ? resultText.slice(0, 60) + '...' : resultText,
+        duration_ms: 30000,
+      };
+      setNotice(payload);
+      if (workflowNoticeTimerRef.current) clearTimeout(workflowNoticeTimerRef.current);
+      workflowNoticeTimerRef.current = window.setTimeout(() => {
+        setWorkflowStatus('idle');
+        setNotice((current) => (current === payload ? null : current));
+      }, 30000);
+    }
+
+    if (msg?.type === 'workflow/result') {
+      setWorkflowStatus('result');
+      const resultText = String(msg.summary ?? '');
+      if (resultText) {
+        const payload: PillNoticePayload = {
+          kind: 'added',
+          title: 'Workflow Complete',
+          summary: resultText.length > 60 ? resultText.slice(0, 60) + '...' : resultText,
+          duration_ms: 30000,
+        };
+        setNotice(payload);
+        if (workflowNoticeTimerRef.current) clearTimeout(workflowNoticeTimerRef.current);
+        workflowNoticeTimerRef.current = window.setTimeout(() => {
+          setWorkflowStatus('idle');
+          setNotice((current) => (current === payload ? null : current));
+        }, 30000);
+      }
+    }
+
+    if (msg?.type === 'workflow/error') {
+      setWorkflowStatus('idle');
+      setFlashState('error');
+      const payload: PillNoticePayload = {
+        kind: 'error',
+        title: 'Workflow Failed',
+        summary: String(msg.error ?? 'Unknown error'),
+        duration_ms: 6000,
+      };
+      setNotice(payload);
+      if (workflowNoticeTimerRef.current) clearTimeout(workflowNoticeTimerRef.current);
+      workflowNoticeTimerRef.current = window.setTimeout(() => {
+        setNotice((current) => (current === payload ? null : current));
+      }, 6000);
     }
 
     // ── Voice state (dictation lifecycle) ──
@@ -906,6 +1002,7 @@ export default function Pill() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                position: 'relative',
               }}
             >
               <div
@@ -920,8 +1017,10 @@ export default function Pill() {
                   micLevels={levels}
                   simulatedLevels={simulatedLevels}
                   agentStatus={agentStatus}
+                  workflowStatus={workflowStatus}
                 />
               </div>
+
             </motion.div>
           )}
         </AnimatePresence>
@@ -1066,18 +1165,81 @@ function StopButton({ onClick }: { onClick: (e: ReactMouseEvent<HTMLButtonElemen
   );
 }
 
+const WORKFLOW_TEAL = 'rgba(45, 212, 191, 0.95)';
+const WORKFLOW_ORANGE = 'rgba(251, 146, 60, 0.95)';
+const WORKFLOW_GREEN = 'rgba(34, 197, 94, 0.95)';
+
+function WorkflowStatusBlob({ status }: { status: 'idle' | 'running' | 'gate' | 'result' }) {
+  if (status === 'idle') return null;
+
+  const colors = {
+    running: WORKFLOW_TEAL,
+    gate: WORKFLOW_ORANGE,
+    result: WORKFLOW_GREEN,
+  };
+
+  const c = colors[status];
+
+  if (status === 'result') {
+    return (
+      <motion.div
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          background: c,
+          boxShadow: `0 0 6px 2px ${c.replace('0.95', '0.45')}`,
+          marginRight: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#fff', opacity: 0.9 }} />
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{
+        scale: [1, 1.35, 1],
+        opacity: [0.7, 1, 0.7],
+      }}
+      transition={{
+        scale: { repeat: Infinity, duration: 1.2, ease: 'easeInOut' },
+        opacity: { repeat: Infinity, duration: 1.2, ease: 'easeInOut' },
+      }}
+      style={{
+        width: 6,
+        height: 6,
+        borderRadius: '50%',
+        background: c,
+        boxShadow: `0 0 6px 2px ${c.replace('0.95', '0.45')}`,
+        marginRight: 2,
+      }}
+    />
+  );
+}
+
 function PillIndicator({
   state,
   color,
   micLevels,
   simulatedLevels,
   agentStatus,
+  workflowStatus,
 }: {
   state: AppState;
   color: string;
   micLevels: number[];
   simulatedLevels: number[];
   agentStatus: 'idle' | 'active' | 'working' | 'error';
+  workflowStatus: 'idle' | 'running' | 'gate' | 'result';
 }) {
   if (state === 'idle') {
     return (
@@ -1155,7 +1317,8 @@ function PillIndicator({
     const values = micLevels.some((v) => v > 0.05) ? micLevels : simulatedLevels;
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-        <AgentStatusBlob status={agentStatus} />
+        <WorkflowStatusBlob status={workflowStatus} />
+        {workflowStatus === 'idle' && <AgentStatusBlob status={agentStatus} />}
         <Bars values={values} color={color} maxH={MAX_BAR_H} />
         <StopButton
           onClick={(e) => {

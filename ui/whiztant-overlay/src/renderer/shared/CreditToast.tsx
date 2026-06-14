@@ -81,8 +81,9 @@ export function CreditToastContainer({ toasts }: { toasts: CreditToast[] }) {
               {FEATURE_LABELS[t.feature] || t.feature}
             </span>
             {' — '}
-            <span style={{ color: '#F59E0B' }}>
-              −{t.amount} credit{t.amount !== 1 ? 's' : ''}
+            <span style={{ color: t.amount < 0 ? '#34d399' : '#F59E0B' }}>
+              {t.amount < 0 ? '+' : '−'}
+              {Math.abs(t.amount)} credit{Math.abs(t.amount) !== 1 ? 's' : ''}
             </span>
             {' · '}
             <span style={{ color: '#6b7280' }}>{t.balanceAfter} left</span>

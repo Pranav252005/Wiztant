@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import type { Task } from '../shared/ipc';
 import type { Theme } from '../shared/themes';
+import { inkFor } from '../shared/themes';
 import { sendBridgeMessage } from '../shared/useBridge';
 
 function formatDueLabel(value?: string | null) {
@@ -169,7 +170,7 @@ export default function TaskTile({
               justifyContent: 'center',
               flexShrink: 0,
               fontSize: 11,
-              color: '#FCA5A5',
+              color: theme.text,
             }}
           >
             !
@@ -193,7 +194,7 @@ export default function TaskTile({
               justifyContent: 'center',
               flexShrink: 0,
               fontSize: 12,
-              color: isDone ? '#0a0a0a' : theme.textMuted,
+              color: isDone ? inkFor(theme.aiAccent) : theme.textMuted,
               cursor: 'pointer',
             }}
           >
@@ -279,7 +280,7 @@ export default function TaskTile({
             {task.text}
           </div>
           {isFailed ? (
-            <div style={{ fontSize: 11, color: '#FCA5A5', lineHeight: 1.45 }}>
+            <div style={{ fontSize: 11, color: '#ef4444', lineHeight: 1.45 }}>
               Not completed — please review
             </div>
           ) : null}

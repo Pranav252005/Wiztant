@@ -11,10 +11,16 @@ from __future__ import annotations
 import json
 import math
 import os
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
+
+try:
+    from filelock import FileLock
+except ImportError:
+    FileLock = None  # type: ignore[misc,assignment]
 
 # =============================================================
 #  PATHS & CONSTANTS
@@ -160,6 +166,10 @@ class ModelRegistry:
         est = estimates.get(feature, {"input": 3000, "output": 2000})
         return (est.get("input", 3000), est.get("output", 2000))
 
+    def get_dictation_daily_free_seconds(self) -> int:
+        """Seconds of dictation per day that paid tiers get for free."""
+        return int(self._data.get("dictation", {}).get("daily_free_seconds_paid", 1800))
+
     def list_models(self) -> Dict[str, ModelPrice]:
         return dict(self._models)
 
@@ -260,10 +270,17 @@ def calculate_tunehub_credits(
     feature_tokens: Optional[Tuple[int, int]] = None,
     judge_tokens: Optional[Tuple[int, int]] = None,
     tier: str = "pro",
+    judge_credits_override: Optional[int] = None,
 ) -> int:
     """
     Calculate TuneHub credits.
     Total = iterations × (feature_credits_per_iter + judge_credits_per_iter)
+
+    Args:
+        judge_credits_override: If provided, use this value instead of
+            calculating judge credits from the model registry. Pass 0 when
+            using SimpleJudge (no API calls) to avoid charging for free
+            heuristic scoring.
     """
     registry = _get_registry()
     iterations = registry.get_tunehub_iterations(complexity)
@@ -275,10 +292,13 @@ def calculate_tunehub_credits(
     feature_credits = calculate_credits(feature_api_cost, tier)
 
     # Judge cost per iteration
-    j_model = judge_model or registry.get_default_model("tunehub_judge")
-    j_in, j_out = judge_tokens or registry.get_token_estimate("judge")
-    judge_api_cost = calculate_api_cost(j_model, j_in, j_out)
-    judge_credits = calculate_credits(judge_api_cost, tier)
+    if judge_credits_override is not None:
+        judge_credits = judge_credits_override
+    else:
+        j_model = judge_model or registry.get_default_model("tunehub_judge")
+        j_in, j_out = judge_tokens or registry.get_token_estimate("judge")
+        judge_api_cost = calculate_api_cost(j_model, j_in, j_out)
+        judge_credits = calculate_credits(judge_api_cost, tier)
 
     per_iteration = feature_credits + judge_credits
     return per_iteration * iterations
@@ -287,6 +307,101 @@ def calculate_tunehub_credits(
 def calculate_dictation_credits() -> int:
     """Dictation is a fixed 1 credit (Whisper is extremely cheap)."""
     return 1
+
+
+# =============================================================
+#  CENTRAL BILLING RULE  (the one hardcoded entrypoint)
+# =============================================================
+
+# Features billed at a fixed credit cost regardless of token usage.
+# Everything NOT listed here is billed by actual tokens × model price.
+_FIXED_PRICE_FEATURES: Dict[str, int] = {
+    "dictation": 1,
+    # "chat" here is the natural-language settings tuner (/tune). It is a small
+    # fixed operation with no token accounting plumbed, so it is billed flat.
+    "chat": 1,
+}
+
+
+def quote_task_cost(
+    feature: str,
+    model: Optional[str] = None,
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    tier: str = "pro",
+) -> int:
+    """
+    Compute what a task *would* cost, without charging.
+
+    Rule (hardcoded):
+      - Fixed-price features (e.g. dictation) cost their fixed amount.
+      - Everything else costs ceil(api_cost × markup / cost_per_credit),
+        derived from the actual tokens consumed and the model's price.
+
+    This is the single source of truth for "how much does this task cost".
+    """
+    if feature in _FIXED_PRICE_FEATURES:
+        return _FIXED_PRICE_FEATURES[feature]
+    api_cost = calculate_api_cost(model or "", input_tokens, output_tokens)
+    return calculate_credits(api_cost, tier)
+
+
+def charge_task(
+    user_id: str,
+    feature: str,
+    success: bool,
+    *,
+    model: Optional[str] = None,
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    tier: str = "pro",
+) -> int:
+    """
+    THE central billing entrypoint. Every feature charges through here.
+
+    Two invariants, both hardcoded and non-negotiable:
+      1. FAILURES ARE FREE. If success is False, nothing is ever charged.
+      2. Cost is by tokens × model price, except fixed-price features
+         (dictation = 1 credit), per quote_task_cost().
+
+    Returns the number of credits actually charged (0 on failure, on a
+    zero-cost task, or if the deduction itself could not be applied).
+    """
+    if not success:
+        return 0
+
+    amount = quote_task_cost(
+        feature,
+        model=model,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        tier=tier,
+    )
+    if amount <= 0:
+        return 0
+
+    if _get_manager().deduct(user_id, feature, amount, model=model):
+        return amount
+    return 0
+
+
+def charge_dictation(user_id: str, duration_sec: float = 0.0) -> int:
+    """
+    Bill a successful dictation.
+
+    Paid tiers (pro/power) get a free daily allowance of dictation audio
+    (default 30 min/day, configured as dictation.daily_free_seconds_paid in
+    model_prices.json). Within the allowance nothing is charged; beyond it —
+    and always on the free tier — the fixed dictation credit applies.
+
+    Returns the number of credits actually charged.
+    """
+    mgr = _get_manager()
+    tier = mgr.get_tier(user_id)
+    if tier in ("pro", "power") and duration_sec > 0:
+        if mgr.consume_dictation_allowance(user_id, duration_sec):
+            return 0
+    return charge_task(user_id, "dictation", True, model="whisper-large-v3-turbo", tier=tier)
 
 
 def calculate_agent_credits(
@@ -313,6 +428,8 @@ class CreditBalanceManager:
     def __init__(self, local_path: Path = _CREDITS_LOCAL_PATH) -> None:
         self._local_path = local_path
         self._cache: Dict[str, Dict[str, Any]] = {}
+        self._file_lock = FileLock(str(local_path) + ".lock") if FileLock else None
+        self._lock = threading.Lock()
 
     # -- Local JSON helpers --
 
@@ -320,16 +437,30 @@ class CreditBalanceManager:
         if not self._local_path.exists():
             return {}
         try:
-            with open(self._local_path, "r", encoding="utf-8") as f:
-                return json.load(f)
+            if self._file_lock:
+                with self._file_lock:
+                    with open(self._local_path, "r", encoding="utf-8") as f:
+                        return json.load(f)
+            else:
+                with open(self._local_path, "r", encoding="utf-8") as f:
+                    return json.load(f)
         except Exception:
             return {}
 
     def _save_local(self, data: Dict[str, Any]) -> None:
         self._local_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            with open(self._local_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2)
+            # Atomic write: temp file + replace to avoid corruption on crash
+            tmp_path = self._local_path.with_suffix(".tmp")
+            if self._file_lock:
+                with self._file_lock:
+                    with open(tmp_path, "w", encoding="utf-8") as f:
+                        json.dump(data, f, indent=2)
+                    os.replace(str(tmp_path), str(self._local_path))
+            else:
+                with open(tmp_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2)
+                os.replace(str(tmp_path), str(self._local_path))
         except Exception as e:
             print(f"[CreditSystem] Failed to save local credits: {e}")
 
@@ -363,6 +494,23 @@ class CreditBalanceManager:
     def _check_monthly_reset(self, user_id: str, user_data: Dict[str, Any]) -> Dict[str, Any]:
         """Reset balance if 30 days have passed since last reset. Returns possibly-mutated user_data."""
         reset_at = user_data.get("reset_at")
+
+        # GUARD: Missing reset_at on an existing account must NOT wipe credits.
+        # This happens when the reset_at field is introduced after users already
+        # have balances, when the field is accidentally removed, or on file
+        # corruption that loses metadata but preserves transactions.
+        if not reset_at:
+            has_history = bool(user_data.get("transactions"))
+            has_balance = user_data.get("balance") is not None
+            if has_history or has_balance:
+                user_data["reset_at"] = datetime.now(timezone.utc).isoformat()
+                self._set_user_data(user_id, user_data)
+                print(
+                    f"[CreditSystem] Seeded reset_at for existing user {user_id} "
+                    f"(balance={user_data.get('balance')}) without resetting"
+                )
+                return user_data
+
         if _is_reset_due(reset_at):
             tier = self.get_tier(user_id)
             allocation = self.get_tier_credits(tier)
@@ -404,6 +552,17 @@ class CreditBalanceManager:
                     if result.data:
                         row = result.data[0]
                         reset_at = row.get("reset_at")
+                        balance = row.get("balance")
+
+                        # GUARD: Same as local path — don't reset existing users
+                        # just because reset_at is missing in Supabase.
+                        if not reset_at and balance is not None:
+                            now_iso = datetime.now(timezone.utc).isoformat()
+                            client.table("credits").update({
+                                "reset_at": now_iso,
+                            }).eq("user_id", user_id).execute()
+                            return balance
+
                         if _is_reset_due(reset_at):
                             tier = self.get_tier(user_id)
                             allocation = self.get_tier_credits(tier)
@@ -416,7 +575,20 @@ class CreditBalanceManager:
                             return allocation
                         return row.get("balance", 0)
                     else:
-                        # Auto-init new Supabase user with tier allocation
+                        # Supabase has no row for this user — fall back to local data
+                        # before auto-initializing, so we don't lose tracked usage.
+                        user_data = self._get_user_data(user_id)
+                        user_data = self._check_monthly_reset(user_id, user_data)
+                        balance = user_data.get("balance")
+                        if balance is not None:
+                            # Attempt to sync local balance to Supabase for next read
+                            try:
+                                tier = self.get_tier(user_id)
+                                self.initialize_user(user_id, tier, balance=balance)
+                            except Exception:
+                                pass
+                            return balance
+                        # No local data either — initialize fresh
                         tier = self.get_tier(user_id)
                         allocation = self.get_tier_credits(tier)
                         self.initialize_user(user_id, tier)
@@ -473,6 +645,28 @@ class CreditBalanceManager:
         """Check if user has enough credits."""
         return self.get_balance(user_id) >= amount
 
+    def consume_dictation_allowance(self, user_id: str, duration_sec: float) -> bool:
+        """
+        Try to absorb a dictation of duration_sec into today's free allowance.
+        Returns True if the dictation is covered (no charge), False if the
+        daily allowance is exhausted. Resets at local midnight.
+        """
+        limit = _get_registry().get_dictation_daily_free_seconds()
+        if limit <= 0:
+            return False
+        today = datetime.now().strftime("%Y-%m-%d")
+        with self._lock:
+            user_data = self._get_user_data(user_id)
+            usage = user_data.get("dictation_free", {})
+            if usage.get("date") != today:
+                usage = {"date": today, "seconds": 0.0}
+            if usage["seconds"] >= limit:
+                return False
+            usage["seconds"] = round(usage["seconds"] + max(0.0, float(duration_sec)), 2)
+            user_data["dictation_free"] = usage
+            self._set_user_data(user_id, user_data)
+            return True
+
     def deduct(
         self,
         user_id: str,
@@ -487,67 +681,66 @@ class CreditBalanceManager:
         if amount <= 0:
             return True
 
-        current = self.get_balance(user_id)
-        if current < amount:
-            print(f"[CreditSystem] Insufficient credits for {user_id}: need {amount}, have {current}")
-            return False
+        with self._lock:
+            current = self.get_balance(user_id)
+            if current < amount:
+                print(f"[CreditSystem] Insufficient credits for {user_id}: need {amount}, have {current}")
+                return False
 
-        new_balance = current - amount
+            new_balance = current - amount
 
-        # Try Supabase first
-        try:
-            from core.supabase_client import is_configured, get_client
-            if is_configured():
-                client = get_client()
-                if client:
-                    client.table("credits").update({"balance": new_balance}).eq(
-                        "user_id", user_id
-                    ).execute()
+            # Try Supabase first
+            try:
+                from core.supabase_client import is_configured, get_client
+                if is_configured():
+                    client = get_client()
+                    if client:
+                        client.table("credits").update({"balance": new_balance}).eq(
+                            "user_id", user_id
+                        ).execute()
 
-                    client.table("credit_transactions").insert({
-                        "user_id": user_id,
-                        "feature": feature,
-                        "model": model,
-                        "amount": amount,
-                        "balance_after": new_balance,
-                    }).execute()
+                        client.table("credit_transactions").insert({
+                            "user_id": user_id,
+                            "feature": feature,
+                            "model": model,
+                            "amount": amount,
+                            "balance_after": new_balance,
+                        }).execute()
 
-                    # Update cache
-                    self._cache[user_id] = {"balance": new_balance, "tier": self.get_tier(user_id)}
-                    self._broadcast_update(user_id)
-                    # Broadcast consumption event (exclude dictation from visibility)
-                    if feature != "dictation":
+                        # Update cache
+                        self._cache[user_id] = {"balance": new_balance, "tier": self.get_tier(user_id)}
+                        self._broadcast_update(user_id)
+                        # Broadcast consumption event (all features including dictation)
                         try:
                             from core.ws_bridge import send_credit_consumed
                             send_credit_consumed(feature, amount, new_balance, model)
                         except Exception:
                             pass
-                    return True
-        except Exception as e:
-            print(f"[CreditSystem] Supabase deduct failed, falling back to local: {e}")
+                        return True
+            except Exception as e:
+                print(f"[CreditSystem] Supabase deduct failed, falling back to local: {e}")
 
-        # Fallback to local
-        user_data = self._get_user_data(user_id)
-        user_data["balance"] = new_balance
-        transactions = user_data.get("transactions", [])
-        transactions.append({
-            "feature": feature,
-            "model": model,
-            "amount": amount,
-            "balance_after": new_balance,
-            "created_at": datetime.utcnow().isoformat(),
-        })
-        user_data["transactions"] = transactions[-100:]  # Keep last 100
-        self._set_user_data(user_id, user_data)
-        self._broadcast_update(user_id)
-        # Broadcast consumption event (exclude dictation from visibility)
-        if feature != "dictation":
+            # Fallback to local
+            user_data = self._get_user_data(user_id)
+            user_data["balance"] = new_balance
+            transactions = user_data.get("transactions", [])
+            transactions.append({
+                "feature": feature,
+                "model": model,
+                "amount": amount,
+                "balance_after": new_balance,
+                "created_at": datetime.utcnow().isoformat(),
+            })
+            user_data["transactions"] = transactions[-100:]  # Keep last 100
+            self._set_user_data(user_id, user_data)
+            self._broadcast_update(user_id)
+            # Broadcast consumption event (all features including dictation)
             try:
                 from core.ws_bridge import send_credit_consumed
                 send_credit_consumed(feature, amount, new_balance, model)
             except Exception:
                 pass
-        return True
+            return True
 
     def refill(self, user_id: str, amount: int, source: str = "manual") -> None:
         """Add credits to a user's balance."""
@@ -563,6 +756,7 @@ class CreditBalanceManager:
                         "user_id", user_id
                     ).execute()
                     self._cache[user_id] = {"balance": new_balance, "tier": self.get_tier(user_id)}
+                    self._broadcast_update(user_id)
                     return
         except Exception:
             pass
@@ -570,6 +764,7 @@ class CreditBalanceManager:
         user_data = self._get_user_data(user_id)
         user_data["balance"] = new_balance
         self._set_user_data(user_id, user_data)
+        self._broadcast_update(user_id)
 
     def reset_monthly(self, user_id: str) -> None:
         """Reset credits to tier allocation (call on billing anniversary)."""
@@ -599,10 +794,16 @@ class CreditBalanceManager:
         self._set_user_data(user_id, user_data)
         self._broadcast_update(user_id)
 
-    def initialize_user(self, user_id: str, tier: str = "free") -> None:
-        """Set up a new user with their tier allocation."""
+    def initialize_user(self, user_id: str, tier: str = "free", balance: int | None = None) -> None:
+        """Set up a new user with their tier allocation.
+
+        Args:
+            balance: If provided, use this balance instead of the tier allocation.
+                Used when syncing an existing local user to Supabase.
+        """
         allocation = self.get_tier_credits(tier)
         now_iso = datetime.now(timezone.utc).isoformat()
+        initial_balance = balance if balance is not None else allocation
 
         try:
             from core.supabase_client import is_configured, get_client
@@ -611,18 +812,18 @@ class CreditBalanceManager:
                 if client:
                     client.table("credits").upsert({
                         "user_id": user_id,
-                        "balance": allocation,
+                        "balance": initial_balance,
                         "tier": tier,
                         "reset_at": now_iso,
                     }).execute()
-                    self._cache[user_id] = {"balance": allocation, "tier": tier}
+                    self._cache[user_id] = {"balance": initial_balance, "tier": tier}
                     return
         except Exception:
             pass
 
         user_data = self._get_user_data(user_id)
         if user_data.get("balance", 0) == 0:
-            user_data["balance"] = allocation
+            user_data["balance"] = initial_balance
             user_data["tier"] = tier
             user_data["reset_at"] = now_iso
             self._set_user_data(user_id, user_data)
@@ -668,6 +869,28 @@ def deduct(
     return _get_manager().deduct(user_id, feature, amount, model)
 
 
+def charge(
+    user_id: str,
+    feature: str,
+    success: bool,
+    *,
+    model: Optional[str] = None,
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    tier: str = "pro",
+) -> int:
+    """Public alias for charge_task — charge only on success, by tokens/model."""
+    return charge_task(
+        user_id,
+        feature,
+        success,
+        model=model,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        tier=tier,
+    )
+
+
 def refill(user_id: str, amount: int, source: str = "manual") -> None:
     _get_manager().refill(user_id, amount, source)
 
@@ -676,8 +899,8 @@ def reset_monthly(user_id: str) -> None:
     _get_manager().reset_monthly(user_id)
 
 
-def initialize_user(user_id: str, tier: str = "free") -> None:
-    _get_manager().initialize_user(user_id, tier)
+def initialize_user(user_id: str, tier: str = "free", balance: int | None = None) -> None:
+    _get_manager().initialize_user(user_id, tier, balance=balance)
 
 
 def get_reset_at(user_id: str) -> Optional[str]:

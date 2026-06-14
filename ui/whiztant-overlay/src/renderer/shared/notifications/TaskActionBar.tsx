@@ -157,6 +157,7 @@ export default function TaskActionBar({
 
 function ActionButton({
   size,
+  iconSize,
   color,
   bg,
   bgHover,
@@ -165,6 +166,7 @@ function ActionButton({
   children,
 }: {
   size: number;
+  iconSize?: number;
   color: string;
   bg: string;
   bgHover: string;

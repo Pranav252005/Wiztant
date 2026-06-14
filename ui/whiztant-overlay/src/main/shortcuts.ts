@@ -188,39 +188,19 @@ export function registerShortcuts(windows: Windows): void {
   const sharedKey = dictAccel === agentAccel;
 
   if (sharedKey) {
-    // F9-style tap counting: 1 tap = dictation, 2 taps = agent
-    let f9TapCount = 0;
-    let f9TapTimer: ReturnType<typeof setTimeout> | null = null;
-
-    function flushF9Taps() {
-      const count = f9TapCount;
-      f9TapCount = 0;
-      f9TapTimer = null;
-      if (count === 1) {
-        setPillState('recording');
-        sendHotkey('f9_start');
-      } else if (count >= 2) {
-        sendHotkey('f9_toggle_agent');
-      }
-    }
-
+    // Single F9 press = instant dictation toggle. No tap window, no delay:
+    // first press starts recording immediately, next press stops it.
     const dictOk = globalShortcut.register(dictAccel, () => {
       const isRecording = getPillState() === 'recording';
       if (isRecording) {
         setPillState('idle');
         sendHotkey('f9_stop');
-        if (f9TapTimer) {
-          clearTimeout(f9TapTimer);
-          f9TapTimer = null;
-        }
-        f9TapCount = 0;
         return;
       }
-      f9TapCount += 1;
-      if (f9TapTimer) clearTimeout(f9TapTimer);
-      f9TapTimer = setTimeout(flushF9Taps, TAP_WINDOW_MS);
+      setPillState('recording');
+      sendHotkey('f9_start');
     });
-    results.push(`Dictation+Agent=${dictOk}(${dictAccel})`);
+    results.push(`Dictation=${dictOk}(${dictAccel})`);
     if (!dictOk) console.error(`[Shortcuts] FAILED to register dictation ${dictAccel}`);
   } else {
     // Separate keys — no tap counting

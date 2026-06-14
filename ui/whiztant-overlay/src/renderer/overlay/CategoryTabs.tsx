@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import type { Theme } from '../shared/themes';
+import { inkFor } from '../shared/themes';
 
 type Props = {
   categories: string[];
@@ -98,7 +99,7 @@ export default function CategoryTabs({
                   padding: '1px 6px',
                   borderRadius: 10,
                   background: isActive ? theme.aiAccent : theme.border,
-                  color: isActive ? '#0a0a0a' : theme.textMuted,
+                  color: isActive ? inkFor(theme.aiAccent) : theme.textMuted,
                   fontSize: 10,
                   fontWeight: 700,
                 }}
